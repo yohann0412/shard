@@ -1,0 +1,3575 @@
+{
+  "version": 1,
+  "experiment": "A",
+  "name": "umami",
+  "createdAt": "2026-09-28T11:21:36.590Z",
+  "harnessCommit": "d9c205e41d0181c0c8d12d7957f5e55528ec4b1e",
+  "harnessDirty": false,
+  "command": [
+    "node",
+    "/home/user/shard/dist/scripts/experiments/experiment-a.js",
+    "umami"
+  ],
+  "protocol": {
+    "label": "full",
+    "recipeProtocol": "full",
+    "subsetNote": "browser suite (playwright.config.ts, 38 tests); the API suite is recipe umami-api",
+    "roundsPlanned": 3,
+    "roundsRun": 3,
+    "extraRounds": [],
+    "loadWaitS": 180,
+    "oversubscribe": false
+  },
+  "recipe": {
+    "name": "umami",
+    "source": "git",
+    "url": "https://github.com/umami-software/umami",
+    "commit": "ec0ff50388c264ed8ce46f00967e92f7e71476ae",
+    "status": "works",
+    "blocker": null,
+    "workdir": ".",
+    "install": [
+      "pnpm install --frozen-lockfile"
+    ],
+    "build": [
+      "pnpm build"
+    ],
+    "env": {
+      "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+      "SKIP_DB_CHECK": "1",
+      "SKIP_BUILD_GEO": "1",
+      "APP_SECRET": "umami-e2e-secret",
+      "DISABLE_TELEMETRY": "1",
+      "DISABLE_UPDATES": "1",
+      "DISABLE_BOT_CHECK": "1",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "MCP_ENABLED": "1",
+      "PORT": "3102",
+      "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start"
+    },
+    "pathPrefix": [
+      "/home/user/shard/work/pnpm12/node_modules/.bin"
+    ],
+    "playwrightArgs": [],
+    "baselinePorts": [
+      3102
+    ],
+    "protocol": "full",
+    "subsetNote": "browser suite (playwright.config.ts, 38 tests); the API suite is recipe umami-api",
+    "sourceDirs": [
+      "src"
+    ],
+    "servedOutput": [
+      ".next"
+    ],
+    "mutantKinds": "throw",
+    "isolateConfig": {
+      "packageManager": "pnpm",
+      "db": {
+        "migrate": "pnpm db:migrate",
+        "urlEnv": "DATABASE_URL",
+        "extraUrlEnvs": []
+      },
+      "app": {
+        "start": "pnpm start",
+        "portEnv": "PORT",
+        "healthPath": "/api/heartbeat",
+        "env": {
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1"
+        },
+        "bootTimeoutMs": 120000
+      },
+      "playwright": {
+        "config": "playwright.config.ts",
+        "baseUrlEnvs": [
+          "PLAYWRIGHT_BASE_URL"
+        ],
+        "env": {}
+      },
+      "postgres": {},
+      "cache": {
+        "inputs": [
+          "pnpm-lock.yaml",
+          "prisma/schema.prisma",
+          "prisma/migrations"
+        ]
+      },
+      "unmanaged": {
+        "allow": false,
+        "services": []
+      },
+      "trace": {
+        "clientRoots": []
+      }
+    },
+    "timeSpentMin": 27,
+    "packageManager": "pnpm@12.3.4 (package.json engines.pnpm; no packageManager field). Installed with `npm i --prefix /home/user/shard/work/pnpm12 pnpm@12.3.4`",
+    "nodeVersionNeeded": "22 (CI uses node 22; system v22.22.2 worked)",
+    "playwrightVersion": "1.63.0",
+    "browserRevisionExpected": "chromium 1243 / chromium_headless_shell 1243 (Chrome 153) / ffmpeg 1011; ran on installed 1194 (Chrome 141) via shim dir",
+    "migrate": "pnpm db:migrate   (= prisma migrate deploy; reads DATABASE_URL. Migration 01_init inserts the admin/umami user, so no separate seed. `pnpm build` also runs it via check:db)",
+    "seed": null,
+    "appStart": "pnpm start   (= next start; honours PORT). Set via PLAYWRIGHT_WEB_SERVER_COMMAND; the config's webServer.url is baseURL",
+    "appPortEnv": "PORT (baseURL = PLAYWRIGHT_BASE_URL ?? http://localhost:${PORT ?? 3000})",
+    "healthPath": "/api/heartbeat",
+    "playwrightConfig": "playwright.config.ts",
+    "baselineCommand": "pnpm exec playwright test --workers=1 --retries=0 --reporter=list",
+    "baseline": {
+      "wallSec": 148,
+      "passed": 24,
+      "failed": 7,
+      "skipped": 7,
+      "flakyNotes": "Two runs, each on a freshly migrated DB: 148s and 158s (Playwright: 24 passed (2.4m) / (2.6m)), with identical per-test outcomes. The 7 failures are deterministic suite rot: this browser suite is not run by CI (.github/workflows/ci.yml runs only vitest and the build). api-user.spec.ts:29 expects a `password` field the API no longer returns; login.spec.ts expects /dashboard (the app now lands on /websites) and a unique 'Required' text (2 elements now); user.spec.ts and website.spec.ts target /settings/users and /settings/websites UI (testids button-create-user, button-website-add) that no longer exists there. The 7 'skipped' are 'did not run' serial-mode followers of those failures. `skipped` counts those."
+    },
+    "secondarySuite": {
+      "what": "API integration suite, also Playwright (request fixture only, no browser), maintained, all green",
+      "playwrightConfig": "playwright.api.config.ts",
+      "appStart": "pnpm start with PORT=3104 plus TWO_FACTOR_ENCRYPTION_KEY=<64 hex chars> MCP_ENABLED=1 DISABLE_BOT_CHECK=1 APP_SECRET=... (env taken from docker-compose.test.yml; no webServer in this config: scripts/test-api.ts normally starts it with docker compose)",
+      "env": {
+        "PLAYWRIGHT_BASE_URL": "http://localhost:3104"
+      },
+      "command": "pnpm exec playwright test -c playwright.api.config.ts --workers=1 --reporter=list",
+      "baseline": {
+        "wallSec": 98,
+        "passed": 271,
+        "failed": 0,
+        "skipped": 0,
+        "flakyNotes": "One run on a freshly migrated DB, server started in parallel (globalSetup waits on /api/heartbeat). Playwright: 271 passed (1.6m). globalSetup seeded via the API in 4.2s."
+      },
+      "configuredWorkers": "1 (literal; comment: specs share one seeded database and mutable globals such as the global 2FA toggle in admin.spec.ts)",
+      "isolationHazard": "globalSetup (tests/api/global-setup.ts) seeds ONE server over HTTP and writes tests/api/.runtime/<host-port>/seed.json, keyed by the host of BASE_URL. Workers read the seed from the path for their own BASE_URL (tests/api/paths.ts:17-22). Under per-worker apps, globalSetup runs in the runner main process with the main-process BASE_URL, so only one DB is seeded and the other workers find no seed.json for their host."
+    },
+    "configuredWorkers": "process.env.CI ? 1 : undefined",
+    "unmanagedServices": [],
+    "hardcodedUrlsInTests": [
+      "none in tests/e2e (grep for localhost/127.0.0.1/3000 finds nothing); baseURL comes from PLAYWRIGHT_BASE_URL or PORT (playwright.config.ts:4-5)"
+    ],
+    "authSetup": "per-test: loginViaApi() POSTs /api/auth/login and puts the token in localStorage through addInitScript (tests/e2e/helpers.ts). No globalSetup, no setup project, no storageState. Without REDIS_URL the token is a stateless JWT signed with APP_SECRET (src/lib/auth.ts:78,160), so it survives any instance with the same APP_SECRET. The user is looked up in that instance's DB.",
+    "modified": false,
+    "diff": null,
+    "notes": [
+      "The default webServer command is `pnpm dev` (next dev --turbo). Use PLAYWRIGHT_WEB_SERVER_COMMAND='pnpm start' after `pnpm build`. N dev servers in one checkout would collide on .next, and next start does not.",
+      "`pnpm start` runs next through pnpm: killing the pnpm PID left next-server running (it had to be killed separately). Kill the whole process group.",
+      "next.config.ts reads BASE_PATH, CLOUD_MODE, COLLECT_API_ENDPOINT, TRACKER_SCRIPT_NAME and similar at build time, but no URL or port is baked in; DATABASE_URL and PORT are runtime.",
+      "Browser specs create fixed-name entities ('playwright1', 'Playwright Website', 'Test-user') and pick rows with .first() (website.spec.ts:34,62). Fine with one DB per worker; cross-worker collisions on a shared DB.",
+      "Five browser specs use test.describe.configure({ mode: 'serial' }) (api-board, api-team, api-user, api-website, user).",
+      "Chrome 141 (1194) under Playwright 1.63.0 ran fine; the failures above are assertion/UI drift, not protocol errors.",
+      "Postgres 16.13 used; docker-compose.test.yml uses postgres:15. `pnpm build` also migrates, so the build needs a reachable DB unless SKIP_DB_CHECK=1 (CI uses SKIP_DB_CHECK=1 with a dummy URL)."
+    ],
+    "isolateConfigApiSuite": {
+      "packageManager": "pnpm",
+      "db": {
+        "migrate": "pnpm db:migrate",
+        "seed": "set -e\nport=$(node -e \"const s=require('net').createServer();s.listen(0,'127.0.0.1',()=>{console.log(s.address().port);s.close()})\")\nPORT=$port APP_SECRET=umami-e2e-secret DISABLE_TELEMETRY=1 DISABLE_UPDATES=1 DISABLE_BOT_CHECK=1 NEXT_TELEMETRY_DISABLED=1 TWO_FACTOR_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef MCP_ENABLED=1 setsid pnpm start > .isolate/logs/seed-app.log 2>&1 &\napp=$!\ntrap 'set +e; kill -TERM -$app; wait $app; true' EXIT\nSEED_BASE_URL=http://127.0.0.1:$port pnpm exec tsx --eval \"import('./tests/api/global-setup.ts').then((m) => m.default({ projects: [{ use: { baseURL: process.env.SEED_BASE_URL } }] })).then(() => process.exit(0), (e) => { console.error(e); process.exit(1); })\"",
+        "urlEnv": "DATABASE_URL",
+        "extraUrlEnvs": []
+      },
+      "app": {
+        "start": "pnpm start",
+        "portEnv": "PORT",
+        "healthPath": "/api/heartbeat",
+        "env": {
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1"
+        },
+        "bootTimeoutMs": 120000
+      },
+      "playwright": {
+        "config": "playwright.config.ts",
+        "baseUrlEnvs": [],
+        "env": {
+          "API_SKIP_SEED": "1"
+        }
+      },
+      "cache": {
+        "inputs": [
+          "pnpm-lock.yaml",
+          "prisma/schema.prisma",
+          "prisma/migrations",
+          "tests/api/global-setup.ts",
+          "tests/api/seed",
+          "tests/api/helpers",
+          "tests/api/client.ts",
+          "tests/api/paths.ts"
+        ]
+      }
+    },
+    "isolateNotes": [
+      "STATUS (2026-09-28 09:31-10:56 UTC; onboarding only, machine shared, no timing claims): WORKS for both suites, no umami file changed. Browser suite: isolated N=1, 2 and 4 each match the baseline test by test (24 passed, 7 failed, 7 did not run; the 7 failures are the scout's suite rot and fail identically in every arm). API suite: 271/271 at N=1, 2 and 4 with isolateConfigApiSuite, which seeds the template over HTTP before cloning. With the plain isolateConfig it passes at N=1 and fails at N>=2, because of globalSetup state; details below.",
+      "FILES: clone work/repos/umami at ec0ff50. The config is work/repos/umami/isolate.config.ts, a single TypeScript file that switches to the API variant when isolate's own argv contains `playwright.api.config` and not `--baseline`. isolateConfig (browser suite, also the plain API runs) and isolateConfigApiSuite are its two resolved static forms; the experiment harness needs a static one. Env: work/repos/umami-isolate.env. Runner: work/repos/run-isolate.sh <name> <isolate args> copies each run's report.json, pw-results.json and .isolate/logs to work/repos/umami-runs/<name>.* and records the isolate commit and dist mtime. API baseline: work/repos/api-baseline-with-app.sh.",
+      "SETUP as the recipe says: `git clone https://github.com/umami-software/umami work/repos/umami && git checkout ec0ff50`. With work/pnpm12 on PATH, from inside the checkout: `pnpm install --frozen-lockfile` (1.2 s, warm store). Then `pnpm build` with work/repos/umami-build.env: DATABASE_URL on a throwaway Postgres 16 cluster at work/pg/umami-build, port 55533, stopped afterwards; APP_SECRET; SKIP_BUILD_GEO=1; DISABLE_*; NEXT_TELEMETRY_DISABLED. It took 228 s and exited 0. The browser shim work/pw-browsers/r1243 already existed from `make-pw-shim.sh 1243` and was reused. isolate ran its embedded Postgres 18.4: all 26 migrations apply and nothing differed from the scout's PG16 baseline. `build` is unset in the config.",
+      "ENV outside the config, exported to isolate itself: PLAYWRIGHT_BROWSERS_PATH=work/pw-browsers/r1243, CI=1, PLAYWRIGHT_HTML_OPEN=never, and PATH with pnpm 12. PLAYWRIGHT_BROWSERS_PATH cannot go in playwright.env, because Playwright reads it before the wrapper's env module runs. The app env is inherited from isolate's environment plus app.env, and PORT and DATABASE_URL are set by isolate. TWO_FACTOR_ENCRYPTION_KEY and MCP_ENABLED are only needed by the API suite; the browser arms carry them and still match a baseline that ran without them.",
+      "BROWSER SUITE, 38 tests (all runs `node dist/src/cli.js run ... -- pnpm exec playwright test --retries=0`). baseline (`--baseline -- ... --workers=1`, shell env APP_SECRET/DISABLE_*/NEXT_TELEMETRY_DISABLED, PORT=3102, PLAYWRIGHT_WEB_SERVER_COMMAND='pnpm start'): 24/7/7, routing valid, b0 280 commits. N=1: 24/7/7, valid, w0 296. N=2: 24/7/7, valid, w0 225 and w1 72. N=4: 24/7/7, valid, w0-w3 72/52/118/59. Final-file N=4 (`--no-rerun`): 24/7/7, valid, 160/63/30/48. Earlier runs on older isolate builds gave the same outcomes (baseline b0 279; N=1 w0 294; N=2 214/83). isolate's reruns called all 7 failures deterministic (failed, failed) at every N. Isolation failures: none.",
+      "API SUITE, 271 tests, plain isolateConfig (per-worker PLAYWRIGHT_BASE_URL, no seed). N=1: 271 passed, valid, w0 3592. N=2: 196 passed, 27 failed, 48 did not run, routing INVALID (w0 2829, w1 0). N=4: 132 passed, 43 failed, 96 did not run, routing INVALID (w0 2221; w1, w2 and w3 0). Every failure is on parallel index >= 1. Compared with the baseline, 75 tests differ at N=2 and 139 at N=4.",
+      "FAILURE CATEGORY, plain config, all of those 75/139 tests: SHARED SETUP STATE (globalSetup), and through it GLOBAL STATE OUTSIDE THE DB (files keyed by host). globalSetup runs once, in the runner's main process, where isolate's env module applies worker 0's values. It seeds only w0's app and database over HTTP (tests/api/global-setup.ts:119, seedEnvironment). It writes seed.json and openapi.json only under tests/api/.runtime/<host of PLAYWRIGHT_BASE_URL>/ (paths.ts:15-21; global-setup.ts:65 and :122). Workers >= 1 see their own host, so they fail with `ENOENT: no such file or directory, open '.../tests/api/.runtime/127.0.0.1-<port>/seed.json'`, at seed/state.ts:48 from the worker fixture fixtures.ts:38 (27/27 failures at N=2, 41/43 at N=4). The other 2 at N=4 (system.spec.ts:4 and :25) fail with `Coverage oracle .../127.0.0.1-<port>/openapi.json is missing` (coverage/oracle.ts:30, via recorder.ts:50 and client.ts:60). The did-not-run tests are serial-mode followers (`test.describe.configure({ mode: 'serial' })`, e.g. websites.spec.ts:15, users.spec.ts:7). The coverage reporter in the main process merges only w0's host dir (N=2: 153 covered, 24 uncovered). It did not enforce because the run had failed, but it would fail an otherwise green split run. Not seen: hardcoded URL, cross-test dependency, unmanaged service, timeout under load.",
+      "API FIX, config only (isolateConfigApiSuite): (1) db.seed boots one `pnpm start` on a free port against the `seed` database, in its own session (setsid). It runs the suite's own globalSetup through `pnpm exec tsx --eval` with baseURL set to that app, then kills the app's process group. The template then holds the seed entities, and seed.json/openapi.json land in tests/api/.runtime/localhost-3100/, the paths.ts default. (2) playwright.baseUrlEnvs is [], so PLAYWRIGHT_BASE_URL stays unset and every process keys its runtime dir on localhost:3100. Requests still reach each worker's own app, because the wrapper sets use.baseURL per worker and the specs only use relative paths (fixtures.ts:42 takes workerInfo.project.use.baseURL). (3) playwright.env API_SKIP_SEED=1, umami's own switch (global-setup.ts:99), so the run's globalSetup reuses seed.json and only fetches openapi.json from w0. Results: N=1 271/271, valid, w0 2990 (cache miss, seeded). N=2 271/271, valid, 1313/1781 (cache hit). N=4 271/271, valid, 757/775/902/703 (cache hit). Final-file N=4 271/271, valid, 738/861/796/737 (cache miss, seeded afresh). Coverage 177 covered + 2 allowlisted of 179 in every run. Seeding raised migrateSeed to 9.2 s and 11.3 s, against 2.5-2.8 s for migrate alone (loaded machine); a cache hit skips it. admin.spec's global 2FA toggle becomes per worker. First attempt: the seed exited 2 because dash's `kill` rejects `--`; the isolate reaper killed the 3 escaped next-server processes.",
+      "API FIX CAVEAT: seed.json is outside the database, so isolate's snapshot does not cover it. On a cache hit db.seed does not run: the database comes from the cache and seed.json from whichever run last seeded. That is consistent here only because nothing else writes tests/api/.runtime/localhost-3100; any run of the API suite with PLAYWRIGHT_BASE_URL unset and without API_SKIP_SEED would overwrite it. Keep baselines on PLAYWRIGHT_BASE_URL=http://localhost:3104.",
+      "API BASELINE: playwright.api.config.ts has no webServer (scripts/test-api.ts starts docker compose), and `isolate run --baseline` starts no app. As-is (`PLAYWRIGHT_BASE_URL=http://localhost:3104 isolate run --baseline -- pnpm exec playwright test -c playwright.api.config.ts --workers=1 --retries=0`): globalSetup times out after 120 s on http://localhost:3104/api/heartbeat, 0 tests run, exit 1. The report still says routingValid=true with b0 at 0 commits, which is vacuous. With work/repos/api-baseline-with-app.sh, which reads isolate's Postgres port from its log, waits for b0, then runs `PORT=3104 DATABASE_URL=postgres://postgres@127.0.0.1:<port>/b0 <app env> setsid pnpm start`: 271/271, valid, b0 3620 commits. That reproduces the scout's 271/271. The baseline keeps the plain variant, so its own globalSetup seeds b0 as `pnpm test:api` would.",
+      "ISOLATE GAPS FOUND (details in SCOUT_LOG.md, 'umami isolate onboarding'): (a) no way to seed through the running app (umami seeds over HTTP), worked around in db.seed; (b) files a seed writes are not part of the DB snapshot; (c) baseline mode cannot start the app for a config without webServer; (d) the routing check blames DATABASE_URL when a worker's tests fail before reaching its app, and marks a run with 0 tests routingValid=true; (e) reruns run at 1 worker and relabel isolation failures 'flaky' (passed, passed): 10 of 10 rerun at N=2 and N=4; (f) the unmanaged scan flags clickhouse/kafka/redis from package.json in every run, though umami only uses them when CLICKHOUSE_URL/KAFKA_URL/REDIS_URL are set, and run ignores config.unmanaged; (g) the DB cache key hashes the config file text plus cache.inputs, not the resolved config, and a hand-written config with empty cache.inputs ignores migrations.",
+      "HAZARD SCAN in the API runs: 'hardcoded URL tests/api/paths.ts:8' is a false positive (a fallback behind PLAYWRIGHT_BASE_URL). 'globalSetup ... lands in worker 0's database only' is accurate but incomplete: the files keyed by host are what fail first. The browser suite gets no hazard warnings.",
+      "COST: in the browser arms, isolate's reruns (7 deterministic failures x 2 runs, each on a fresh app) took 352, 335 and 370 s of 497, 456 and 489 s wall at N=1, 2 and 4. `--no-rerun`, added to isolate during this session (bca535a), avoids that.",
+      "ISOLATE VERSION: the lead rebuilt dist several times during these runs. Browser baseline/N=1/N=2/N=4 ran on 12eabbf (N=4 ended at 998a577, docs-only). API plain N=1/N=2/N=4 ran from 998a577 to 88b24c4, with dist rebuilt during each of the three runs; the run-path change in that range is only the new --no-rerun flag. The API fix, both API baselines and both final-file runs ran on 88b24c4. Each run's start/end commit and dist mtime are in work/repos/umami-runs/<name>.ver."
+    ],
+    "scoutInstall": [
+      "git clone --depth 1 https://github.com/umami-software/umami && cd umami  # at the commit above",
+      "export PATH=/home/user/shard/work/pnpm12/node_modules/.bin:$PATH   # pnpm 12.3.4; run from inside the checkout, NOT from /home/user/shard (its packageManager pnpm@10.33.0 makes pnpm switch versions)",
+      "pnpm install --frozen-lockfile   # 27s",
+      "experiments/recipes/make-pw-shim.sh 1243   # creates /home/user/shard/work/pw-browsers/r1243"
+    ],
+    "scoutBuild": [
+      "pnpm build   # with DATABASE_URL etc. exported. Runs check:env, prisma generate, check:db (= prisma migrate deploy against DATABASE_URL), tracker/recorder rollup, build:geo (skipped by SKIP_BUILD_GEO=1), openapi, packages, next build --turbo, postbuild. 205s here"
+    ],
+    "scoutEnv": {
+      "DATABASE_URL": "postgresql://postgres@127.0.0.1:{port}/{db}",
+      "APP_SECRET": "umami-e2e-secret (any string)",
+      "SKIP_BUILD_GEO": "1 (build only; otherwise downloads GeoLite2 from raw.githubusercontent.com)",
+      "DISABLE_TELEMETRY": "1",
+      "DISABLE_UPDATES": "1",
+      "DISABLE_BOT_CHECK": "1",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "CI": "true (config: workers 1, retries 2, forbidOnly)",
+      "PORT": "3102",
+      "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start   (config hook; default is `pnpm dev`)",
+      "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+    },
+    "harnessNotes": [
+      "install/build/env adapted for the harness by the lead: the harness clones at the pinned commit itself; SKIP_DB_CHECK=1 lets `pnpm build` skip its migrate-against-DATABASE_URL step (the DATABASE_URL here is a placeholder that every isolate run overrides per worker); scout originals kept under scoutInstall/scoutBuild/scoutEnv."
+    ]
+  },
+  "checkout": {
+    "root": "work/repos/umami",
+    "appDir": "work/repos/umami",
+    "commit": "ec0ff50388c264ed8ce46f00967e92f7e71476ae"
+  },
+  "browsers": {
+    "path": "/home/user/shard/work/pw-browsers/r1243",
+    "expected": {
+      "chromium": "1243",
+      "headlessShell": "1243",
+      "ffmpeg": "1011"
+    },
+    "installed": {
+      "chromium": "1194",
+      "headlessShell": "1194",
+      "ffmpeg": "1011"
+    },
+    "shim": true
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.18.44-fc-v37",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.63.0",
+    "cloudSandbox": true
+  },
+  "arms": [
+    {
+      "name": "baseline@configured",
+      "kind": "baseline",
+      "workers": null,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "baseline@1",
+      "kind": "baseline",
+      "workers": 1,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ]
+    },
+    {
+      "name": "isolated@1",
+      "kind": "isolated",
+      "workers": 1,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "isolated@2",
+      "kind": "isolated",
+      "workers": 2,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "isolated@4",
+      "kind": "isolated",
+      "workers": 4,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    }
+  ],
+  "skippedArms": [
+    {
+      "name": "isolated@8",
+      "reason": "8 workers > 4 cores (pass --oversubscribe to run it)"
+    }
+  ],
+  "runs": [
+    {
+      "arm": "isolated@1",
+      "round": "cold",
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 100100,
+        "seen": [
+          4.1,
+          3.47,
+          2.94,
+          2.49,
+          2.1,
+          1.78,
+          1.51,
+          1.35,
+          1.14,
+          1.04,
+          0.88
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-cold",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T11:25:22.106Z",
+      "loadAvg1AtStart": 0.88,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 483162,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@1-cold.json",
+        "results": "data/results/umami/runs/isolated@1-cold.pw-results.json",
+        "log": "data/results/umami/runs/isolated@1-cold.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 10,
+        "free": true
+      },
+      "label": "baseline@configured-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T11:33:25.281Z",
+      "loadAvg1AtStart": 0.52,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 137921,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@configured-warmup.json",
+        "results": "data/results/umami/runs/baseline@configured-warmup.pw-results.json",
+        "log": "data/results/umami/runs/baseline@configured-warmup.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 4,
+        "free": true
+      },
+      "label": "baseline@1-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T11:35:43.208Z",
+      "loadAvg1AtStart": 1.1,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 138409,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@1-warmup.json",
+        "results": "data/results/umami/runs/baseline@1-warmup.pw-results.json",
+        "log": "data/results/umami/runs/baseline@1-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@1-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T11:38:01.619Z",
+      "loadAvg1AtStart": 0.53,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 484129,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@1-warmup.json",
+        "results": "data/results/umami/runs/isolated@1-warmup.pw-results.json",
+        "log": "data/results/umami/runs/isolated@1-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@2-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T11:46:05.751Z",
+      "loadAvg1AtStart": 0.39,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 477889,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@2-warmup.json",
+        "results": "data/results/umami/runs/isolated@2-warmup.pw-results.json",
+        "log": "data/results/umami/runs/isolated@2-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@4-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T11:54:03.641Z",
+      "loadAvg1AtStart": 0.39,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 460823,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@4-warmup.json",
+        "results": "data/results/umami/runs/isolated@4-warmup.pw-results.json",
+        "log": "data/results/umami/runs/isolated@4-warmup.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.42
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 2,
+        "free": true
+      },
+      "label": "baseline@configured-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:01:44.469Z",
+      "loadAvg1AtStart": 0.42,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 141732,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@configured-1.json",
+        "results": "data/results/umami/runs/baseline@configured-1.pw-results.json",
+        "log": "data/results/umami/runs/baseline@configured-1.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.29
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@1-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:04:06.204Z",
+      "loadAvg1AtStart": 0.29,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 139183,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@1-1.json",
+        "results": "data/results/umami/runs/baseline@1-1.pw-results.json",
+        "log": "data/results/umami/runs/baseline@1-1.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.58
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:06:25.389Z",
+      "loadAvg1AtStart": 0.58,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 492601,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@1-1.json",
+        "results": "data/results/umami/runs/isolated@1-1.pw-results.json",
+        "log": "data/results/umami/runs/isolated@1-1.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.35
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:14:37.993Z",
+      "loadAvg1AtStart": 0.35,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 477946,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@2-1.json",
+        "results": "data/results/umami/runs/isolated@2-1.pw-results.json",
+        "log": "data/results/umami/runs/isolated@2-1.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.43
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:22:35.942Z",
+      "loadAvg1AtStart": 0.43,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 473077,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@4-1.json",
+        "results": "data/results/umami/runs/isolated@4-1.pw-results.json",
+        "log": "data/results/umami/runs/isolated@4-1.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.47
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 4,
+        "free": true
+      },
+      "label": "baseline@1-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:30:29.026Z",
+      "loadAvg1AtStart": 0.47,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 143082,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@1-2.json",
+        "results": "data/results/umami/runs/baseline@1-2.pw-results.json",
+        "log": "data/results/umami/runs/baseline@1-2.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10011,
+        "seen": [
+          1.17,
+          0.99
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:33:02.120Z",
+      "loadAvg1AtStart": 0.99,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 494876,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@1-2.json",
+        "results": "data/results/umami/runs/isolated@1-2.pw-results.json",
+        "log": "data/results/umami/runs/isolated@1-2.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.62
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:41:16.998Z",
+      "loadAvg1AtStart": 0.62,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 472033,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@2-2.json",
+        "results": "data/results/umami/runs/isolated@2-2.pw-results.json",
+        "log": "data/results/umami/runs/isolated@2-2.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.52
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:49:09.032Z",
+      "loadAvg1AtStart": 0.52,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 454863,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@4-2.json",
+        "results": "data/results/umami/runs/isolated@4-2.pw-results.json",
+        "log": "data/results/umami/runs/isolated@4-2.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.22
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@configured-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:56:43.899Z",
+      "loadAvg1AtStart": 0.22,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 138562,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@configured-2.json",
+        "results": "data/results/umami/runs/baseline@configured-2.pw-results.json",
+        "log": "data/results/umami/runs/baseline@configured-2.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.36
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T12:59:02.464Z",
+      "loadAvg1AtStart": 0.36,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 480429,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@1-3.json",
+        "results": "data/results/umami/runs/isolated@1-3.pw-results.json",
+        "log": "data/results/umami/runs/isolated@1-3.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.33
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T13:07:02.895Z",
+      "loadAvg1AtStart": 0.33,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 463977,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@2-3.json",
+        "results": "data/results/umami/runs/isolated@2-3.pw-results.json",
+        "log": "data/results/umami/runs/isolated@2-3.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.49
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T13:14:46.874Z",
+      "loadAvg1AtStart": 0.49,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 455868,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/isolated@4-3.json",
+        "results": "data/results/umami/runs/isolated@4-3.pw-results.json",
+        "log": "data/results/umami/runs/isolated@4-3.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.28
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 2,
+        "free": true
+      },
+      "label": "baseline@configured-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T13:22:22.746Z",
+      "loadAvg1AtStart": 0.28,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 144606,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@configured-3.json",
+        "results": "data/results/umami/runs/baseline@configured-3.pw-results.json",
+        "log": "data/results/umami/runs/baseline@configured-3.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.34
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3102
+        ],
+        "waitedMs": 2,
+        "free": true
+      },
+      "label": "baseline@1-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/umami",
+      "env": {
+        "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+        "SKIP_DB_CHECK": "1",
+        "SKIP_BUILD_GEO": "1",
+        "APP_SECRET": "umami-e2e-secret",
+        "DISABLE_TELEMETRY": "1",
+        "DISABLE_UPDATES": "1",
+        "DISABLE_BOT_CHECK": "1",
+        "NEXT_TELEMETRY_DISABLED": "1",
+        "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "MCP_ENABLED": "1",
+        "PORT": "3102",
+        "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+        "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+      },
+      "startedAt": "2026-09-28T13:24:47.357Z",
+      "loadAvg1AtStart": 0.34,
+      "exitCode": 1,
+      "exceededCap": false,
+      "outsideWallMs": 150190,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/umami/runs/baseline@1-3.json",
+        "results": "data/results/umami/runs/baseline@1-3.pw-results.json",
+        "log": "data/results/umami/runs/baseline@1-3.log"
+      }
+    }
+  ],
+  "aggregate": {
+    "definitions": {
+      "testPhaseMs": "first test begin to last test end, from the isolate reporter (the verdict span)",
+      "wallMs": "the isolate command's whole wall time from its report (setup, build, Postgres, migrate/seed, clone, app boot, tests, reruns, teardown)",
+      "preTestMs": "Playwright start to first test begin: webServer boot, globalSetup, worker and browser start",
+      "playwrightWallMs": "pre-test + test phase + post-test: Playwright alone",
+      "endToEndMs": "wallMs minus the build phase (done once before timing) and the failure reruns",
+      "valid": "a run counts when it wrote a report and results, stayed under the 45-min cap, routing was valid, no \"too many clients\", and its per-test outcomes equal baseline@1's reference outcomes (most frequent outcome over its timed rounds)",
+      "speedups": "medians of valid timed runs: test phase, Playwright wall (\"wall\") and end-to-end of isolated@1 divided by those of isolated@N; vs-baseline divides the baseline arm by isolated@N",
+      "harnessEffect": "test phase of baseline@1 / isolated@1; outside 0.85-1.15 it is flagged and vs-baseline speedups should not be quoted",
+      "schedulingCeiling": "T1 / max(T1/N, longest file); T1 = sum of per-test median durations at isolated@1; a file is its longest test if two of its tests were seen running at once in an isolated N > 1 run, else the sum of its tests",
+      "resourceCeiling": "min(N, cores/d); d = machine-wide busy CPU seconds (busyPct x cores x Playwright wall) per test-phase second at isolated@1 (includes Postgres, the app and anything else on the machine)",
+      "perTestInflation": "sum of test durations at N / at N=1 (medians over valid runs)",
+      "setupFraction": "sum of hook and fixture time / sum of test durations; pre-test and post-test shares of the Playwright wall",
+      "isolationFailure": "fails in >= 2 isolated@4 timed rounds and passes in >= 2 baseline@1 timed rounds",
+      "memory": "peak RSS of every app tree plus the Postgres tree at the largest N that ran (each tree sampled once a second, peaks summed)",
+      "cacheEffect": "the cold run (fresh .isolate/, before everything) against the valid timed isolated@1 runs; never part of a speedup"
+    },
+    "referenceOutcomes": {
+      "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": "passed",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": "passed",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": "passed",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": "failed",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": "skipped",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": "skipped",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": "skipped",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": "skipped",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": "skipped",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": "passed",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": "passed",
+      "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": "failed",
+      "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": "failed",
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": "passed",
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": "passed",
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": "passed",
+      "chromium › tests/e2e/user.spec.ts › User tests › adds a user": "failed",
+      "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": "skipped",
+      "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": "skipped",
+      "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": "failed",
+      "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": "failed",
+      "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": "failed"
+    },
+    "validity": [
+      {
+        "arm": "isolated@1",
+        "round": "cold",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      }
+    ],
+    "perArm": [
+      {
+        "arm": "baseline@configured",
+        "kind": "baseline",
+        "workers": null,
+        "oversubscribed": false,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 3,
+          "median": 129946.7,
+          "min": 128336.2,
+          "max": 132560.8
+        },
+        "wallMs": {
+          "n": 3,
+          "median": 141655.6,
+          "min": 138494.5,
+          "max": 144519.6
+        },
+        "preTestMs": {
+          "n": 3,
+          "median": 8304.7,
+          "min": 7160,
+          "max": 8417
+        },
+        "playwrightWallMs": {
+          "n": 3,
+          "median": 138402.7,
+          "min": 135676.6,
+          "max": 141125.9
+        },
+        "endToEndMs": {
+          "n": 3,
+          "median": 141655.6,
+          "min": 138494.5,
+          "max": 144519.6
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 3,
+          "median": 129946.7,
+          "min": 128336.2,
+          "max": 132560.8
+        },
+        "maxOverMinTestPhase": 1.033,
+        "concurrency": {
+          "resolvedWorkers": [
+            1
+          ],
+          "maxConcurrent": 1,
+          "distinctParallelIndexes": 1,
+          "label": "at most 1 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › adds a user": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "baseline@1",
+        "kind": "baseline",
+        "workers": 1,
+        "oversubscribed": false,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 3,
+          "median": 131453.7,
+          "min": 128629.4,
+          "max": 133056.1
+        },
+        "wallMs": {
+          "n": 3,
+          "median": 142998.3,
+          "min": 139097.6,
+          "max": 150114.3
+        },
+        "preTestMs": {
+          "n": 3,
+          "median": 8197.1,
+          "min": 7451.3,
+          "max": 12761.2
+        },
+        "playwrightWallMs": {
+          "n": 3,
+          "median": 139799.3,
+          "min": 136233.9,
+          "max": 146014.5
+        },
+        "endToEndMs": {
+          "n": 3,
+          "median": 142998.3,
+          "min": 139097.6,
+          "max": 150114.3
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 3,
+          "median": 131453.7,
+          "min": 128629.4,
+          "max": 133056.1
+        },
+        "maxOverMinTestPhase": 1.034,
+        "concurrency": {
+          "resolvedWorkers": [
+            1
+          ],
+          "maxConcurrent": 1,
+          "distinctParallelIndexes": 1,
+          "label": "at most 1 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › adds a user": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@1",
+        "kind": "isolated",
+        "workers": 1,
+        "oversubscribed": false,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 3,
+          "median": 130607.2,
+          "min": 129681,
+          "max": 132142.1
+        },
+        "wallMs": {
+          "n": 3,
+          "median": 492519.8,
+          "min": 480358.9,
+          "max": 494809.8
+        },
+        "preTestMs": {
+          "n": 3,
+          "median": 3990.3,
+          "min": 3791.8,
+          "max": 4439.6
+        },
+        "playwrightWallMs": {
+          "n": 3,
+          "median": 134694.2,
+          "min": 133560,
+          "max": 136695.8
+        },
+        "endToEndMs": {
+          "n": 3,
+          "median": 141530.3,
+          "min": 140055.1,
+          "max": 143675.9
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 3,
+          "median": 130607.2,
+          "min": 129681,
+          "max": 132142.1
+        },
+        "maxOverMinTestPhase": 1.019,
+        "concurrency": {
+          "resolvedWorkers": [
+            1
+          ],
+          "maxConcurrent": 1,
+          "distinctParallelIndexes": 1,
+          "label": "at most 1 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › adds a user": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@2",
+        "kind": "isolated",
+        "workers": 2,
+        "oversubscribed": false,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 3,
+          "median": 111881.5,
+          "min": 111301.5,
+          "max": 113646.9
+        },
+        "wallMs": {
+          "n": 3,
+          "median": 471933.9,
+          "min": 463901.5,
+          "max": 477857.1
+        },
+        "preTestMs": {
+          "n": 3,
+          "median": 3914.2,
+          "min": 3866.9,
+          "max": 4171.1
+        },
+        "playwrightWallMs": {
+          "n": 3,
+          "median": 115907.8,
+          "min": 115268.7,
+          "max": 117932.3
+        },
+        "endToEndMs": {
+          "n": 3,
+          "median": 122586.6,
+          "min": 121889.3,
+          "max": 125384.5
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 3,
+          "median": 111881.5,
+          "min": 111301.5,
+          "max": 113646.9
+        },
+        "maxOverMinTestPhase": 1.021,
+        "concurrency": {
+          "resolvedWorkers": [
+            2
+          ],
+          "maxConcurrent": 2,
+          "distinctParallelIndexes": 2,
+          "label": "at most 2 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › adds a user": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@4",
+        "kind": "isolated",
+        "workers": 4,
+        "oversubscribed": false,
+        "timedRuns": 3,
+        "validRuns": 3,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 3,
+          "median": 100285,
+          "min": 100190.3,
+          "max": 101284.3
+        },
+        "wallMs": {
+          "n": 3,
+          "median": 455779.7,
+          "min": 454793,
+          "max": 472990.9
+        },
+        "preTestMs": {
+          "n": 3,
+          "median": 5089.4,
+          "min": 4491.9,
+          "max": 5715.6
+        },
+        "playwrightWallMs": {
+          "n": 3,
+          "median": 105404.6,
+          "min": 104859.7,
+          "max": 107119
+        },
+        "endToEndMs": {
+          "n": 3,
+          "median": 113344.8,
+          "min": 112776.6,
+          "max": 116245.8
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 3,
+          "median": 100285,
+          "min": 100190.3,
+          "max": 101284.3
+        },
+        "maxOverMinTestPhase": 1.011,
+        "concurrency": {
+          "resolvedWorkers": [
+            4
+          ],
+          "maxConcurrent": 4,
+          "distinctParallelIndexes": 4,
+          "label": "at most 4 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › adds a user": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 3
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": {
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          }
+        }
+      }
+    ],
+    "speedups": {
+      "verdict": {
+        "metric": "test phase isolated@1 / isolated@4",
+        "value": 1.302
+      },
+      "harnessEffect": {
+        "value": 1.006,
+        "range": [
+          0.85,
+          1.15
+        ],
+        "flagged": false,
+        "vsBaselineQuotable": true
+      },
+      "cpuDemandAtIsolated1": 0.59,
+      "scheduling": {
+        "t1Ms": 110938,
+        "longestFile": {
+          "project": "chromium",
+          "file": "tests/e2e/website.spec.ts",
+          "parallel": false,
+          "tests": 3,
+          "durationMs": 90211
+        },
+        "files": [
+          {
+            "project": "chromium",
+            "file": "tests/e2e/website.spec.ts",
+            "parallel": false,
+            "tests": 3,
+            "durationMs": 90211
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/login.spec.ts",
+            "parallel": false,
+            "tests": 2,
+            "durationMs": 7714
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/session-modal-dismiss.spec.ts",
+            "parallel": false,
+            "tests": 3,
+            "durationMs": 5907
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/user.spec.ts",
+            "parallel": false,
+            "tests": 1,
+            "durationMs": 5876
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/api-user.spec.ts",
+            "parallel": false,
+            "tests": 2,
+            "durationMs": 192
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/api-website.spec.ts",
+            "parallel": true,
+            "tests": 9,
+            "durationMs": 121
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/api-board.spec.ts",
+            "parallel": false,
+            "tests": 1,
+            "durationMs": 79
+          },
+          {
+            "project": "chromium",
+            "file": "tests/e2e/api-team.spec.ts",
+            "parallel": true,
+            "tests": 10,
+            "durationMs": 76
+          }
+        ]
+      },
+      "byWorkers": [
+        {
+          "arm": "isolated@1",
+          "workers": 1,
+          "oversubscribed": false,
+          "testPhase": 1,
+          "wall": 1,
+          "endToEnd": 1,
+          "vsBaselineConfigured": {
+            "testPhase": 0.995,
+            "endToEnd": 1.001
+          },
+          "vsBaseline1": {
+            "testPhase": 1.006,
+            "endToEnd": 1.01
+          },
+          "schedulingCeiling": 1,
+          "resourceCeiling": 1,
+          "fractionOfLowerCeiling": 1,
+          "perTestInflation": 1
+        },
+        {
+          "arm": "isolated@2",
+          "workers": 2,
+          "oversubscribed": false,
+          "testPhase": 1.167,
+          "wall": 1.162,
+          "endToEnd": 1.155,
+          "vsBaselineConfigured": {
+            "testPhase": 1.161,
+            "endToEnd": 1.156
+          },
+          "vsBaseline1": {
+            "testPhase": 1.175,
+            "endToEnd": 1.167
+          },
+          "schedulingCeiling": 1.23,
+          "resourceCeiling": 2,
+          "fractionOfLowerCeiling": 0.949,
+          "perTestInflation": 1.01
+        },
+        {
+          "arm": "isolated@4",
+          "workers": 4,
+          "oversubscribed": false,
+          "testPhase": 1.302,
+          "wall": 1.278,
+          "endToEnd": 1.249,
+          "vsBaselineConfigured": {
+            "testPhase": 1.296,
+            "endToEnd": 1.25
+          },
+          "vsBaseline1": {
+            "testPhase": 1.311,
+            "endToEnd": 1.262
+          },
+          "schedulingCeiling": 1.23,
+          "resourceCeiling": 4,
+          "fractionOfLowerCeiling": 1.059,
+          "perTestInflation": 1.054
+        }
+      ]
+    },
+    "setupFraction": {
+      "isolated1": {
+        "arm": "isolated@1",
+        "runs": 3,
+        "setupShareOfTestTime": 0.103,
+        "preTestShareOfPlaywrightWall": 0.03,
+        "postTestShareOfPlaywrightWall": 0.001
+      },
+      "baseline1": {
+        "arm": "baseline@1",
+        "runs": 3,
+        "setupShareOfTestTime": 0.103,
+        "preTestShareOfPlaywrightWall": 0.059,
+        "postTestShareOfPlaywrightWall": 0.001
+      }
+    },
+    "failures": {
+      "isolatedArm": "isolated@4",
+      "isolatedRounds": 3,
+      "baselineRounds": 3,
+      "tests": [
+        {
+          "id": "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        },
+        {
+          "id": "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        },
+        {
+          "id": "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        },
+        {
+          "id": "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        },
+        {
+          "id": "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        },
+        {
+          "id": "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        },
+        {
+          "id": "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+          "failedInIsolatedRounds": 3,
+          "passedInBaselineRounds": 0,
+          "isolationFailure": false,
+          "toolClassification": [
+            {
+              "round": 1,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 2,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            },
+            {
+              "round": 3,
+              "classification": "deterministic",
+              "reruns": [
+                "failed",
+                "failed"
+              ]
+            }
+          ],
+          "category": "uninvestigated"
+        }
+      ]
+    },
+    "memory": {
+      "arm": "isolated@4",
+      "workers": 4,
+      "oversubscribed": false,
+      "peakMb": 2234.7,
+      "perRun": [
+        {
+          "round": 1,
+          "totalMb": 2234.7,
+          "appsMb": [
+            476.3,
+            486.3,
+            419.2,
+            418.2
+          ],
+          "postgresMb": 434.7
+        },
+        {
+          "round": 2,
+          "totalMb": 2212.9,
+          "appsMb": [
+            424.7,
+            477.7,
+            456.9,
+            388.5
+          ],
+          "postgresMb": 465.1
+        },
+        {
+          "round": 3,
+          "totalMb": 2190.7,
+          "appsMb": [
+            434.1,
+            468,
+            435.4,
+            414.8
+          ],
+          "postgresMb": 438.4
+        }
+      ]
+    },
+    "cacheEffect": {
+      "cold": {
+        "wallMs": 483069.851068,
+        "phases": {
+          "setup": 543.07546,
+          "postgresStart": 966,
+          "migrateSeed": 2730.4,
+          "clone": 193.9,
+          "appBoot": 1420,
+          "tests": 135734.04744599998,
+          "reruns": 339038.74098400003,
+          "teardown": 2443.687177999993
+        },
+        "cache": {
+          "hit": false,
+          "key": "84ce7a21d1b0de8b8e9f89033cbb8619895e6638a32c9229f1461ecbe83a5d60",
+          "db": {
+            "hit": false,
+            "key": "84ce7a21d1b0de8b8e9f89033cbb8619895e6638a32c9229f1461ecbe83a5d60"
+          },
+          "build": null
+        },
+        "valid": true
+      },
+      "warm": {
+        "arm": "isolated@1",
+        "runs": 3,
+        "wallMs": 492519.8,
+        "phases": {
+          "setup": 618.4,
+          "restore": 156.1,
+          "postgresStart": 172.6,
+          "clone": 127.2,
+          "appBoot": 1486.1,
+          "tests": 136497.7,
+          "reruns": 350989.5,
+          "teardown": 2378.3
+        }
+      },
+      "coldOverWarmWall": 0.981,
+      "note": "see cold.cache for the snapshot cache result"
+    },
+    "bestWorkers": 4
+  }
+}

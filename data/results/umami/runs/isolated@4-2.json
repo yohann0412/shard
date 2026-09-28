@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T12:49:09.041Z",
+  "repoDir": "/home/user/shard/work/repos/umami",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": true,
+    "key": "84ce7a21d1b0de8b8e9f89033cbb8619895e6638a32c9229f1461ecbe83a5d60",
+    "db": {
+      "hit": true,
+      "key": "84ce7a21d1b0de8b8e9f89033cbb8619895e6638a32c9229f1461ecbe83a5d60"
+    },
+    "build": null
+  },
+  "wallMs": 454793.013667,
+  "phases": {
+    "setup": 599.2930470000008,
+    "restore": 136.5,
+    "postgresStart": 275.4,
+    "clone": 248.9,
+    "appBoot": 1558.6,
+    "tests": 107433.12808200001,
+    "reruns": 342016.36750600004,
+    "teardown": 2524.8250319999643
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.63.0",
+    "loadAvg1": 0.52
+  },
+  "cpu": {
+    "busyPct": 21.1,
+    "stealPct": 0.8
+  },
+  "playwright": {
+    "testPhaseMs": 100285.02461299999,
+    "preTestMs": 4491.881273,
+    "postTestMs": 82.80666600000404,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 20543,
+    "bodyMs": 104763
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 37913,
+      "bootMs": 1385.3,
+      "peakRssMb": 424.7
+    },
+    {
+      "index": 1,
+      "port": 43059,
+      "bootMs": 1367.9,
+      "peakRssMb": 477.7
+    },
+    {
+      "index": 2,
+      "port": 38591,
+      "bootMs": 1544.2,
+      "peakRssMb": 456.9
+    },
+    {
+      "index": 3,
+      "port": 40881,
+      "bootMs": 1399,
+      "peakRssMb": 388.5
+    }
+  ],
+  "postgresPeakRssMb": 465.1,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 89.5
+    },
+    {
+      "name": "w1",
+      "ms": 52.2
+    },
+    {
+      "name": "w2",
+      "ms": 48.2
+    },
+    {
+      "name": "w3",
+      "ms": 37.5
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": -1,
+      "tests": 7,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 0,
+      "tests": 5,
+      "passed": 1,
+      "failed": 4
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 11,
+      "passed": 10,
+      "failed": 1
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 5,
+      "passed": 4,
+      "failed": 1
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 10,
+      "passed": 9,
+      "failed": 1
+    }
+  ],
+  "tests": {
+    "total": 38,
+    "passed": 24,
+    "failed": 7,
+    "flaky": 0,
+    "skipped": 7
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+      "title": "returns all users when admin access is used",
+      "file": "tests/e2e/api-user.spec.ts",
+      "line": 29,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+      "title": "logs user in with correct credentials and logs user out",
+      "file": "tests/e2e/login.spec.ts",
+      "line": 9,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+      "title": "adds a user",
+      "file": "tests/e2e/user.spec.ts",
+      "line": 12,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+      "title": "shows validation for blank inputs or incorrect credentials",
+      "file": "tests/e2e/login.spec.ts",
+      "line": 19,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+      "title": "adds a website",
+      "file": "tests/e2e/website.spec.ts",
+      "line": 5,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+      "title": "edits a website",
+      "file": "tests/e2e/website.spec.ts",
+      "line": 28,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+      "title": "deletes a website",
+      "file": "tests/e2e/website.spec.ts",
+      "line": 56,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 72
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 52
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 118
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 59
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [
+    {
+      "service": "clickhouse",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @clickhouse/client in package.json",
+        "image clickhouse/clickhouse-server:25.8 in docker-compose.test.yml"
+      ]
+    },
+    {
+      "service": "kafka",
+      "kind": "stateful",
+      "evidence": [
+        "dependency kafkajs in package.json"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency redis in package.json"
+      ]
+    }
+  ],
+  "warnings": [
+    "unmanaged services shared by every worker's app, not isolated (D-012): clickhouse (stateful), kafka (stateful), redis (stateful); isolation incomplete"
+  ]
+}
