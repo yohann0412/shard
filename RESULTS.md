@@ -54,18 +54,21 @@ Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-a-protocol.md` befor
 
 Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every timed run started at 1-min load average < 1.0).
 
-| Arm | Median test phase | Speedup vs isolated@1 | Scheduling ceiling | Resource ceiling | Per-test inflation |
-|---|---:|---:|---:|---:|---:|
-| baseline@1 (repo's own config, one shared app) | 6.5 s | — | | | |
-| isolated@1 | 6.4 s | 1.00 | 1.00 | 1.00 | 1.00 |
-| isolated@2 | 4.6 s | 1.42 | 2.00 | 2.00 | 1.13 |
-| **isolated@4** | **4.5 s** | **1.48** | 2.29 | 2.14 | 1.49 |
-| isolated@8 (oversubscribed: 8 > 4 cores) | 4.7 s | 1.41 | 2.29 | 2.14 | 1.90 |
+| Arm | Median test phase [min-max] | Speedup vs isolated@1 | Scheduling ceiling | Resource ceiling | Per-test inflation | Median end-to-end wall |
+|---|---:|---:|---:|---:|---:|---:|
+| baseline@1 (repo's own config, one shared app) | 6.47 s [6.21-6.66] | — | | | | 10.87 s |
+| isolated@1 | 6.60 s [6.27-7.05] | 1.00 | 1.00 | 1.00 | 1.00 | 12.98 s |
+| isolated@2 | 4.65 s [4.37-5.30] | 1.42 | 2.00 | 2.00 | 1.13 | 10.95 s |
+| **isolated@4** | **4.47 s [4.39-4.81]** | **1.48** | 2.29 | 2.14 | 1.49 | 10.99 s |
+| isolated@8 (oversubscribed: 8 > 4 cores; at most 5 tests ran at once) | 4.68 s [4.42-4.93] | 1.41 | 2.29 | 2.14 | 1.90 | 11.12 s |
+
+"End-to-end wall" covers the whole command without the build: Postgres start, restore or migrate+seed, clone, app boot, tests and teardown for isolate, and `webServer` boot plus tests for the baseline.
 
 - The shared-app suite fails at workers 4 in every run (`just fixture-collide`; `reviews/fixture.md`). Under isolation, workers 4 passes 12/12 in all 5 rounds: **zero new failures**.
 - **Why 1.48x and not 4x.** The suite has 5 files and `fullyParallel: false`. `maintenance.spec.ts` alone takes 2.7 s of the 6.2 s serial run, so no worker count can beat 2.29x. Separately, one worker slot (Chromium, a Playwright worker, the app, its Postgres backends) uses 1.87 cores at N=1, so 4 cores hold about 2.1 slots. The measured 1.48x is 0.69 of the lower ceiling. Tests also run 1.49x slower each at N=4, which is contention.
 - **Setup fraction.** Hooks and fixtures take 28% of summed test time, and the pre-test phase (runner start, workers, browsers, and `webServer` in the baseline) takes 14-18% of Playwright's wall time. Setup does not dominate this suite.
-- **Harness effect.** baseline@1 / isolated@1 = 0.98, inside 0.85-1.15, so the fixture's vs-baseline speedups can be quoted: 1.45x at N=4 against the repo's own serial run.
+- **Harness effect.** baseline@1 / isolated@1 = 0.98, inside 0.85-1.15, so vs-baseline speedups can be quoted. Test phase: 1.45x at N=4 against the repo's own serial run. **End to end: 0.99x, no gain.** On a suite this short, the ~4 s isolate spends starting Postgres, cloning, booting apps and tearing down cancels the ~2 s saved in the test phase.
+- **Snapshot cache effect** (reported separately, never inside a speedup): a cold isolated@1 run takes 15.95 s and a warm one 12.98 s, 1.23x. On the cold run, build takes 1.8 s and migrate+seed 0.9 s; on a warm run, restore takes 0.13 s.
 - **Memory at N=8:** 926 MB peak. Apps take ~70 MB each; Postgres takes 364 MB, an upper bound because shared buffers are counted once per backend.
 
 ### Real repositories
