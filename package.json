@@ -1,0 +1,30 @@
+{
+  "name": "isolate",
+  "version": "0.1.0",
+  "description": "Run a Playwright suite with N workers, each against its own app process and its own copy of a seeded Postgres database, with zero test edits.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "isolate": "dist/src/cli.js"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "embedded-postgres": "18.4.0-beta.17",
+    "execa": "^9.6.1",
+    "pg": "^8.23.0",
+    "pino": "^10.3.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/pg": "^8.23.1",
+    "typescript": "~5.9.3"
+  }
+}
