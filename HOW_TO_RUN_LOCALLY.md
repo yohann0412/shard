@@ -62,8 +62,8 @@ Both arms run with `--retries=0` and the same database snapshot, so they do the 
 
 | Recipe | Suite | First prepare | One round (4 cores, sandbox) |
 |---|---|---|---|
-| `evershop` | 164 tests; their config: 1 worker, "Shared DB" | ~3 min | see RESULTS.md |
-| `documenso` | ~1,200 tests; their config: api project at 10 workers, ui at min(6, (cores-2)/2) | ~12 min (Node 24 and npm 11 are fetched) | long: start with a subset |
+| `evershop` | 164 tests; their config: 1 worker, "Shared DB" | ~3 min | theirs 5m 42s, isolate@4 2m 44s (so ~20 min for `--rounds 1` with the default arms) |
+| `documenso` | ~1,200 tests; their config: api project at 10 workers, ui at min(6, (cores-2)/2) | ~11 min (Node 24 and npm 11 are fetched) | `-- e2e/api/v1` (44 tests): theirs 1m 05s, isolate@4 58s; the full suite is much longer |
 | `umami-passing`, `rallly`, `fixture-app` | from the sprint | | |
 
 Disk: each repo takes 1–3 GB under `work/`; `rm -rf work/repos/<name>` removes one.

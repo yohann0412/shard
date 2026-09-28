@@ -1,0 +1,9 @@
+documenso @ a1d4bec1430a: 1 round(s); Intel(R) Xeon(R) Processor @ 2.80GHz, 4 cores, 15.7 GB, Ubuntu 24.04.4 LTS
+theirs = the repo's own Playwright config (its worker count, one app, one database, app started by isolate --baseline --app); isolate@N = one app and database per worker
+wall = the whole isolate command (database, apps, tests, teardown); tests = Playwright's own test phase
+
+arm        workers  runs  median wall  median tests  passed  failed  wall speedup  tests speedup
+theirs          10     1     1m 04.8s         47.0s      43       1         1.00x          1.00x
+isolate@4        4     1        58.4s         32.1s      44       0         1.11x          1.46x
+
+Caveats (by hand): one round on the 4-vCPU sandbox, subset e2e/api/v1 only (44 tests, the api project). Their one failure: e2e/api/v1/test-unauthorized-api-access.spec.ts:102, "apiRequestContext.get: read ECONNRESET" with 10 workers against one app.

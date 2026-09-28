@@ -151,6 +151,24 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 
 **documenso** was not measured: its `api` project alone takes 939 s at workers 1, over the protocol's 5-minute limit, and CI's rate-limit bypass variable was refused in this sandbox. See HANDOFF.md.
 
+### After the sprint: `just compare` against each repo's own setup (not part of the pre-registered protocol)
+
+`just compare <repo>` times the repo's own Playwright setup ("theirs": its config and worker count, one app, one database, `CI=true`) against `isolate run --workers N`. These numbers are exploratory. Each is one round on the 4-vCPU sandbox, some with other work running on the machine, so they do not count toward Claim A's verdict.
+
+| Repo (commit) | Scope | Theirs | isolate@4 | Wall speedup | Test-phase speedup |
+|---|---|---|---|---|---|
+| evershop (18e0202) | 164 tests; their config: 1 worker, "Shared DB" | 5m 41.6s, 132 passed, 15 failed | 2m 43.8s, 137 passed, 12 failed | 2.09x | 2.41x |
+| documenso (a1d4bec) | `e2e/api/v1`, 44 tests; their config: 10 workers | 1m 04.8s, 43 passed, 1 failed | 58.4s, 44 passed, 0 failed | 1.11x | 1.46x |
+
+- **evershop** is the first real repo above 2x. It is a single noisy round: documenso's install and build ran on the same machine during part of it. The failures differ between arms and between runs:
+  - 7 tests failed only in their setup, mostly drag-and-drop page-builder specs.
+  - 4 tests failed only under isolate, all with HTTP 429 from EverShop's own in-memory rate limiter (120 API requests per minute per IP, per app process). That limit is per app, so it is not state leaking between workers.
+  - Details: `data/results/evershop/compare-sandbox-2026-09-28.txt`.
+- **Making evershop run needed two isolate features** (DECISIONS D-015, D-016):
+  - its globalSetup creates an admin session in the database, which now runs once and is copied to every worker;
+  - its suite expects a running server, which `--baseline --app` provides for the comparison.
+- **documenso's** `api` project already runs 10 workers against one app, so the headroom is small. Their one failure was a connection reset under that load.
+
 ## Experiment B: impact map
 
 Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-b-protocol.md` before running. Deviations: Experiment B on the fixture ran before Experiment A, at N=4, not at "the best N from Experiment A" (LOG.md 10:35), and without the load gate. B measures which tests fail, not time, but load can still change which tests time out, and it changes the umami maps (below).
