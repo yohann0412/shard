@@ -63,3 +63,26 @@ Yes, in four ways. Each is closed:
 
 - *Run each arm's build inside the timing too.* Not adopted: build time is not what Claim A is about. It is reported once per repo instead.
 - *Linux network namespaces as the primary mechanism.* Not needed; D-001 works. Namespaces stay as the fallback in RISKS R1.
+
+## Addendum: mechanism and process reviews (arrived after v2; PLAN.md is now v3)
+
+Two more reviewers finished after v2 was committed. Their findings and what changed:
+
+| Finding | Severity | Change |
+|---|---|---|
+| Postgres refuses to run as root, and this sandbox is root; `pg_ctl start` calls `setsid()` and escapes process-group kills | kills F1 | F1 runs `initdb`/`postgres` through `setpriv` as the `postgres` system user (or a created `isolate-pg`) when uid is 0, starts the postmaster directly (never `pg_ctl`), marks every spawned tree with `ISOLATE_RUN_ID`, and sweeps `/proc/*/environ` for survivors on teardown and in the reaper (R17). Sent to the F1/F3 subagent before it reached acceptance. |
+| Nothing checks early that any real repo runs here | kills sprint | A real-repo scout subagent started at 08:35, in parallel with F1/F3, attempting baselines for up to 12 candidates. Gate at 10:00: if fewer than 2 repos are green, feature work beyond F1-F4/F6 stops and the time goes to repo onboarding. |
+| Budget ends after the 12:00 UTC no-resume cutoff; cut order wrong | kills sprint | Clock checkpoints (PLAN §6). New cut order: F5 first, then F2 auto-detection (keep the unmanaged scan), then F7 client coverage, then Experiment B scope. |
+| Acceptance tests could pass on stale state or by comparing the tool with itself | major | Tests hardened (commit ca4ad31): f4 deletes `.isolate/` first and adds an invalid-routing case (apps forced onto `w0`, as a `.env` override would do) that must exit non-zero with `routingValid: false`; f5 counts build/migrate/seed side effects outside the tool; f6 measures wall time outside the tool and rejects unknown phase keys; f7 adds a negative control (an unused file selects nothing). The lead diffs `e2e/` on every review. |
+| Verdict not pre-registered; hardware may decide it | major | PLAN §1 is the pre-registration (timestamped in LOG.md, 08:40). With fewer than 3 real repos Claim A is reported per repo and labelled "inconclusive"; the fixture is never pooled with real repos. The resource ceiling min(N, cores/d), where d is the CPU demand of one worker slot measured at N = 1 from `/proc/stat`, is reported next to each speedup. |
+| `CI` and retries differ between arms | major | Every timed arm runs with `CI=1` and `--retries=0` on the command line; the repo's resolved workers/retries are recorded. |
+| No written V1 scope for unmanaged services | major | D-012 and PLAN §1 "Scope". Detection also runs at the start of every `isolate run` and is written into report.json; runs with a stateful unmanaged service are labelled "isolation incomplete" and kept out of the Claim A median. |
+| Honesty rules never written | major | PLAN §8. |
+| Parallel subagents distort timings | major | Timed experiment runs happen only when no subagent is running; each run records load average at start and is redone if the 1-min load average is above 1.0. |
+| globalSetup / setup projects write auth into one database | kills Claim A on real repos | Kept as a measured failure category for V1. A two-phase run (setup against `seed`, then clone) is designed in RISKS R9 and will be built only if the scout shows candidate repos depend on it; otherwise it goes to "what I would build next". |
+| Isolated apps not started like `webServer` (env, cwd); N Next.js processes share `.next` (dev lock, ISR cache) | major | `init` derives the start command and env from the resolved `webServer` (via a probe config loaded by Playwright). Next.js `.next` sharing is R18, verified per repo. |
+| Pinned ports, self-URLs, baked `NEXT_PUBLIC_*` URLs | major | `init` scans for `localhost:<port>` and `-p <port>` and templates them with `{port}`/`{url}`. Port virtualization with Chromium `--host-resolver-rules` stays a documented fallback (R11), not built unless a real repo needs it. |
+| Routing check is weak on real apps | major | Kept: per-worker database activity (now tested by the invalid-routing e2e case). Added: the listener on P_i must belong to app i's process group. The limits of the check are stated in RESULTS.md. |
+| Next.js bundles defeat source maps and the function-level global rule | major | R19. Experiment B on a Next.js repo starts with a 30-minute spike; if maps are missing, the trace build uses a generated config with server source maps, labelled "trace build modified", or Experiment B is limited to unbundled servers plus the fixture. |
+| Coverage takes via Runtime.evaluate re-enter the inspector, are large, and misattribute in-flight requests | major | D-013: the app preload takes coverage in-process on request over a local socket, filters to repo files, and waits (up to 2 s) for in-flight HTTP requests to finish. The worker hook awaits both takes. |
+| `max_connections` too low for N apps with Prisma pools | minor | 50 + 40*N; "too many clients" in postgres.log invalidates a run. |

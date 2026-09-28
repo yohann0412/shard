@@ -1,6 +1,6 @@
 # PLAN
 
-Status: v2, revised after `PLAN_REVIEW.md`. **[rev]** marks changes made while drafting (after the F4 throwaway) and after the review.
+Status: v3, revised after `PLAN_REVIEW.md` (including its addendum). **[rev]** marks changes made while drafting (after the F4 throwaway) and after the review.
 
 ## 1. The claims, and what would falsify them
 
@@ -143,21 +143,19 @@ Real-repo Experiment A is limited to repos whose baseline@1 takes ≤ 5 min in t
 5. **Score**: P = tests whose map contains the file (or all, if global). Recall = |F ∩ P| / |F| when F is non-empty. The count and time-weighted selection ratios are |P| / total and Σ duration(P) / Σ duration(all). Scored under both global policies (function-level default and `--strict`). Headline: the fraction of live, non-global mutants with zero misses, with a Clopper-Pearson 95% interval. Empty-F mutants are split into "mutated function never executed" and "executed, no test failed". Live controls that fail are misses of a different kind.
 6. **Every miss is investigated** and categorized: lazy import, error path, coverage granularity, source-map failure, cross-test state through the DB, top-level code, other.
 
-## 6. Time budget and cut line
+## 6. Time budget, checkpoints and cut line [rev]
 
-This sprint runs in one working session on a 4 vCPU cloud sandbox, not two weeks. Budget (wall clock):
+This sprint runs in one working session on a 4 vCPU cloud sandbox, not two weeks. Rate-limit resumes stop after 12:00 UTC, so everything that matters must be committed before then. Checkpoints (UTC):
 
-| Phase | Budget |
+| By | What must be true |
 |---|---|
-| 0: plan, review, F4 verification | 45 min |
-| 1: fixture app + baseline/collide | 45 min (parallel with F1/F3) |
-| 2: F1-F7 | 3 h |
-| 3: harvest | 45 min, started in parallel with Phase 1 so real-repo feasibility is known early [rev] |
-| 4: Experiment A | 2 h |
-| 5: Experiment B | 1 h |
-| 6: results, docs, fresh-clone check | 1 h |
+| 08:45 | Plan v3, review, F4 spike committed. Fixture, F1/F3, F4/F6, harvest and the real-repo scout running in parallel. |
+| 10:00 | Fixture accepted; F1, F3, F4 accepted. Scout gate: ≥ 2 real repos green at baseline, else re-scope to onboarding. |
+| 11:00 | F6 accepted; Experiment A on the fixture done; harvest committed. |
+| 11:45 | Experiment A on ≥ 1 real repo; partial RESULTS.md, HANDOFF.md and raw results committed. |
+| after | F2, F5, F7, Experiment B, more repos, final docs, fresh-clone check. |
 
-Cut order if time runs out: Experiment B on fewer repos → Experiment B on the fixture only → harvest capped at 50 → F5 snapshot. Never cut: the fixture demo, F1-F4, Experiment A, the honesty rules. Anything that could not run here goes to `HANDOFF.md` with exact commands.
+Cut order if time runs out: F5 snapshot → F2 auto-detection (keep the unmanaged scan) → F7 client coverage (server-only map) → Experiment B on fewer repos → Experiment B on the fixture only → the N = 2 arm. Never cut: the fixture demo, F1, F3, F4, the minimal F6, Experiment A on ≥ 1 real repo, the honesty rules. Anything that could not run here goes to `HANDOFF.md` with exact commands.
 
 ## 7. Unverified assumptions
 
@@ -172,3 +170,13 @@ Cut order if time runs out: Experiment B on fewer repos → Experiment B on the 
 9. GitHub repository search is unavailable in this sandbox (verified: the API is scoped to this repository); awesome-selfhosted-data plus the seed list is a representative-enough candidate source (it is not: it is biased toward self-hosted apps; stated in the results).
 10. **[rev]** A 4 vCPU cloud VM gives stable enough timings: checked per arm by max/min over ≥ 3 rounds (≤ 1.10, else another round) and by recording CPU steal per run.
 11. **[rev]** Real apps' auth survives isolation: sessions created by `globalSetup` or setup projects live in one worker's database. Expected to fail for database-backed sessions; measured, not assumed.
+
+## 8. Honesty rules [rev]
+
+1. Every number in RESULTS.md cites a committed raw file under `data/results/<repo>/` and the exact command that produced it.
+2. Every attempted repo is listed with its outcome and exclusion reason, with the funnel: sources → scanned → qualified → baseline green → measured.
+3. The verdict rules in §1 were fixed at 08:40 UTC before any data. Any change is timestamped in LOG.md with the reason.
+4. Any change to a repo file makes that result "with modifications" and its diff is committed next to it.
+5. A run with invalid routing (a used worker database without activity) or "too many clients" in the Postgres log is excluded and listed as excluded.
+6. Timed runs happen with no subagent active. Load average at start is recorded, and the run is redone if it is above 1.0.
+7. Numbers worse than predicted are reported the same way as numbers that are better.
