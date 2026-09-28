@@ -1,5 +1,7 @@
 # How to run it locally
 
+Checked on 2026-09-28 from a fresh clone: `pnpm install`, `just demo` (~1 min) and `just e2e` (9/9, ~4.5 min) as written. The experiment commands in (b) and (c) were run in the development checkout, which has the same code at the same commit.
+
 Exact commands for a laptop, macOS or Linux. Durations were measured on the 4 vCPU cloud VM this sprint used (Xeon @ 2.8 GHz, 15 GB RAM); a recent laptop is usually faster.
 
 ## Prerequisites (once)
