@@ -24,3 +24,11 @@ Subagent report: `f4-run` green once on the real stack; f6 scenario, invalid-rou
 - That appending a reporter never changes test behaviour (reporters only observe).
 - That `TEST_PARALLEL_INDEX` < `workers` always holds (the env module throws otherwise, loudly).
 - That `pg_stat_database` counters are per-database and survive for the life of the server (true; they reset only on `pg_stat_reset`).
+
+## Lead's re-run (merged code, 7fc26d5, 09:19-09:24 UTC, load average 5-8)
+
+- `just e2e-one f4-run`: pass (98.4 s), including the invalid-routing case (apps forced onto w0 → non-zero exit, `routingValid: false`).
+- `just e2e-one f6-report`: pass (37.4 s): schema-valid report, phases within 5% of the externally measured wall time, `always fails` → deterministic, `fails only the first time` → flaky.
+- `just e2e-one f1-db`, `f3-app`: still pass.
+- `CI=1 isolate run --baseline -- npx playwright test --workers=1 --retries=0` on the fixture: 12 passed, exit 0, test phase 6.49 s, 1.43 s before the first test, 1.75 s in hooks/fixtures vs 4.70 s in test bodies, routing valid (b0 active).
+- Verdict: accepted.
