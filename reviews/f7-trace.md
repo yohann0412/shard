@@ -26,3 +26,10 @@ Subagent report: app preload starts precise coverage in-process before app code 
 - `just e2e-one f7-trace`: pass twice (22.7 s, 23.1 s). `f4-run` (108.7 s), `f6-report` (45.9 s), `f5-snapshot` (32.6 s): pass after the session changes.
 - `isolate trace --workers 2` in `examples/fixture-app`: 12 passed, routing valid, 12 tests mapped; global = db, logger, maintenance, session middleware, health route, server; bootLoaded = auth, home, items, settings routes and views; no between-test takes, timeouts, source-map failures or unresolved client URLs. Appending a comment to `src/routes/items.ts` → `affected --base HEAD --json` selects exactly the 4 item tests (3 in `items.spec`, 1 in `bulk-items.spec`).
 - Verdict: accepted, with the three gaps above sent to a follow-up subagent.
+
+## Follow-up: gaps closed (8118fdd)
+
+- Playwright ≥ 1.60 is now traceable with no test edits: where `WorkerMain._runTest` is not reachable, the worker preload extends `test` from `playwright/test` with an automatic fixture (a getter on the original exports object, so ESM and CJS test files both see it). On a 1.63.0 copy of the fixture, the ESM and CJS maps matched the 1.56 map exactly (12 ids, 0 differing sets). Known gaps of that path: beforeAll/afterAll traffic lands in the boot set or the previous test; pages from `browser.newPage()`/popups get no client coverage; `import test from '@playwright/test'` (default import) sees the untraced object.
+- Test-support files (a non-spec file next to specs, or under the Playwright config's directory outside the app's source directories) → `all`. Conservative: an edit to `README.md` next to the config also yields `all`.
+- Always-all inputs above the repo directory (lockfiles, `cache.inputs` such as `../../pnpm-lock.yaml`) are diffed explicitly and yield `all`.
+- Subagent ran f7 three times and f4 once on the final code; the lead's full `just e2e` run on main is recorded in LOG.md.
