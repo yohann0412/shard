@@ -134,4 +134,10 @@ _pending._
 
 ## What I would build next
 
-_pending_
+1. **Setup before cloning.** Run `globalSetup` and Playwright "setup" projects once against an app on `seed`, then clone, so auth sessions and seed files exist in every copy. umami's API suite needed exactly this; I built it there by hand in config.
+2. **Detect baked origins and turn on the shared origin automatically.** Scan built chunks for `localhost:<port>`. Without this, rallly fails at N=1.
+3. **Per-worker side services.** Start one SMTP catcher per worker, and give each worker its own Redis logical database or key prefix. rallly's shared mailpit is still a collision source; Redis blocks 55 of the 96 harvested repos.
+4. **Split long serial files.** On both measured real repos the ceiling was file granularity (umami: one 90 s file). Suggest or apply test-level scheduling where files do not use `describe.serial`.
+5. **Tracing bundled servers.** Treat bundler module factories as top level, so Next.js's boot-time preloading does not make every route global. Also generate production source maps for trace builds.
+6. **`--baseline --app`** for configs without `webServer`, and reruns at the same N, so failures caused by load are not relabelled "flaky".
+7. **PSS instead of RSS** for memory, so Postgres shared buffers are not counted once per backend.
