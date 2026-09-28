@@ -124,3 +124,103 @@ isolate bugs and gaps found (src not edited; proposed fixes are in rallly.json `
 - `.isolate/` is not git-excluded.
 
 All processes I started (mailpit, the throwaway `db up`, the probe servers) were stopped at 10:33. Nothing in /home/user/shard was committed.
+
+## umami isolate onboarding
+
+09:31-10:56 UTC. Goal: run umami's two Playwright suites under `isolate run` at N = 1, 2 and 4 without changing any umami file. This is onboarding, not timing: the machine was shared (load average 1-10), so no number below is a timing result.
+
+Artifacts are under `work/repos/`:
+- `umami/`: the clone at ec0ff50.
+- `umami-build.env`, `umami-isolate.env`, `run-isolate.sh` and `api-baseline-with-app.sh`.
+- `umami-runs/<run>.{log,report.json,pw-results.json,logs/,ver}`. The `.ver` file records the isolate commit and dist mtime at start and end.
+
+The config is `work/repos/umami/isolate.config.ts`. Its two resolved forms are `isolateConfig` (browser suite) and `isolateConfigApiSuite` in umami.json.
+
+Result: **works for both suites.**
+- Browser suite: every isolated arm matches the baseline test by test.
+- API suite: 271/271 at every N, but only with a config that seeds the template through umami's own globalSetup (over HTTP) before isolate copies it. The plain config fails at N >= 2.
+
+Setup (recipe):
+- Clone: `git clone https://github.com/umami-software/umami work/repos/umami && git checkout ec0ff50388c264ed8ce46f00967e92f7e71476ae`.
+- Install: with `work/pnpm12` first on PATH, from inside the checkout, `pnpm install --frozen-lockfile` (1.2 s, warm store).
+- Build database: a throwaway Postgres 16 cluster at `work/pg/umami-build`, port 55533, created with `runuser -u postgres -- initdb` and `pg_ctl`.
+- Build: `source work/repos/umami-build.env && pnpm build` took 228 s and exited 0. It migrates the build database through check:db. The cluster was stopped afterwards.
+- Browsers: the existing shim `work/pw-browsers/r1243` (`make-pw-shim.sh 1243`).
+- Every run starts with `source work/repos/umami-isolate.env` (CI=1, PLAYWRIGHT_HTML_OPEN=never, PLAYWRIGHT_BROWSERS_PATH=work/pw-browsers/r1243, pnpm 12 on PATH), from the checkout. PLAYWRIGHT_BROWSERS_PATH has to be in isolate's own environment: Playwright reads it before the wrapper's env module runs.
+- isolate ran its embedded Postgres 18.4, and all 26 migrations applied.
+
+Config:
+- db.migrate is `pnpm db:migrate` (prisma migrate deploy; 01_init inserts admin/umami). The browser suite needs no seed.
+- app.start is `pnpm start` (next start, honours PORT), and healthPath is `/api/heartbeat`.
+- app.env: APP_SECRET, DISABLE_TELEMETRY, DISABLE_UPDATES, DISABLE_BOT_CHECK and NEXT_TELEMETRY_DISABLED. TWO_FACTOR_ENCRYPTION_KEY and MCP_ENABLED are there for the API suite only.
+- playwright.baseUrlEnvs is `[PLAYWRIGHT_BASE_URL]`.
+- cache.inputs is the lockfile, prisma/schema.prisma and prisma/migrations. `build` is unset.
+- API variant, selected when isolate's argv contains `playwright.api.config` and not `--baseline`:
+  - db.seed starts a temporary `pnpm start` on the seed database (setsid, free port). It then runs `pnpm exec tsx --eval` on tests/api/global-setup.ts with that app's baseURL, and kills the app's process group.
+  - baseUrlEnvs is `[]`.
+  - playwright.env is `API_SKIP_SEED=1`.
+  - cache.inputs adds the tests/api seed files.
+
+Each command below follows `node /home/user/shard/dist/src/cli.js run`.
+
+| suite | arm | command | passed | failed | did not run | routingValid | dbActivity (xact commits) |
+|---|---|---|---|---|---|---|---|
+| browser (38) | baseline | `--baseline -- pnpm exec playwright test --workers=1 --retries=0`, plus shell env APP_SECRET, DISABLE_*, PORT=3102, PLAYWRIGHT_WEB_SERVER_COMMAND='pnpm start' | 24 | 7 | 7 | true | b0 280 |
+| browser | N=1 | `--workers 1 -- pnpm exec playwright test --retries=0` | 24 | 7 | 7 | true | w0 296 |
+| browser | N=2 | `--workers 2 -- (same)` | 24 | 7 | 7 | true | 225 / 72 |
+| browser | N=4 | `--workers 4 -- (same)` | 24 | 7 | 7 | true | 72 / 52 / 118 / 59 |
+| browser | N=4, final config file | `--workers 4 --no-rerun -- (same)` | 24 | 7 | 7 | true | 160 / 63 / 30 / 48 |
+| API (271) | baseline, as isolate runs it | `--baseline -- pnpm exec playwright test -c playwright.api.config.ts --workers=1 --retries=0`, with PLAYWRIGHT_BASE_URL=http://localhost:3104 | 0 | 0 | all: globalSetup timed out after 120 s, no app | true (vacuous) | b0 0 |
+| API | baseline + app attached to b0 | the same, via `api-baseline-with-app.sh` | 271 | 0 | 0 | true | b0 3620 |
+| API | N=1, plain config | `--workers 1 -- pnpm exec playwright test -c playwright.api.config.ts --retries=0` | 271 | 0 | 0 | true | w0 3592 |
+| API | N=2, plain | `--workers 2 -- (same)` | 196 | 27 | 48 | **false** | 2829 / 0 |
+| API | N=4, plain | `--workers 4 -- (same)` | 132 | 43 | 96 | **false** | 2221 / 0 / 0 / 0 |
+| API | N=1, API variant | `--workers 1 -- (same)` | 271 | 0 | 0 | true | 2990 (cache miss, seeded) |
+| API | N=2, API variant | `--workers 2 -- (same)` | 271 | 0 | 0 | true | 1313 / 1781 (cache hit) |
+| API | N=4, API variant | `--workers 4 -- (same)` | 271 | 0 | 0 | true | 757 / 775 / 902 / 703 (cache hit) |
+| API | N=4, final config file | `--workers 4 -- (same)` | 271 | 0 | 0 | true | 738 / 861 / 796 / 737 (cache miss, seeded) |
+
+Per-test comparison with the baseline:
+- Browser: 0 of 38 tests differ in any arm.
+- API, plain config: 75 differ at N=2 and 139 at N=4.
+- API variant: 0 of 271 differ at every N.
+
+Both baselines reproduce the scout's: 24/7/7 with the same 7 failures, and 271/271. The API one needs the app started by hand, as the scout did.
+
+The browser suite's 7 failures (api-user.spec.ts:29, login.spec.ts:9 and :19, user.spec.ts:12, website.spec.ts:5, :28 and :56) are the scout's suite rot. They fail in the baseline too, and isolate's reruns classed them deterministic (failed, failed) at N=1, 2 and 4.
+
+Earlier runs on older isolate builds had the same outcomes: baseline b0 279, N=1 w0 294, N=2 214/83. The lead rebuilt dist during several runs; per-run versions are in the `.ver` files. The only run-path change in the range was the new `--no-rerun` flag.
+
+Failure categories (tests that pass at baseline and fail under isolation). All of them are in the API suite with the plain config:
+- **Shared setup state (globalSetup), which appears as global state outside the DB: files keyed by host.**
+  - globalSetup runs once, in the runner's main process, where isolate's env module applies worker 0's values.
+  - It seeds only w0's app and database (tests/api/global-setup.ts:119, `seedEnvironment`).
+  - It writes `openapi.json` and `seed.json` only under `tests/api/.runtime/<host of PLAYWRIGHT_BASE_URL>/` (paths.ts:15-21, global-setup.ts:65 and :122).
+  - Workers >= 1 look under their own host. At N=2, 27/27 failures, and at N=4, 41/43, are `ENOENT: no such file or directory, open '.../tests/api/.runtime/127.0.0.1-<port>/seed.json'`, at seed/state.ts:48 from the worker fixture at fixtures.ts:38.
+  - The other 2 at N=4 (system.spec.ts:4 and :25) are `Coverage oracle .../127.0.0.1-<port>/openapi.json is missing` (coverage/oracle.ts:30, via recorder.ts:50 and client.ts:60).
+  - The 48 and 96 tests that did not run are serial-mode followers (`test.describe.configure({ mode: 'serial' })`, e.g. websites.spec.ts:15 and users.spec.ts:7).
+  - Latent: the coverage reporter in the main process merges only w0's host directory (at N=2: 153 covered, 24 uncovered). It only enforces on a passing run, so it would fail an otherwise green split run.
+- None were hardcoded URL, cross-test dependency, unmanaged service, timeout under load or "other".
+- The API variant removes all of them:
+  - The template already holds the seed entities, so every worker database is a copy of seeded data.
+  - With PLAYWRIGHT_BASE_URL unset, every process keys `.runtime` on paths.ts's default `localhost:3100`, so they all share one seed.json, openapi.json and coverage directory.
+  - `API_SKIP_SEED=1` (global-setup.ts:99) stops the run's globalSetup from re-seeding w0.
+  - Requests still go to each worker's own app: the wrapper sets use.baseURL per worker, the specs use relative paths, and fixtures.ts:42 uses `workerInfo.project.use.baseURL`.
+  - admin.spec's global 2FA toggle is per worker as a side effect.
+
+Other things that happened:
+- First try of the API variant: the seed exited 2, because dash's `kill` rejects `--` and `set -e` was on inside the EXIT trap. isolate's reaper killed the 3 next-server processes that had escaped (setsid).
+- Seeding raised migrateSeed to 9.2 s and 11.3 s, against 2.5-2.8 s for migrate alone.
+- In the browser arms, reruns (7 deterministic failures x 2 fresh-app reruns) took 352, 335 and 370 s of 497, 456 and 489 s wall at N=1, 2 and 4. `--no-rerun`, added during this session (bca535a), avoids that.
+
+isolate gaps found (src not edited), each with a proposed fix:
+1. **No seeding through the app.** umami's API suite creates its fixtures over HTTP. `db.seed` runs before any app exists, so a hand-written shell has to start and kill an app. Proposal: `db.seedWithApp: true`. isolate would start one app on `seed` (app.start, app.env, healthPath), run db.seed with `{url}`/`{port}` filled in, stop that app, then snapshot and clone.
+2. **Seed outputs outside the DB are not in the snapshot.** On a cache hit db.seed does not run, so seed.json is whatever the last seeding wrote. It is consistent here only because nothing else writes `tests/api/.runtime/localhost-3100`. Proposal: `db.seedOutputs: [paths]`, saved and restored with the db cache entry and part of its key. Alternatively, skip the db cache when db.seed is set and no outputs are declared.
+3. **Baseline mode cannot run a suite whose app is not the config's webServer.** umami's API config has none, so `--baseline` ran 0 tests after the 120 s heartbeat timeout. The workaround reads isolate's Postgres port from its log and attaches `pnpm start` to b0. Proposal: `isolate run --baseline --app`, which starts one app via app.start/app.env on b0 and sets baseUrlEnvs, and nothing else. Also print b0's URL.
+4. **The routing check blames DATABASE_URL when a worker's tests never reached its app.** At API N=2 and N=4 it printed "no committed transactions on w1(, w2, w3) ... The app probably ignores DATABASE_URL". In fact every test on those workers failed in a worker fixture before sending a request, and the API variant shows all four apps honour DATABASE_URL. The rallly onboarding saw the same false alarm. Proposal: implement the per-app request counts PLAN §5.5 names, and report "no test on worker i reached its app" when requests are 0, rather than a routing failure. Separately, a run with 0 tests reported routingValid=true (API baseline as-is); it should be false or "not checked".
+5. **Reruns hide isolation failures.** Reruns run each test alone at 1 worker, where the rerun's globalSetup seeds that app. So the first 10 API failures at N=2 and at N=4 were all classed "flaky (passed, passed)", although each fails deterministically whenever it lands on worker >= 1. Proposal: label these "passes alone", or rerun on the same parallel index at the same N.
+6. **Unmanaged-service false positive.** Every run is labelled "isolation incomplete" for clickhouse, kafka and redis, found from @clickhouse/client, kafkajs and redis in package.json. umami only uses them when CLICKHOUSE_URL, KAFKA_URL or REDIS_URL is set (e.g. src/lib/clickhouse.ts:38), and none are. `run` ignores `config.unmanaged` (the rallly onboarding found the same). Proposal: honour `unmanaged` in run, e.g. `unmanaged.unused: [...]` with a reason, or check whether the gating URL variable is set for the app.
+7. **The database cache key hashes the config file's text plus cache.inputs, not the resolved config.** A config that computes values (here from argv) only gets distinct keys because its cache.inputs differ. Also, a hand-written config with empty cache.inputs (as mine was at first) ignores migrations, so a new migration would restore a stale DB. `init` does fill cache.inputs. Proposal: hash the parsed config too, and warn when cache.inputs is empty.
+8. **Hazard scan.** "hardcoded URL tests/api/paths.ts:8" is a fallback behind PLAYWRIGHT_BASE_URL (false positive). The globalSetup warning names only the database, but here files keyed by host fail first.
+
+All processes I started were stopped: isolate runs, the seed apps, the attached baseline app and the build cluster (its data directory is left at `work/pg/umami-build`). The remaining isolate and Postgres processes on the machine belong to other agents. Nothing in /home/user/shard was committed.
