@@ -61,3 +61,15 @@ Documenso's CI sets `DANGEROUS_BYPASS_RATE_LIMITS=true`. The permission checker 
 **10:35 Experiment B on the fixture started before Experiment A**, at N=4 (the verdict N) rather than "the best N from Experiment A". Reason: Experiment B measures which tests fail, not how long they take, so it can run while two subagents are still loading the machine; the timed Experiment A waits for an idle machine. Load-induced flakiness is caught by the two unmutated reference runs.
 
 **11:01 Experiment B on the fixture done** (`data/results/fixture-app/experiment-b.json`, N=4, seed 20260928, kinds throw/toplevel/wrongvalue). 19 mutants. 2 were not live: the `db.ts` mutants failed to compile, because a leading `throw` makes the assignment unreachable and TypeScript then reports `pool` as possibly undefined. 5 hit global files, 4 of which kept the app from starting at all. 1 never ran. 11 were scored. **Zero misses in 11/11** under the default policy (95% CI 0.715-1). Median selection ratio 0.959 by count and 0.969 by time, which means the map saves little on this app because every test signs in through `auth.ts` and `views.ts`. Stability is perfect: the N=4 and N=2 maps are identical, as expected for a deterministic app. Under `--strict`, 10 of 11 mutants select all tests. The pre-registered rule judges Claim B on the CI lower bound: 0.715 < 0.8, so the fixture cannot support the claim, even with no miss. With zero misses, reaching a lower bound of 0.9 needs about 36 scored mutants. The rule was not changed.
+
+**11:03 umami onboarding: isolation works for the browser suite; the API suite needs its global setup moved into the seed.**
+- **Browser suite (38 tests):** baseline, N=1, N=2 and N=4 match test for test: 24 passed, the same 7 stale failures, 7 not run. Routing is valid at every N.
+- **API suite (271 tests) with a plain config:** 271/271 at N=1, but 75 tests differ at N=2 and 139 at N=4. The cause is shared setup state outside the database. `tests/api/global-setup.ts` runs once in Playwright's main process, seeds only worker 0's app over HTTP, and writes `seed.json` and `openapi.json` under a host-keyed directory. The other workers then fail with ENOENT.
+- **API suite with a config-only fix (no umami file changed):** 271/271 at N=1, 2 and 4. The fix: `db.seed` starts a temporary app on `seed` and runs umami's own global setup against it, so the template carries the seeded state into every copy. It also sets `API_SKIP_SEED=1` so the run does not reseed, and uses one shared state directory.
+
+Tool gaps found:
+- No first-class "seed through the app" step.
+- Files written by a seed are not cached with the database.
+- `--baseline` cannot start an app for a config without `webServer`.
+- Reruns run failures alone and so relabel isolation failures as "flaky".
+- The unmanaged scan fires on optional integrations (clickhouse, kafka, redis are only used when their URLs are set).
