@@ -1,0 +1,3035 @@
+{
+  "version": 1,
+  "experiment": "B",
+  "name": "umami",
+  "createdAt": "2026-09-28T13:53:08.210Z",
+  "harnessCommit": "712a4c9a96896a43a9c56843b13a2c7fc6274caa",
+  "harnessDirty": false,
+  "command": [
+    "node",
+    "/home/user/shard/dist/scripts/experiments/experiment-b.js",
+    "umami",
+    "--workers",
+    "4",
+    "--max-targets",
+    "10"
+  ],
+  "protocol": {
+    "seed": 20260928,
+    "kinds": [
+      "throw"
+    ],
+    "maxTargets": 10,
+    "workers": 4,
+    "workersFrom": "--workers",
+    "traceWorkers": [
+      4,
+      2
+    ]
+  },
+  "definitions": {
+    "F": "tests failing with the mutant minus every test failing in either unmutated reference run",
+    "P": "the tests `isolate affected --base HEAD --json` selects for the mutated file (all tests when it answers all)",
+    "recall": "|F ∩ P| / |F| when F is non-empty",
+    "selectionRatios": "|P| / all tests, and the sum of reference-run durations of P / of all tests",
+    "headline": "fraction of live, non-global mutants with non-empty F and P not all whose misses (F \\ P) are empty, with a 95% Clopper-Pearson interval",
+    "live": "the mutant's marker (\"isolate-mutant\", \"return undefined\" or the changed number) occurs more often in the served build output than in the clean build",
+    "policies": "default: global files select all tests (function-level, D-011); strict: boot-loaded files do too",
+    "stability": "per file, Jaccard of the tests selecting it in the workers-4 and workers-2 maps, over files selected by < 50% of tests in at least one map; per test, Jaccard of its file sets",
+    "emptyF": "never-executed: the mutated function (or, for a top-level edit, any function of the file) is not in map.executedFunctions; executed-no-failure otherwise"
+  },
+  "recipe": {
+    "name": "umami",
+    "source": "git",
+    "url": "https://github.com/umami-software/umami",
+    "commit": "ec0ff50388c264ed8ce46f00967e92f7e71476ae",
+    "status": "works",
+    "blocker": null,
+    "workdir": ".",
+    "install": [
+      "pnpm install --frozen-lockfile"
+    ],
+    "build": [
+      "pnpm build"
+    ],
+    "env": {
+      "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+      "SKIP_DB_CHECK": "1",
+      "SKIP_BUILD_GEO": "1",
+      "APP_SECRET": "umami-e2e-secret",
+      "DISABLE_TELEMETRY": "1",
+      "DISABLE_UPDATES": "1",
+      "DISABLE_BOT_CHECK": "1",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "MCP_ENABLED": "1",
+      "PORT": "3102",
+      "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start"
+    },
+    "pathPrefix": [
+      "/home/user/shard/work/pnpm12/node_modules/.bin"
+    ],
+    "playwrightArgs": [],
+    "baselinePorts": [
+      3102
+    ],
+    "protocol": "full",
+    "subsetNote": "browser suite (playwright.config.ts, 38 tests); the API suite is recipe umami-api",
+    "sourceDirs": [
+      "src"
+    ],
+    "servedOutput": [
+      ".next"
+    ],
+    "mutantKinds": "throw",
+    "isolateConfig": {
+      "packageManager": "pnpm",
+      "db": {
+        "migrate": "pnpm db:migrate",
+        "urlEnv": "DATABASE_URL",
+        "extraUrlEnvs": []
+      },
+      "app": {
+        "start": "pnpm start",
+        "portEnv": "PORT",
+        "healthPath": "/api/heartbeat",
+        "env": {
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1"
+        },
+        "bootTimeoutMs": 120000
+      },
+      "playwright": {
+        "config": "playwright.config.ts",
+        "baseUrlEnvs": [
+          "PLAYWRIGHT_BASE_URL"
+        ],
+        "env": {}
+      },
+      "postgres": {},
+      "cache": {
+        "inputs": [
+          "pnpm-lock.yaml",
+          "prisma/schema.prisma",
+          "prisma/migrations"
+        ]
+      },
+      "unmanaged": {
+        "allow": false,
+        "services": []
+      },
+      "trace": {
+        "clientRoots": []
+      }
+    },
+    "timeSpentMin": 27,
+    "packageManager": "pnpm@12.3.4 (package.json engines.pnpm; no packageManager field). Installed with `npm i --prefix /home/user/shard/work/pnpm12 pnpm@12.3.4`",
+    "nodeVersionNeeded": "22 (CI uses node 22; system v22.22.2 worked)",
+    "playwrightVersion": "1.63.0",
+    "browserRevisionExpected": "chromium 1243 / chromium_headless_shell 1243 (Chrome 153) / ffmpeg 1011; ran on installed 1194 (Chrome 141) via shim dir",
+    "migrate": "pnpm db:migrate   (= prisma migrate deploy; reads DATABASE_URL. Migration 01_init inserts the admin/umami user, so no separate seed. `pnpm build` also runs it via check:db)",
+    "seed": null,
+    "appStart": "pnpm start   (= next start; honours PORT). Set via PLAYWRIGHT_WEB_SERVER_COMMAND; the config's webServer.url is baseURL",
+    "appPortEnv": "PORT (baseURL = PLAYWRIGHT_BASE_URL ?? http://localhost:${PORT ?? 3000})",
+    "healthPath": "/api/heartbeat",
+    "playwrightConfig": "playwright.config.ts",
+    "baselineCommand": "pnpm exec playwright test --workers=1 --retries=0 --reporter=list",
+    "baseline": {
+      "wallSec": 148,
+      "passed": 24,
+      "failed": 7,
+      "skipped": 7,
+      "flakyNotes": "Two runs, each on a freshly migrated DB: 148s and 158s (Playwright: 24 passed (2.4m) / (2.6m)), with identical per-test outcomes. The 7 failures are deterministic suite rot: this browser suite is not run by CI (.github/workflows/ci.yml runs only vitest and the build). api-user.spec.ts:29 expects a `password` field the API no longer returns; login.spec.ts expects /dashboard (the app now lands on /websites) and a unique 'Required' text (2 elements now); user.spec.ts and website.spec.ts target /settings/users and /settings/websites UI (testids button-create-user, button-website-add) that no longer exists there. The 7 'skipped' are 'did not run' serial-mode followers of those failures. `skipped` counts those."
+    },
+    "secondarySuite": {
+      "what": "API integration suite, also Playwright (request fixture only, no browser), maintained, all green",
+      "playwrightConfig": "playwright.api.config.ts",
+      "appStart": "pnpm start with PORT=3104 plus TWO_FACTOR_ENCRYPTION_KEY=<64 hex chars> MCP_ENABLED=1 DISABLE_BOT_CHECK=1 APP_SECRET=... (env taken from docker-compose.test.yml; no webServer in this config: scripts/test-api.ts normally starts it with docker compose)",
+      "env": {
+        "PLAYWRIGHT_BASE_URL": "http://localhost:3104"
+      },
+      "command": "pnpm exec playwright test -c playwright.api.config.ts --workers=1 --reporter=list",
+      "baseline": {
+        "wallSec": 98,
+        "passed": 271,
+        "failed": 0,
+        "skipped": 0,
+        "flakyNotes": "One run on a freshly migrated DB, server started in parallel (globalSetup waits on /api/heartbeat). Playwright: 271 passed (1.6m). globalSetup seeded via the API in 4.2s."
+      },
+      "configuredWorkers": "1 (literal; comment: specs share one seeded database and mutable globals such as the global 2FA toggle in admin.spec.ts)",
+      "isolationHazard": "globalSetup (tests/api/global-setup.ts) seeds ONE server over HTTP and writes tests/api/.runtime/<host-port>/seed.json, keyed by the host of BASE_URL. Workers read the seed from the path for their own BASE_URL (tests/api/paths.ts:17-22). Under per-worker apps, globalSetup runs in the runner main process with the main-process BASE_URL, so only one DB is seeded and the other workers find no seed.json for their host."
+    },
+    "configuredWorkers": "process.env.CI ? 1 : undefined",
+    "unmanagedServices": [],
+    "hardcodedUrlsInTests": [
+      "none in tests/e2e (grep for localhost/127.0.0.1/3000 finds nothing); baseURL comes from PLAYWRIGHT_BASE_URL or PORT (playwright.config.ts:4-5)"
+    ],
+    "authSetup": "per-test: loginViaApi() POSTs /api/auth/login and puts the token in localStorage through addInitScript (tests/e2e/helpers.ts). No globalSetup, no setup project, no storageState. Without REDIS_URL the token is a stateless JWT signed with APP_SECRET (src/lib/auth.ts:78,160), so it survives any instance with the same APP_SECRET. The user is looked up in that instance's DB.",
+    "modified": false,
+    "diff": null,
+    "notes": [
+      "The default webServer command is `pnpm dev` (next dev --turbo). Use PLAYWRIGHT_WEB_SERVER_COMMAND='pnpm start' after `pnpm build`. N dev servers in one checkout would collide on .next, and next start does not.",
+      "`pnpm start` runs next through pnpm: killing the pnpm PID left next-server running (it had to be killed separately). Kill the whole process group.",
+      "next.config.ts reads BASE_PATH, CLOUD_MODE, COLLECT_API_ENDPOINT, TRACKER_SCRIPT_NAME and similar at build time, but no URL or port is baked in; DATABASE_URL and PORT are runtime.",
+      "Browser specs create fixed-name entities ('playwright1', 'Playwright Website', 'Test-user') and pick rows with .first() (website.spec.ts:34,62). Fine with one DB per worker; cross-worker collisions on a shared DB.",
+      "Five browser specs use test.describe.configure({ mode: 'serial' }) (api-board, api-team, api-user, api-website, user).",
+      "Chrome 141 (1194) under Playwright 1.63.0 ran fine; the failures above are assertion/UI drift, not protocol errors.",
+      "Postgres 16.13 used; docker-compose.test.yml uses postgres:15. `pnpm build` also migrates, so the build needs a reachable DB unless SKIP_DB_CHECK=1 (CI uses SKIP_DB_CHECK=1 with a dummy URL)."
+    ],
+    "isolateConfigApiSuite": {
+      "packageManager": "pnpm",
+      "db": {
+        "migrate": "pnpm db:migrate",
+        "seed": "set -e\nport=$(node -e \"const s=require('net').createServer();s.listen(0,'127.0.0.1',()=>{console.log(s.address().port);s.close()})\")\nPORT=$port APP_SECRET=umami-e2e-secret DISABLE_TELEMETRY=1 DISABLE_UPDATES=1 DISABLE_BOT_CHECK=1 NEXT_TELEMETRY_DISABLED=1 TWO_FACTOR_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef MCP_ENABLED=1 setsid pnpm start > .isolate/logs/seed-app.log 2>&1 &\napp=$!\ntrap 'set +e; kill -TERM -$app; wait $app; true' EXIT\nSEED_BASE_URL=http://127.0.0.1:$port pnpm exec tsx --eval \"import('./tests/api/global-setup.ts').then((m) => m.default({ projects: [{ use: { baseURL: process.env.SEED_BASE_URL } }] })).then(() => process.exit(0), (e) => { console.error(e); process.exit(1); })\"",
+        "urlEnv": "DATABASE_URL",
+        "extraUrlEnvs": []
+      },
+      "app": {
+        "start": "pnpm start",
+        "portEnv": "PORT",
+        "healthPath": "/api/heartbeat",
+        "env": {
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1"
+        },
+        "bootTimeoutMs": 120000
+      },
+      "playwright": {
+        "config": "playwright.config.ts",
+        "baseUrlEnvs": [],
+        "env": {
+          "API_SKIP_SEED": "1"
+        }
+      },
+      "cache": {
+        "inputs": [
+          "pnpm-lock.yaml",
+          "prisma/schema.prisma",
+          "prisma/migrations",
+          "tests/api/global-setup.ts",
+          "tests/api/seed",
+          "tests/api/helpers",
+          "tests/api/client.ts",
+          "tests/api/paths.ts"
+        ]
+      }
+    },
+    "isolateNotes": [
+      "STATUS (2026-09-28 09:31-10:56 UTC; onboarding only, machine shared, no timing claims): WORKS for both suites, no umami file changed. Browser suite: isolated N=1, 2 and 4 each match the baseline test by test (24 passed, 7 failed, 7 did not run; the 7 failures are the scout's suite rot and fail identically in every arm). API suite: 271/271 at N=1, 2 and 4 with isolateConfigApiSuite, which seeds the template over HTTP before cloning. With the plain isolateConfig it passes at N=1 and fails at N>=2, because of globalSetup state; details below.",
+      "FILES: clone work/repos/umami at ec0ff50. The config is work/repos/umami/isolate.config.ts, a single TypeScript file that switches to the API variant when isolate's own argv contains `playwright.api.config` and not `--baseline`. isolateConfig (browser suite, also the plain API runs) and isolateConfigApiSuite are its two resolved static forms; the experiment harness needs a static one. Env: work/repos/umami-isolate.env. Runner: work/repos/run-isolate.sh <name> <isolate args> copies each run's report.json, pw-results.json and .isolate/logs to work/repos/umami-runs/<name>.* and records the isolate commit and dist mtime. API baseline: work/repos/api-baseline-with-app.sh.",
+      "SETUP as the recipe says: `git clone https://github.com/umami-software/umami work/repos/umami && git checkout ec0ff50`. With work/pnpm12 on PATH, from inside the checkout: `pnpm install --frozen-lockfile` (1.2 s, warm store). Then `pnpm build` with work/repos/umami-build.env: DATABASE_URL on a throwaway Postgres 16 cluster at work/pg/umami-build, port 55533, stopped afterwards; APP_SECRET; SKIP_BUILD_GEO=1; DISABLE_*; NEXT_TELEMETRY_DISABLED. It took 228 s and exited 0. The browser shim work/pw-browsers/r1243 already existed from `make-pw-shim.sh 1243` and was reused. isolate ran its embedded Postgres 18.4: all 26 migrations apply and nothing differed from the scout's PG16 baseline. `build` is unset in the config.",
+      "ENV outside the config, exported to isolate itself: PLAYWRIGHT_BROWSERS_PATH=work/pw-browsers/r1243, CI=1, PLAYWRIGHT_HTML_OPEN=never, and PATH with pnpm 12. PLAYWRIGHT_BROWSERS_PATH cannot go in playwright.env, because Playwright reads it before the wrapper's env module runs. The app env is inherited from isolate's environment plus app.env, and PORT and DATABASE_URL are set by isolate. TWO_FACTOR_ENCRYPTION_KEY and MCP_ENABLED are only needed by the API suite; the browser arms carry them and still match a baseline that ran without them.",
+      "BROWSER SUITE, 38 tests (all runs `node dist/src/cli.js run ... -- pnpm exec playwright test --retries=0`). baseline (`--baseline -- ... --workers=1`, shell env APP_SECRET/DISABLE_*/NEXT_TELEMETRY_DISABLED, PORT=3102, PLAYWRIGHT_WEB_SERVER_COMMAND='pnpm start'): 24/7/7, routing valid, b0 280 commits. N=1: 24/7/7, valid, w0 296. N=2: 24/7/7, valid, w0 225 and w1 72. N=4: 24/7/7, valid, w0-w3 72/52/118/59. Final-file N=4 (`--no-rerun`): 24/7/7, valid, 160/63/30/48. Earlier runs on older isolate builds gave the same outcomes (baseline b0 279; N=1 w0 294; N=2 214/83). isolate's reruns called all 7 failures deterministic (failed, failed) at every N. Isolation failures: none.",
+      "API SUITE, 271 tests, plain isolateConfig (per-worker PLAYWRIGHT_BASE_URL, no seed). N=1: 271 passed, valid, w0 3592. N=2: 196 passed, 27 failed, 48 did not run, routing INVALID (w0 2829, w1 0). N=4: 132 passed, 43 failed, 96 did not run, routing INVALID (w0 2221; w1, w2 and w3 0). Every failure is on parallel index >= 1. Compared with the baseline, 75 tests differ at N=2 and 139 at N=4.",
+      "FAILURE CATEGORY, plain config, all of those 75/139 tests: SHARED SETUP STATE (globalSetup), and through it GLOBAL STATE OUTSIDE THE DB (files keyed by host). globalSetup runs once, in the runner's main process, where isolate's env module applies worker 0's values. It seeds only w0's app and database over HTTP (tests/api/global-setup.ts:119, seedEnvironment). It writes seed.json and openapi.json only under tests/api/.runtime/<host of PLAYWRIGHT_BASE_URL>/ (paths.ts:15-21; global-setup.ts:65 and :122). Workers >= 1 see their own host, so they fail with `ENOENT: no such file or directory, open '.../tests/api/.runtime/127.0.0.1-<port>/seed.json'`, at seed/state.ts:48 from the worker fixture fixtures.ts:38 (27/27 failures at N=2, 41/43 at N=4). The other 2 at N=4 (system.spec.ts:4 and :25) fail with `Coverage oracle .../127.0.0.1-<port>/openapi.json is missing` (coverage/oracle.ts:30, via recorder.ts:50 and client.ts:60). The did-not-run tests are serial-mode followers (`test.describe.configure({ mode: 'serial' })`, e.g. websites.spec.ts:15, users.spec.ts:7). The coverage reporter in the main process merges only w0's host dir (N=2: 153 covered, 24 uncovered). It did not enforce because the run had failed, but it would fail an otherwise green split run. Not seen: hardcoded URL, cross-test dependency, unmanaged service, timeout under load.",
+      "API FIX, config only (isolateConfigApiSuite): (1) db.seed boots one `pnpm start` on a free port against the `seed` database, in its own session (setsid). It runs the suite's own globalSetup through `pnpm exec tsx --eval` with baseURL set to that app, then kills the app's process group. The template then holds the seed entities, and seed.json/openapi.json land in tests/api/.runtime/localhost-3100/, the paths.ts default. (2) playwright.baseUrlEnvs is [], so PLAYWRIGHT_BASE_URL stays unset and every process keys its runtime dir on localhost:3100. Requests still reach each worker's own app, because the wrapper sets use.baseURL per worker and the specs only use relative paths (fixtures.ts:42 takes workerInfo.project.use.baseURL). (3) playwright.env API_SKIP_SEED=1, umami's own switch (global-setup.ts:99), so the run's globalSetup reuses seed.json and only fetches openapi.json from w0. Results: N=1 271/271, valid, w0 2990 (cache miss, seeded). N=2 271/271, valid, 1313/1781 (cache hit). N=4 271/271, valid, 757/775/902/703 (cache hit). Final-file N=4 271/271, valid, 738/861/796/737 (cache miss, seeded afresh). Coverage 177 covered + 2 allowlisted of 179 in every run. Seeding raised migrateSeed to 9.2 s and 11.3 s, against 2.5-2.8 s for migrate alone (loaded machine); a cache hit skips it. admin.spec's global 2FA toggle becomes per worker. First attempt: the seed exited 2 because dash's `kill` rejects `--`; the isolate reaper killed the 3 escaped next-server processes.",
+      "API FIX CAVEAT: seed.json is outside the database, so isolate's snapshot does not cover it. On a cache hit db.seed does not run: the database comes from the cache and seed.json from whichever run last seeded. That is consistent here only because nothing else writes tests/api/.runtime/localhost-3100; any run of the API suite with PLAYWRIGHT_BASE_URL unset and without API_SKIP_SEED would overwrite it. Keep baselines on PLAYWRIGHT_BASE_URL=http://localhost:3104.",
+      "API BASELINE: playwright.api.config.ts has no webServer (scripts/test-api.ts starts docker compose), and `isolate run --baseline` starts no app. As-is (`PLAYWRIGHT_BASE_URL=http://localhost:3104 isolate run --baseline -- pnpm exec playwright test -c playwright.api.config.ts --workers=1 --retries=0`): globalSetup times out after 120 s on http://localhost:3104/api/heartbeat, 0 tests run, exit 1. The report still says routingValid=true with b0 at 0 commits, which is vacuous. With work/repos/api-baseline-with-app.sh, which reads isolate's Postgres port from its log, waits for b0, then runs `PORT=3104 DATABASE_URL=postgres://postgres@127.0.0.1:<port>/b0 <app env> setsid pnpm start`: 271/271, valid, b0 3620 commits. That reproduces the scout's 271/271. The baseline keeps the plain variant, so its own globalSetup seeds b0 as `pnpm test:api` would.",
+      "ISOLATE GAPS FOUND (details in SCOUT_LOG.md, 'umami isolate onboarding'): (a) no way to seed through the running app (umami seeds over HTTP), worked around in db.seed; (b) files a seed writes are not part of the DB snapshot; (c) baseline mode cannot start the app for a config without webServer; (d) the routing check blames DATABASE_URL when a worker's tests fail before reaching its app, and marks a run with 0 tests routingValid=true; (e) reruns run at 1 worker and relabel isolation failures 'flaky' (passed, passed): 10 of 10 rerun at N=2 and N=4; (f) the unmanaged scan flags clickhouse/kafka/redis from package.json in every run, though umami only uses them when CLICKHOUSE_URL/KAFKA_URL/REDIS_URL are set, and run ignores config.unmanaged; (g) the DB cache key hashes the config file text plus cache.inputs, not the resolved config, and a hand-written config with empty cache.inputs ignores migrations.",
+      "HAZARD SCAN in the API runs: 'hardcoded URL tests/api/paths.ts:8' is a false positive (a fallback behind PLAYWRIGHT_BASE_URL). 'globalSetup ... lands in worker 0's database only' is accurate but incomplete: the files keyed by host are what fail first. The browser suite gets no hazard warnings.",
+      "COST: in the browser arms, isolate's reruns (7 deterministic failures x 2 runs, each on a fresh app) took 352, 335 and 370 s of 497, 456 and 489 s wall at N=1, 2 and 4. `--no-rerun`, added to isolate during this session (bca535a), avoids that.",
+      "ISOLATE VERSION: the lead rebuilt dist several times during these runs. Browser baseline/N=1/N=2/N=4 ran on 12eabbf (N=4 ended at 998a577, docs-only). API plain N=1/N=2/N=4 ran from 998a577 to 88b24c4, with dist rebuilt during each of the three runs; the run-path change in that range is only the new --no-rerun flag. The API fix, both API baselines and both final-file runs ran on 88b24c4. Each run's start/end commit and dist mtime are in work/repos/umami-runs/<name>.ver."
+    ],
+    "scoutInstall": [
+      "git clone --depth 1 https://github.com/umami-software/umami && cd umami  # at the commit above",
+      "export PATH=/home/user/shard/work/pnpm12/node_modules/.bin:$PATH   # pnpm 12.3.4; run from inside the checkout, NOT from /home/user/shard (its packageManager pnpm@10.33.0 makes pnpm switch versions)",
+      "pnpm install --frozen-lockfile   # 27s",
+      "experiments/recipes/make-pw-shim.sh 1243   # creates /home/user/shard/work/pw-browsers/r1243"
+    ],
+    "scoutBuild": [
+      "pnpm build   # with DATABASE_URL etc. exported. Runs check:env, prisma generate, check:db (= prisma migrate deploy against DATABASE_URL), tracker/recorder rollup, build:geo (skipped by SKIP_BUILD_GEO=1), openapi, packages, next build --turbo, postbuild. 205s here"
+    ],
+    "scoutEnv": {
+      "DATABASE_URL": "postgresql://postgres@127.0.0.1:{port}/{db}",
+      "APP_SECRET": "umami-e2e-secret (any string)",
+      "SKIP_BUILD_GEO": "1 (build only; otherwise downloads GeoLite2 from raw.githubusercontent.com)",
+      "DISABLE_TELEMETRY": "1",
+      "DISABLE_UPDATES": "1",
+      "DISABLE_BOT_CHECK": "1",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "CI": "true (config: workers 1, retries 2, forbidOnly)",
+      "PORT": "3102",
+      "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start   (config hook; default is `pnpm dev`)",
+      "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+    },
+    "harnessNotes": [
+      "install/build/env adapted for the harness by the lead: the harness clones at the pinned commit itself; SKIP_DB_CHECK=1 lets `pnpm build` skip its migrate-against-DATABASE_URL step (the DATABASE_URL here is a placeholder that every isolate run overrides per worker); scout originals kept under scoutInstall/scoutBuild/scoutEnv."
+    ]
+  },
+  "checkout": {
+    "root": "work/repos/umami",
+    "appDir": "work/repos/umami",
+    "commit": "ec0ff50388c264ed8ce46f00967e92f7e71476ae"
+  },
+  "browsers": {
+    "path": "/home/user/shard/work/pw-browsers/r1243",
+    "expected": {
+      "chromium": "1243",
+      "headlessShell": "1243",
+      "ffmpeg": "1011"
+    },
+    "installed": {
+      "chromium": "1194",
+      "headlessShell": "1194",
+      "ffmpeg": "1011"
+    },
+    "shim": true
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.18.44-fc-v37",
+    "node": "v22.22.2",
+    "postgres": null,
+    "playwright": "1.63.0",
+    "cloudSandbox": true
+  },
+  "maps": {
+    "files": [
+      "data/results/umami/map-w4.json",
+      "data/results/umami/map-w2.json"
+    ],
+    "traces": [
+      {
+        "label": "trace-w4",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "trace",
+          "--workers",
+          "4",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T13:55:17.771Z",
+        "loadAvg1AtStart": 3.78,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 480453,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/trace-w4.json",
+          "results": "data/results/umami/mutants/trace-w4.pw-results.json",
+          "log": "data/results/umami/mutants/trace-w4.log"
+        }
+      },
+      {
+        "label": "trace-w2",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "trace",
+          "--workers",
+          "2",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:03:18.230Z",
+        "loadAvg1AtStart": 0.7,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 501162,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/trace-w2.json",
+          "results": "data/results/umami/mutants/trace-w2.pw-results.json",
+          "log": "data/results/umami/mutants/trace-w2.log"
+        }
+      }
+    ],
+    "global": [
+      "src/app/(collect)/p/[slug]/route.ts",
+      "src/app/(collect)/q/[slug]/route.ts",
+      "src/app/(compat)/compat/api/reports/[reportId]/route.ts",
+      "src/app/(compat)/compat/api/reports/attribution/route.ts",
+      "src/app/(compat)/compat/api/reports/breakdown/route.ts",
+      "src/app/(compat)/compat/api/reports/funnel/route.ts",
+      "src/app/(compat)/compat/api/reports/goal/route.ts",
+      "src/app/(compat)/compat/api/reports/heatmap/route.ts",
+      "src/app/(compat)/compat/api/reports/journey/route.ts",
+      "src/app/(compat)/compat/api/reports/performance/route.ts",
+      "src/app/(compat)/compat/api/reports/retention/route.ts",
+      "src/app/(compat)/compat/api/reports/revenue/route.ts",
+      "src/app/(compat)/compat/api/reports/route.ts",
+      "src/app/(compat)/compat/api/reports/utm/route.ts",
+      "src/app/(compat)/compat/api/websites/[websiteId]/reports/route.ts",
+      "src/app/api/2fa/disable/route.ts",
+      "src/app/api/2fa/setup/cancel/route.ts",
+      "src/app/api/2fa/setup/confirm/route.ts",
+      "src/app/api/2fa/setup/initiate/route.ts",
+      "src/app/api/2fa/status/route.ts",
+      "src/app/api/2fa/verify/route.ts",
+      "src/app/api/admin/2fa/global/route.ts",
+      "src/app/api/admin/teams/[teamId]/2fa/route.ts",
+      "src/app/api/admin/teams/route.ts",
+      "src/app/api/admin/users/[userId]/2fa/route.ts",
+      "src/app/api/admin/users/route.ts",
+      "src/app/api/admin/websites/route.ts",
+      "src/app/api/auth/login/route.ts",
+      "src/app/api/auth/login/schema.ts",
+      "src/app/api/auth/logout/route.ts",
+      "src/app/api/auth/sso/route.ts",
+      "src/app/api/auth/subscription/route.ts",
+      "src/app/api/auth/verify/route.ts",
+      "src/app/api/batch/route.ts",
+      "src/app/api/boards/[boardId]/clone/route.ts",
+      "src/app/api/boards/[boardId]/route.ts",
+      "src/app/api/boards/[boardId]/shares/route.ts",
+      "src/app/api/boards/route.ts",
+      "src/app/api/config/route.ts",
+      "src/app/api/dashboard/route.ts",
+      "src/app/api/heartbeat/route.ts",
+      "src/app/api/links/[linkId]/route.ts",
+      "src/app/api/links/[linkId]/shares/route.ts",
+      "src/app/api/links/charts/route.ts",
+      "src/app/api/links/route.ts",
+      "src/app/api/me/api-keys/[keyId]/route.ts",
+      "src/app/api/me/api-keys/route.ts",
+      "src/app/api/me/password/route.ts",
+      "src/app/api/me/teams/route.ts",
+      "src/app/api/me/websites/route.ts",
+      "src/app/api/pixels/[pixelId]/route.ts",
+      "src/app/api/pixels/[pixelId]/shares/route.ts",
+      "src/app/api/pixels/charts/route.ts",
+      "src/app/api/pixels/route.ts",
+      "src/app/api/record/route.ts",
+      "src/app/api/scripts/telemetry/route.ts",
+      "src/app/api/share/[slug]/route.ts",
+      "src/app/api/share/id/[shareId]/route.ts",
+      "src/app/api/share/route.ts",
+      "src/app/api/teams/[teamId]/boards/route.ts",
+      "src/app/api/teams/[teamId]/links/route.ts",
+      "src/app/api/teams/[teamId]/pixels/route.ts",
+      "src/app/api/teams/[teamId]/route.ts",
+      "src/app/api/teams/[teamId]/users/[userId]/route.ts",
+      "src/app/api/teams/[teamId]/users/route.ts",
+      "src/app/api/teams/[teamId]/websites/route.ts",
+      "src/app/api/teams/join/route.ts",
+      "src/app/api/teams/route.ts",
+      "src/app/api/users/[userId]/route.ts",
+      "src/app/api/users/[userId]/teams/route.ts",
+      "src/app/api/users/[userId]/websites/route.ts",
+      "src/app/api/users/route.ts",
+      "src/app/api/websites/[websiteId]/annotations/[annotationId]/route.ts",
+      "src/app/api/websites/[websiteId]/event-data-pivot/array-series/route.ts",
+      "src/app/api/websites/[websiteId]/event-data-pivot/date-series/route.ts",
+      "src/app/api/websites/[websiteId]/event-data-pivot/numeric-series/route.ts",
+      "src/app/api/websites/[websiteId]/event-data-pivot/numeric-stats/route.ts",
+      "src/app/api/websites/[websiteId]/event-data-pivot/property-series/route.ts",
+      "src/app/api/websites/[websiteId]/event-data-pivot/route.ts",
+      "src/app/api/websites/[websiteId]/event-data/[eventId]/route.ts",
+      "src/app/api/websites/[websiteId]/event-data/events/route.ts",
+      "src/app/api/websites/[websiteId]/event-data/fields/route.ts",
+      "src/app/api/websites/[websiteId]/export/route.ts",
+      "src/app/api/websites/[websiteId]/funnels/[funnelId]/route.ts",
+      "src/app/api/websites/[websiteId]/goals/[goalId]/route.ts",
+      "src/app/api/websites/[websiteId]/goals/stats/route.ts",
+      "src/app/api/websites/[websiteId]/heatmaps/route.ts",
+      "src/app/api/websites/[websiteId]/recorder/route.ts",
+      "src/app/api/websites/[websiteId]/replays/[replayId]/route.ts",
+      "src/app/api/websites/[websiteId]/replays/route.ts",
+      "src/app/api/websites/[websiteId]/replays/saved/[replayId]/route.ts",
+      "src/app/api/websites/[websiteId]/replays/saved/route.ts",
+      "src/app/api/websites/[websiteId]/reset/route.ts",
+      "src/app/api/websites/[websiteId]/revenue/sessions/route.ts",
+      "src/app/api/websites/[websiteId]/segments/[segmentId]/route.ts",
+      "src/app/api/websites/[websiteId]/session-data-pivot/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/array-series/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/date-series/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/numeric-series/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/numeric-stats/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/properties/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/property-series/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/stats/route.ts",
+      "src/app/api/websites/[websiteId]/session-data/values/route.ts",
+      "src/app/api/websites/[websiteId]/sessions/[sessionId]/replays/route.ts",
+      "src/app/api/websites/[websiteId]/sessions/weekly/route.ts",
+      "src/app/api/websites/[websiteId]/shares/route.ts",
+      "src/app/api/websites/[websiteId]/transfer/route.ts",
+      "src/app/api/websites/[websiteId]/values/route.ts",
+      "src/app/api/websites/charts/route.ts",
+      "src/app/mcp/route.ts",
+      "src/generated/prisma/client.ts",
+      "src/generated/prisma/internal/class.ts",
+      "src/generated/prisma/internal/prismaNamespace.ts",
+      "src/lib/api-key.ts",
+      "src/lib/auth.ts",
+      "src/lib/boards.ts",
+      "src/lib/clickhouse.ts",
+      "src/lib/constants.ts",
+      "src/lib/crypto.ts",
+      "src/lib/csp.ts",
+      "src/lib/data.ts",
+      "src/lib/date.ts",
+      "src/lib/db.ts",
+      "src/lib/entity.ts",
+      "src/lib/format.ts",
+      "src/lib/generate.ts",
+      "src/lib/jwt.ts",
+      "src/lib/kafka.ts",
+      "src/lib/load.ts",
+      "src/lib/params.ts",
+      "src/lib/password.ts",
+      "src/lib/prisma.ts",
+      "src/lib/redis.ts",
+      "src/lib/request.ts",
+      "src/lib/response.ts",
+      "src/lib/sort.ts",
+      "src/lib/two-factor/crypto.ts",
+      "src/lib/utils.ts",
+      "src/permissions/board.ts",
+      "src/permissions/entity.ts",
+      "src/permissions/index.ts",
+      "src/permissions/link.ts",
+      "src/permissions/pixel.ts",
+      "src/permissions/report.ts",
+      "src/permissions/share.ts",
+      "src/permissions/team.ts",
+      "src/permissions/user.ts",
+      "src/queries/prisma/annotation.ts",
+      "src/queries/prisma/apiKey.ts",
+      "src/queries/prisma/board.ts",
+      "src/queries/prisma/index.ts",
+      "src/queries/prisma/link.ts",
+      "src/queries/prisma/pixel.ts",
+      "src/queries/prisma/report.ts",
+      "src/queries/prisma/segment.ts",
+      "src/queries/prisma/session.ts",
+      "src/queries/prisma/sessionReplay.ts",
+      "src/queries/prisma/share.ts",
+      "src/queries/prisma/team.ts",
+      "src/queries/prisma/teamUser.ts",
+      "src/queries/prisma/user.ts",
+      "src/queries/sql/breakdown/getBreakdown.ts",
+      "src/queries/sql/events/getEventDataArraySeries.ts",
+      "src/queries/sql/events/getEventDataById.ts",
+      "src/queries/sql/events/getEventDataDateSeries.ts",
+      "src/queries/sql/events/getEventDataEvents.ts",
+      "src/queries/sql/events/getEventDataFields.ts",
+      "src/queries/sql/events/getEventDataNumericSeries.ts",
+      "src/queries/sql/events/getEventDataNumericStats.ts",
+      "src/queries/sql/events/getEventDataPivot.ts",
+      "src/queries/sql/events/getEventDataProperties.ts",
+      "src/queries/sql/events/getEventDataPropertySeries.ts",
+      "src/queries/sql/events/getEventDataStats.ts",
+      "src/queries/sql/events/getEventDataUsage.ts",
+      "src/queries/sql/events/getEventDataValues.ts",
+      "src/queries/sql/events/getEventExpandedMetrics.ts",
+      "src/queries/sql/events/getEventMetrics.ts",
+      "src/queries/sql/events/getEventStats.ts",
+      "src/queries/sql/events/getEventUsage.ts",
+      "src/queries/sql/events/getWebsiteEvents.ts",
+      "src/queries/sql/events/saveEvent.ts",
+      "src/queries/sql/events/saveEventData.ts",
+      "src/queries/sql/events/saveRevenue.ts",
+      "src/queries/sql/funnels/getFunnel.ts",
+      "src/queries/sql/getActiveVisitors.ts",
+      "src/queries/sql/getChannelExpandedMetrics.ts",
+      "src/queries/sql/getChannelMetrics.ts",
+      "src/queries/sql/getRealtimeActivity.ts",
+      "src/queries/sql/getRealtimeData.ts",
+      "src/queries/sql/getValues.ts",
+      "src/queries/sql/getWebsiteDateRange.ts",
+      "src/queries/sql/getWebsiteListCharts.ts",
+      "src/queries/sql/getWebsiteStats.ts",
+      "src/queries/sql/getWeeklyTraffic.ts",
+      "src/queries/sql/heatmap/getHeatmap.ts",
+      "src/queries/sql/heatmap/saveHeatmapEvents.ts",
+      "src/queries/sql/index.ts",
+      "src/queries/sql/journeys/getJourney.ts",
+      "src/queries/sql/pageviews/getPageviewExpandedMetrics.ts",
+      "src/queries/sql/pageviews/getPageviewMetrics.ts",
+      "src/queries/sql/pageviews/getPageviewStats.ts",
+      "src/queries/sql/performance/getPerformanceStats.ts",
+      "src/queries/sql/replays/getReplayChunks.ts",
+      "src/queries/sql/replays/getSessionReplays.ts",
+      "src/queries/sql/replays/saveRecording.ts",
+      "src/queries/sql/retention/getRetention.ts",
+      "src/queries/sql/sessions/createSession.ts",
+      "src/queries/sql/sessions/getLinkedDistinctIds.ts",
+      "src/queries/sql/sessions/getLinkedSessionIds.ts",
+      "src/queries/sql/sessions/getSessionActivity.ts",
+      "src/queries/sql/sessions/getSessionData.ts",
+      "src/queries/sql/sessions/getSessionDataActivityStats.ts",
+      "src/queries/sql/sessions/getSessionDataArraySeries.ts",
+      "src/queries/sql/sessions/getSessionDataDateSeries.ts",
+      "src/queries/sql/sessions/getSessionDataNumericSeries.ts",
+      "src/queries/sql/sessions/getSessionDataNumericStats.ts",
+      "src/queries/sql/sessions/getSessionDataPivot.ts",
+      "src/queries/sql/sessions/getSessionDataProperties.ts",
+      "src/queries/sql/sessions/getSessionDataPropertySeries.ts",
+      "src/queries/sql/sessions/getSessionDataValues.ts",
+      "src/queries/sql/sessions/getSessionExpandedMetrics.ts",
+      "src/queries/sql/sessions/getSessionMetrics.ts",
+      "src/queries/sql/sessions/getSessionStats.ts",
+      "src/queries/sql/sessions/getWebsiteSession.ts",
+      "src/queries/sql/sessions/getWebsiteSessionStats.ts",
+      "src/queries/sql/sessions/getWebsiteSessions.ts",
+      "src/queries/sql/sessions/saveSessionData.ts",
+      "src/queries/sql/sessions/saveSessionLink.ts",
+      "src/queries/sql/sessions/updateSession.ts"
+    ],
+    "bootLoaded": [
+      ".next/server/app/(collect)/p/[slug]/route.js",
+      ".next/server/app/(collect)/q/[slug]/route.js",
+      ".next/server/app/(compat)/compat/api/reports/[reportId]/route.js",
+      ".next/server/app/(compat)/compat/api/reports/attribution/route.js",
+      ".next/server/app/(compat)/compat/api/reports/breakdown/route.js",
+      ".next/server/app/(compat)/compat/api/reports/funnel/route.js",
+      ".next/server/app/(compat)/compat/api/reports/goal/route.js",
+      ".next/server/app/(compat)/compat/api/reports/heatmap/route.js",
+      ".next/server/app/(compat)/compat/api/reports/journey/route.js",
+      ".next/server/app/(compat)/compat/api/reports/performance/route.js",
+      ".next/server/app/(compat)/compat/api/reports/retention/route.js",
+      ".next/server/app/(compat)/compat/api/reports/revenue/route.js",
+      ".next/server/app/(compat)/compat/api/reports/route.js",
+      ".next/server/app/(compat)/compat/api/reports/utm/route.js",
+      ".next/server/app/(compat)/compat/api/websites/[websiteId]/reports/route.js",
+      ".next/server/app/(main)/admin/security/page.js",
+      ".next/server/app/(main)/admin/teams/[teamId]/page.js",
+      ".next/server/app/(main)/admin/teams/page.js",
+      ".next/server/app/(main)/admin/users/[userId]/page.js",
+      ".next/server/app/(main)/admin/users/page.js",
+      ".next/server/app/(main)/admin/websites/[websiteId]/page.js",
+      ".next/server/app/(main)/admin/websites/page.js",
+      ".next/server/app/(main)/boards/[boardId]/design/page.js",
+      ".next/server/app/(main)/boards/[boardId]/edit/page.js",
+      ".next/server/app/(main)/boards/[boardId]/page.js",
+      ".next/server/app/(main)/boards/create/page.js",
+      ".next/server/app/(main)/boards/page.js",
+      ".next/server/app/(main)/console/[websiteId]/page.js",
+      ".next/server/app/(main)/dashboard/edit/page.js",
+      ".next/server/app/(main)/dashboard/page.js",
+      ".next/server/app/(main)/links/[linkId]/edit/page.js",
+      ".next/server/app/(main)/links/[linkId]/page.js",
+      ".next/server/app/(main)/links/page.js",
+      ".next/server/app/(main)/pixels/[pixelId]/edit/page.js",
+      ".next/server/app/(main)/pixels/[pixelId]/page.js",
+      ".next/server/app/(main)/pixels/page.js",
+      ".next/server/app/(main)/settings/api-keys/page.js",
+      ".next/server/app/(main)/settings/preferences/page.js",
+      ".next/server/app/(main)/settings/profile/page.js",
+      ".next/server/app/(main)/settings/security/page.js",
+      ".next/server/app/(main)/settings/teams/[teamId]/page.js",
+      ".next/server/app/(main)/settings/teams/page.js",
+      ".next/server/app/(main)/settings/websites/[websiteId]/page.js",
+      ".next/server/app/(main)/settings/websites/page.js",
+      ".next/server/app/(main)/teams/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/attribution/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/breakdown/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/funnels/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/goals/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/heatmaps/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/journeys/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/performance/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/retention/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/revenue/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/(reports)/utm/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/@modal/(.)replays/[sessionId]/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/@modal/(.)sessions/[sessionId]/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/cohorts/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/compare/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/events/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/realtime/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/replays/[replayId]/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/replays/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/segments/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/sessions/[sessionId]/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/sessions/page.js",
+      ".next/server/app/(main)/websites/[websiteId]/settings/page.js",
+      ".next/server/app/(main)/websites/page.js",
+      ".next/server/app/_global-error/page.js",
+      ".next/server/app/_not-found/page.js",
+      ".next/server/app/api/2fa/disable/route.js",
+      ".next/server/app/api/2fa/setup/cancel/route.js",
+      ".next/server/app/api/2fa/setup/confirm/route.js",
+      ".next/server/app/api/2fa/setup/initiate/route.js",
+      ".next/server/app/api/2fa/status/route.js",
+      ".next/server/app/api/2fa/verify/route.js",
+      ".next/server/app/api/admin/2fa/global/route.js",
+      ".next/server/app/api/admin/teams/[teamId]/2fa/route.js",
+      ".next/server/app/api/admin/teams/route.js",
+      ".next/server/app/api/admin/users/[userId]/2fa/route.js",
+      ".next/server/app/api/admin/users/route.js",
+      ".next/server/app/api/admin/websites/route.js",
+      ".next/server/app/api/auth/login/route.js",
+      ".next/server/app/api/auth/logout/route.js",
+      ".next/server/app/api/auth/sso/route.js",
+      ".next/server/app/api/auth/subscription/route.js",
+      ".next/server/app/api/auth/verify/route.js",
+      ".next/server/app/api/batch/route.js",
+      ".next/server/app/api/boards/[boardId]/clone/route.js",
+      ".next/server/app/api/boards/[boardId]/route.js",
+      ".next/server/app/api/boards/[boardId]/shares/route.js",
+      ".next/server/app/api/boards/route.js",
+      ".next/server/app/api/config/route.js",
+      ".next/server/app/api/dashboard/route.js",
+      ".next/server/app/api/heartbeat/route.js",
+      ".next/server/app/api/links/[linkId]/route.js",
+      ".next/server/app/api/links/[linkId]/shares/route.js",
+      ".next/server/app/api/links/charts/route.js",
+      ".next/server/app/api/links/route.js",
+      ".next/server/app/api/me/api-keys/[keyId]/route.js",
+      ".next/server/app/api/me/api-keys/route.js",
+      ".next/server/app/api/me/password/route.js",
+      ".next/server/app/api/me/route.js",
+      ".next/server/app/api/me/teams/route.js",
+      ".next/server/app/api/me/websites/route.js",
+      ".next/server/app/api/pixels/[pixelId]/route.js",
+      ".next/server/app/api/pixels/[pixelId]/shares/route.js",
+      ".next/server/app/api/pixels/charts/route.js",
+      ".next/server/app/api/pixels/route.js",
+      ".next/server/app/api/realtime/[websiteId]/route.js",
+      ".next/server/app/api/record/route.js",
+      ".next/server/app/api/scripts/telemetry/route.js",
+      ".next/server/app/api/send/route.js",
+      ".next/server/app/api/share/[slug]/route.js",
+      ".next/server/app/api/share/id/[shareId]/route.js",
+      ".next/server/app/api/share/route.js",
+      ".next/server/app/api/teams/[teamId]/boards/route.js",
+      ".next/server/app/api/teams/[teamId]/links/route.js",
+      ".next/server/app/api/teams/[teamId]/pixels/route.js",
+      ".next/server/app/api/teams/[teamId]/route.js",
+      ".next/server/app/api/teams/[teamId]/users/[userId]/route.js",
+      ".next/server/app/api/teams/[teamId]/users/route.js",
+      ".next/server/app/api/teams/[teamId]/websites/route.js",
+      ".next/server/app/api/teams/join/route.js",
+      ".next/server/app/api/teams/route.js",
+      ".next/server/app/api/users/[userId]/route.js",
+      ".next/server/app/api/users/[userId]/teams/route.js",
+      ".next/server/app/api/users/[userId]/websites/route.js",
+      ".next/server/app/api/users/route.js",
+      ".next/server/app/api/websites/[websiteId]/active/route.js",
+      ".next/server/app/api/websites/[websiteId]/annotations/[annotationId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/annotations/route.js",
+      ".next/server/app/api/websites/[websiteId]/attribution/route.js",
+      ".next/server/app/api/websites/[websiteId]/breakdown/route.js",
+      ".next/server/app/api/websites/[websiteId]/daterange/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data-pivot/array-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data-pivot/date-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data-pivot/numeric-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data-pivot/numeric-stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data-pivot/property-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data-pivot/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/[eventId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/events/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/fields/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/properties/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/event-data/values/route.js",
+      ".next/server/app/api/websites/[websiteId]/events/route.js",
+      ".next/server/app/api/websites/[websiteId]/events/series/route.js",
+      ".next/server/app/api/websites/[websiteId]/events/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/export/route.js",
+      ".next/server/app/api/websites/[websiteId]/funnels/[funnelId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/funnels/[funnelId]/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/funnels/route.js",
+      ".next/server/app/api/websites/[websiteId]/funnels/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/goals/[goalId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/goals/[goalId]/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/goals/route.js",
+      ".next/server/app/api/websites/[websiteId]/goals/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/heatmaps/route.js",
+      ".next/server/app/api/websites/[websiteId]/journeys/route.js",
+      ".next/server/app/api/websites/[websiteId]/metrics/expanded/route.js",
+      ".next/server/app/api/websites/[websiteId]/metrics/route.js",
+      ".next/server/app/api/websites/[websiteId]/pageviews/route.js",
+      ".next/server/app/api/websites/[websiteId]/performance/chart/route.js",
+      ".next/server/app/api/websites/[websiteId]/performance/metrics/route.js",
+      ".next/server/app/api/websites/[websiteId]/performance/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/recorder/route.js",
+      ".next/server/app/api/websites/[websiteId]/replays/[replayId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/replays/route.js",
+      ".next/server/app/api/websites/[websiteId]/replays/saved/[replayId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/replays/saved/route.js",
+      ".next/server/app/api/websites/[websiteId]/reset/route.js",
+      ".next/server/app/api/websites/[websiteId]/retention/route.js",
+      ".next/server/app/api/websites/[websiteId]/revenue/chart/route.js",
+      ".next/server/app/api/websites/[websiteId]/revenue/metrics/route.js",
+      ".next/server/app/api/websites/[websiteId]/revenue/sessions/route.js",
+      ".next/server/app/api/websites/[websiteId]/revenue/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/segments/[segmentId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/segments/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data-pivot/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/array-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/date-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/numeric-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/numeric-stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/properties/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/property-series/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/session-data/values/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/[sessionId]/activity/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/[sessionId]/properties/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/[sessionId]/replays/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/[sessionId]/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/sessions/weekly/route.js",
+      ".next/server/app/api/websites/[websiteId]/shares/route.js",
+      ".next/server/app/api/websites/[websiteId]/stats/route.js",
+      ".next/server/app/api/websites/[websiteId]/transfer/route.js",
+      ".next/server/app/api/websites/[websiteId]/utm/metrics/route.js",
+      ".next/server/app/api/websites/[websiteId]/values/route.js",
+      ".next/server/app/api/websites/charts/route.js",
+      ".next/server/app/api/websites/route.js",
+      ".next/server/app/login/page.js",
+      ".next/server/app/login/two-factor/page.js",
+      ".next/server/app/logout/page.js",
+      ".next/server/app/mcp/route.js",
+      ".next/server/app/page.js",
+      ".next/server/app/share/[slug]/[[...path]]/page.js",
+      ".next/server/app/sso/page.js",
+      "src/app/(main)/websites/[websiteId]/@modal/default.tsx",
+      "src/lib/schema.ts",
+      "src/lib/two-factor/backup-codes.ts"
+    ],
+    "stability": {
+      "perFile": {
+        "files": 215,
+        "median": 0.875,
+        "min": 0.5,
+        "leftOutAsCommon": 9
+      },
+      "perTest": {
+        "tests": 31,
+        "median": 1,
+        "min": 0.157,
+        "inOneMapOnly": 0
+      }
+    }
+  },
+  "reference": {
+    "runs": [
+      {
+        "label": "reference-1",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:11:39.518Z",
+        "loadAvg1AtStart": 0.33,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 115820,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/reference-1.json",
+          "results": "data/results/umami/mutants/reference-1.pw-results.json",
+          "log": "data/results/umami/mutants/reference-1.log"
+        }
+      },
+      {
+        "label": "reference-2",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:13:35.341Z",
+        "loadAvg1AtStart": 0.84,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 115272,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/reference-2.json",
+          "results": "data/results/umami/mutants/reference-2.pw-results.json",
+          "log": "data/results/umami/mutants/reference-2.log"
+        }
+      }
+    ],
+    "excluded": [
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+      "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+      "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+      "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+      "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+      "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+      "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+    ],
+    "allTests": [
+      "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+      "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+      "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+      "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+      "chromium › tests/e2e/user.spec.ts › User tests › deletes a user",
+      "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+      "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+      "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+      "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+    ],
+    "durations": {
+      "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description": 265,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team": 79,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team": 213,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team": 112,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID": 110.5,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team": 68,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team": 123.5,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team": 63.5,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team": 59.5,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team": 189.5,
+      "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team": 56,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user": 660,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user": 0,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID": 0,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user": 0,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user": 0,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used": 207.5,
+      "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user": 0,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team": 83,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user": 184,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID": 288.5,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website": 87,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID": 58,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website": 89.5,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites": 162,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website": 81.5,
+      "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId": 85.5,
+      "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out": 7620.5,
+      "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials": 1424,
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal": 3121,
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal": 2409,
+      "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open": 2275.5,
+      "chromium › tests/e2e/user.spec.ts › User tests › adds a user": 7576.5,
+      "chromium › tests/e2e/user.spec.ts › User tests › deletes a user": 0,
+      "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password": 0,
+      "chromium › tests/e2e/website.spec.ts › Website tests › adds a website": 30055,
+      "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website": 30105.5,
+      "chromium › tests/e2e/website.spec.ts › Website tests › edits a website": 30073
+    }
+  },
+  "targets": {
+    "sourceFiles": 1126,
+    "byStratum": {
+      "inTests": 156,
+      "bootLoadedOnly": 1,
+      "global": 227,
+      "absent": 742
+    },
+    "sample": [
+      {
+        "file": "src/app/(main)/websites/[websiteId]/(reports)/goals/page.tsx",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "src/app/(main)/boards/BoardCloneButton.tsx",
+        "stratum": "absent",
+        "side": "server"
+      },
+      {
+        "file": "src/app/api/pixels/[pixelId]/shares/route.ts",
+        "stratum": "global",
+        "side": "server"
+      },
+      {
+        "file": "src/components/hooks/useNavigation.ts",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "src/app/(main)/websites/[websiteId]/realtime/RealtimeCountries.tsx",
+        "stratum": "absent",
+        "side": "server"
+      },
+      {
+        "file": "src/queries/sql/pageviews/getPageviewMetrics.ts",
+        "stratum": "global",
+        "side": "server"
+      },
+      {
+        "file": "src/app/(main)/websites/[websiteId]/replays/page.tsx",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "src/app/api/me/api-keys/[keyId]/contract.generated.ts",
+        "stratum": "absent",
+        "side": "server"
+      },
+      {
+        "file": "src/queries/sql/sessions/getSessionData.ts",
+        "stratum": "global",
+        "side": "server"
+      },
+      {
+        "file": "src/app/(main)/websites/[websiteId]/layout.tsx",
+        "stratum": "inTests",
+        "side": "server"
+      }
+    ],
+    "noMutant": [
+      {
+        "kind": "throw",
+        "file": "src/app/api/me/api-keys/[keyId]/contract.generated.ts",
+        "skipped": "no exported function with a block body"
+      }
+    ]
+  },
+  "mutants": [
+    {
+      "id": "m01-throw",
+      "kind": "throw",
+      "file": "src/app/(main)/websites/[websiteId]/(reports)/goals/page.tsx",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 4,
+      "functionName": "default",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of default()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal"
+            ],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/(reports)/goals/page.tsx"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal"
+            ],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/(reports)/goals/page.tsx"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m01-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:16:38.284Z",
+        "loadAvg1AtStart": 2.21,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 113677,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m01-throw.json",
+          "results": "data/results/umami/mutants/m01-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m01-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 1,
+            "countRatio": 0.026,
+            "timeRatio": 0.026,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 1,
+            "countRatio": 0.026,
+            "timeRatio": 0.026,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m02-throw",
+      "kind": "throw",
+      "file": "src/app/(main)/boards/BoardCloneButton.tsx",
+      "stratum": "absent",
+      "side": "server",
+      "line": 13,
+      "functionName": "BoardCloneButton",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of BoardCloneButton()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 6
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [],
+            "changed": [
+              "src/app/(main)/boards/BoardCloneButton.tsx"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [],
+            "changed": [
+              "src/app/(main)/boards/BoardCloneButton.tsx"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m02-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:19:34.839Z",
+        "loadAvg1AtStart": 1.9,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 114467,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m02-throw.json",
+          "results": "data/results/umami/mutants/m02-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m02-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 0,
+            "countRatio": 0,
+            "timeRatio": 0,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 0,
+            "countRatio": 0,
+            "timeRatio": 0,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m03-throw",
+      "kind": "throw",
+      "file": "src/app/api/pixels/[pixelId]/shares/route.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 11,
+      "functionName": "GET",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of GET()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/app/api/pixels/[pixelId]/shares/route.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/app/api/pixels/[pixelId]/shares/route.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/app/api/pixels/[pixelId]/shares/route.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/app/api/pixels/[pixelId]/shares/route.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m03-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:22:32.985Z",
+        "loadAvg1AtStart": 1.83,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 113836,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m03-throw.json",
+          "results": "data/results/umami/mutants/m03-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m03-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 38,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 38,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m04-throw",
+      "kind": "throw",
+      "file": "src/components/hooks/useNavigation.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 5,
+      "functionName": "useNavigation",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of useNavigation()",
+      "buildError": "build with m04-throw failed (exit code 1). Last lines of /home/user/shard/data/results/umami/mutants/m04-throw.build.log:",
+      "live": false,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": null
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/components/hooks/useNavigation.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/components/hooks/useNavigation.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": null,
+      "failing": null,
+      "notRun": null,
+      "bootFailure": false,
+      "score": {
+        "F": null,
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 8,
+            "countRatio": 0.211,
+            "timeRatio": 0.96,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 8,
+            "countRatio": 0.211,
+            "timeRatio": 0.96,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m05-throw",
+      "kind": "throw",
+      "file": "src/app/(main)/websites/[websiteId]/realtime/RealtimeCountries.tsx",
+      "stratum": "absent",
+      "side": "server",
+      "line": 7,
+      "functionName": "RealtimeCountries",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of RealtimeCountries()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 6
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/realtime/RealtimeCountries.tsx"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/realtime/RealtimeCountries.tsx"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m05-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:26:32.702Z",
+        "loadAvg1AtStart": 2.59,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 113560,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m05-throw.json",
+          "results": "data/results/umami/mutants/m05-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m05-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 0,
+            "countRatio": 0,
+            "timeRatio": 0,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 0,
+            "countRatio": 0,
+            "timeRatio": 0,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m06-throw",
+      "kind": "throw",
+      "file": "src/queries/sql/pageviews/getPageviewMetrics.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 22,
+      "functionName": "getPageviewMetrics",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of getPageviewMetrics()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 18
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/queries/sql/pageviews/getPageviewMetrics.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/queries/sql/pageviews/getPageviewMetrics.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/queries/sql/pageviews/getPageviewMetrics.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/queries/sql/pageviews/getPageviewMetrics.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m06-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:29:34.114Z",
+        "loadAvg1AtStart": 1.68,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 112632,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m06-throw.json",
+          "results": "data/results/umami/mutants/m06-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m06-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 38,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 38,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m07-throw",
+      "kind": "throw",
+      "file": "src/app/(main)/websites/[websiteId]/replays/page.tsx",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 4,
+      "functionName": "default",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of default()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal"
+            ],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/replays/page.tsx"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal"
+            ],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/replays/page.tsx"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m07-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:32:31.684Z",
+        "loadAvg1AtStart": 1.74,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 112320,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m07-throw.json",
+          "results": "data/results/umami/mutants/m07-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m07-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 1,
+            "countRatio": 0.026,
+            "timeRatio": 0.026,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 1,
+            "countRatio": 0.026,
+            "timeRatio": 0.026,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m08-throw",
+      "kind": "throw",
+      "file": "src/queries/sql/sessions/getSessionData.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 10,
+      "functionName": "getSessionData",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of getSessionData()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 18
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/queries/sql/sessions/getSessionData.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/queries/sql/sessions/getSessionData.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/queries/sql/sessions/getSessionData.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/queries/sql/sessions/getSessionData.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m08-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:35:31.190Z",
+        "loadAvg1AtStart": 1.88,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 113302,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m08-throw.json",
+          "results": "data/results/umami/mutants/m08-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m08-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 38,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 38,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m09-throw",
+      "kind": "throw",
+      "file": "src/app/(main)/websites/[websiteId]/layout.tsx",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 13,
+      "functionName": "default",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of default()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/layout.tsx"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "src/app/(main)/websites/[websiteId]/layout.tsx"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m09-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/umami",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres@127.0.0.1:1/unused-at-build-time",
+          "SKIP_DB_CHECK": "1",
+          "SKIP_BUILD_GEO": "1",
+          "APP_SECRET": "umami-e2e-secret",
+          "DISABLE_TELEMETRY": "1",
+          "DISABLE_UPDATES": "1",
+          "DISABLE_BOT_CHECK": "1",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "TWO_FACTOR_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "MCP_ENABLED": "1",
+          "PORT": "3102",
+          "PLAYWRIGHT_WEB_SERVER_COMMAND": "pnpm start",
+          "PATH": "/home/user/shard/work/pnpm12/node_modules/.bin:/root/.local/bin:/root/.cargo/bin:/usr/local/go/bin:/opt/node22/bin:/opt/maven/bin:/opt/gradle/bin:/opt/rbenv/bin:/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
+        },
+        "startedAt": "2026-09-28T14:38:32.677Z",
+        "loadAvg1AtStart": 1.97,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 113169,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/umami/mutants/m09-throw.json",
+          "results": "data/results/umami/mutants/m09-throw.pw-results.json",
+          "log": "data/results/umami/mutants/m09-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+        "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+        "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+        "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+        "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+        "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+        "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+        "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+        "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website"
+      ],
+      "notRun": [
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › updates a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets a user by ID",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › deletes a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all websites that belong to a user",
+        "chromium › tests/e2e/api-user.spec.ts › User API tests › gets all teams that belong to a user",
+        "chromium › tests/e2e/user.spec.ts › User tests › edits a user role and password",
+        "chromium › tests/e2e/user.spec.ts › User tests › deletes a user"
+      ],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+          "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 4,
+            "countRatio": 0.105,
+            "timeRatio": 0.321,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 4,
+            "countRatio": 0.105,
+            "timeRatio": 0.321,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    }
+  ],
+  "nonJsEdits": [
+    {
+      "kind": "css",
+      "file": "src/components/charts/ChartAnnotationMarkers.module.css",
+      "note": null,
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [],
+            "changed": [
+              "src/components/charts/ChartAnnotationMarkers.module.css"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [],
+            "changed": [
+              "src/components/charts/ChartAnnotationMarkers.module.css"
+            ]
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "kind": "sql",
+      "file": "prisma/migrations/26_add_api_key/migration.sql",
+      "note": null,
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "prisma/migrations/26_add_api_key/migration.sql is a build or seed input (cache.inputs: prisma/migrations)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "prisma/migrations/26_add_api_key/migration.sql"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "prisma/migrations/26_add_api_key/migration.sql is a build or seed input (cache.inputs: prisma/migrations)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "prisma/migrations/26_add_api_key/migration.sql"
+            ]
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "kind": "json",
+      "file": "public/intl/country/ru-RU.json",
+      "note": null,
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "public/intl/country/ru-RU.json is a test support file (in the Playwright config's directory, outside the app's source directories)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "public/intl/country/ru-RU.json"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "public/intl/country/ru-RU.json is a test support file (in the Playwright config's directory, outside the app's source directories)",
+            "tests": [
+              "chromium › tests/e2e/api-board.spec.ts › Board API tests › creates a board without a description",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › adds a user to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › creates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › deletes a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a team by ID",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets a user belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all users that belong to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › gets all websites belonging to a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › removes a user from a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a team",
+              "chromium › tests/e2e/api-team.spec.ts › Team API tests › updates a user role on a team",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › creates a user",
+              "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for team",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website for user",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › creates a website with a fixed ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › deletes a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › gets a website by ID",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › resets a website by removing all data related to the website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › returns all tracked websites",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website",
+              "chromium › tests/e2e/api-website.spec.ts › Website API tests › updates a website with only shareId",
+              "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+              "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the left side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › clicking in the right side margin dismisses the modal",
+              "chromium › tests/e2e/session-modal-dismiss.spec.ts › SessionModal outside-click dismissal › control: clicking inside the sheet keeps the modal open",
+              "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+              "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+              "chromium › tests/e2e/website.spec.ts › Website tests › edits a website"
+            ],
+            "changed": [
+              "public/intl/country/ru-RU.json"
+            ]
+          },
+          "error": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "headline": {
+      "default": {
+        "policy": "default",
+        "n": 1,
+        "zeroMisses": 1,
+        "fraction": 1,
+        "ci95": {
+          "lower": 0.025,
+          "upper": 1
+        },
+        "leftOut": {
+          "never-executed": 4,
+          "global file": 3,
+          "not live": 1
+        }
+      },
+      "strict": {
+        "policy": "strict",
+        "n": 1,
+        "zeroMisses": 1,
+        "fraction": 1,
+        "ci95": {
+          "lower": 0.025,
+          "upper": 1
+        },
+        "leftOut": {
+          "never-executed": 4,
+          "global file": 3,
+          "not live": 1
+        }
+      }
+    },
+    "recall": {
+      "default": {
+        "policy": "default",
+        "n": 1,
+        "median": 1,
+        "worst": 1,
+        "byStratum": {
+          "inTests": {
+            "n": 1,
+            "median": 1,
+            "worst": 1
+          }
+        }
+      },
+      "strict": {
+        "policy": "strict",
+        "n": 1,
+        "median": 1,
+        "worst": 1,
+        "byStratum": {
+          "inTests": {
+            "n": 1,
+            "median": 1,
+            "worst": 1
+          }
+        }
+      }
+    },
+    "selection": {
+      "default": {
+        "policy": "default",
+        "files": 7,
+        "medianCountRatio": 0.211,
+        "medianTimeRatio": 0.96
+      },
+      "strict": {
+        "policy": "strict",
+        "files": 7,
+        "medianCountRatio": 0.211,
+        "medianTimeRatio": 0.96
+      }
+    },
+    "controlMisses": {
+      "liveControls": 2,
+      "withFailures": 0,
+      "mutants": []
+    },
+    "emptyF": {
+      "neverExecuted": 7,
+      "executedNoFailure": 0
+    },
+    "stability": {
+      "perFile": {
+        "files": 215,
+        "median": 0.875,
+        "min": 0.5,
+        "leftOutAsCommon": 9
+      },
+      "perTest": {
+        "tests": 31,
+        "median": 1,
+        "min": 0.157,
+        "inOneMapOnly": 0
+      }
+    }
+  }
+}

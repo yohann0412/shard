@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T14:03:18.239Z",
+  "repoDir": "/home/user/shard/work/repos/umami",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "trace",
+  "workerCount": 2,
+  "cache": {
+    "hit": true,
+    "key": "84ce7a21d1b0de8b8e9f89033cbb8619895e6638a32c9229f1461ecbe83a5d60",
+    "db": {
+      "hit": true,
+      "key": "84ce7a21d1b0de8b8e9f89033cbb8619895e6638a32c9229f1461ecbe83a5d60"
+    },
+    "build": null
+  },
+  "wallMs": 501060.429802,
+  "phases": {
+    "setup": 587.8055919999999,
+    "restore": 141.9,
+    "postgresStart": 161.8,
+    "clone": 187,
+    "appBoot": 1549.7,
+    "tests": 135909.49210099998,
+    "reruns": 359966.59436,
+    "teardown": 2556.137748999987
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.63.0",
+    "loadAvg1": 0.7
+  },
+  "cpu": {
+    "busyPct": 23.8,
+    "stealPct": 0.8
+  },
+  "playwright": {
+    "testPhaseMs": 122484.281004,
+    "preTestMs": 3801.3025079999998,
+    "postTestMs": 101.46966400000383,
+    "resolvedWorkers": 2,
+    "maxConcurrent": 2,
+    "parallelIndexes": [
+      0,
+      1
+    ],
+    "setupMs": 38005,
+    "bodyMs": 106029
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 44181,
+      "bootMs": 1546.4,
+      "peakRssMb": 475.7,
+      "requests": null
+    },
+    {
+      "index": 1,
+      "port": 46481,
+      "bootMs": 1477.2,
+      "peakRssMb": 486.4,
+      "requests": null
+    }
+  ],
+  "postgresPeakRssMb": 301.1,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 115.9
+    },
+    {
+      "name": "w1",
+      "ms": 47.1
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": -1,
+      "tests": 7,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 0,
+      "tests": 8,
+      "passed": 2,
+      "failed": 6
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 23,
+      "passed": 22,
+      "failed": 1
+    }
+  ],
+  "tests": {
+    "total": 38,
+    "passed": 24,
+    "failed": 7,
+    "flaky": 0,
+    "skipped": 7
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/e2e/api-user.spec.ts › User API tests › returns all users when admin access is used",
+      "title": "returns all users when admin access is used",
+      "file": "tests/e2e/api-user.spec.ts",
+      "line": 29,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/login.spec.ts › Login tests › logs user in with correct credentials and logs user out",
+      "title": "logs user in with correct credentials and logs user out",
+      "file": "tests/e2e/login.spec.ts",
+      "line": 9,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/login.spec.ts › Login tests › shows validation for blank inputs or incorrect credentials",
+      "title": "shows validation for blank inputs or incorrect credentials",
+      "file": "tests/e2e/login.spec.ts",
+      "line": 19,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/user.spec.ts › User tests › adds a user",
+      "title": "adds a user",
+      "file": "tests/e2e/user.spec.ts",
+      "line": 12,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/website.spec.ts › Website tests › adds a website",
+      "title": "adds a website",
+      "file": "tests/e2e/website.spec.ts",
+      "line": 5,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/website.spec.ts › Website tests › edits a website",
+      "title": "edits a website",
+      "file": "tests/e2e/website.spec.ts",
+      "line": 28,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/e2e/website.spec.ts › Website tests › deletes a website",
+      "title": "deletes a website",
+      "file": "tests/e2e/website.spec.ts",
+      "line": 56,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 83
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 211
+    }
+  ],
+  "proxy": null,
+  "routingValid": true,
+  "unmanaged": [
+    {
+      "service": "clickhouse",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @clickhouse/client in package.json",
+        "image clickhouse/clickhouse-server:25.8 in docker-compose.test.yml"
+      ]
+    },
+    {
+      "service": "kafka",
+      "kind": "stateful",
+      "evidence": [
+        "dependency kafkajs in package.json"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency redis in package.json"
+      ]
+    }
+  ],
+  "warnings": [
+    "unmanaged services shared by every worker's app, not isolated (D-012): clickhouse (stateful), kafka (stateful), redis (stateful); isolation incomplete"
+  ]
+}
