@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T17:20:47.610Z",
+  "repoDir": "/home/user/shard/work/repos/umami-passing",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0",
+    "tests/e2e/api-board.spec.ts",
+    "tests/e2e/api-team.spec.ts",
+    "tests/e2e/api-website.spec.ts",
+    "tests/e2e/session-modal-dismiss.spec.ts"
+  ],
+  "mode": "baseline",
+  "workerCount": 1,
+  "cache": {
+    "hit": true,
+    "key": "f356b2b61488a326609162b5f2774f9f6b699b28c168677730bfc975c8775421",
+    "db": {
+      "hit": true,
+      "key": "f356b2b61488a326609162b5f2774f9f6b699b28c168677730bfc975c8775421"
+    },
+    "build": null
+  },
+  "wallMs": 18317.141898,
+  "phases": {
+    "setup": 564.609765,
+    "restore": 137,
+    "postgresStart": 190.1,
+    "clone": 119.84102499999992,
+    "tests": 17179.783351,
+    "teardown": 125.80775700000231
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.63.0",
+    "loadAvg1": 0.93
+  },
+  "cpu": {
+    "busyPct": 40.9,
+    "stealPct": 1
+  },
+  "playwright": {
+    "testPhaseMs": 8452.818801999998,
+    "preTestMs": 6759.110006,
+    "postTestMs": 193.69454600000245,
+    "resolvedWorkers": 1,
+    "maxConcurrent": 1,
+    "parallelIndexes": [
+      0
+    ],
+    "setupMs": 6570,
+    "bodyMs": 1820
+  },
+  "apps": [],
+  "postgresPeakRssMb": 264.9,
+  "clones": [
+    {
+      "name": "b0",
+      "ms": 90.6
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 23,
+      "passed": 23,
+      "failed": 0
+    }
+  ],
+  "tests": {
+    "total": 23,
+    "passed": 23,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "dbActivity": [
+    {
+      "name": "b0",
+      "xactCommitDelta": 204
+    }
+  ],
+  "proxy": null,
+  "routingValid": true,
+  "unmanaged": [
+    {
+      "service": "clickhouse",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @clickhouse/client in package.json",
+        "image clickhouse/clickhouse-server:25.8 in docker-compose.test.yml"
+      ]
+    },
+    {
+      "service": "kafka",
+      "kind": "stateful",
+      "evidence": [
+        "dependency kafkajs in package.json"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency redis in package.json"
+      ]
+    }
+  ],
+  "warnings": [
+    "unmanaged services shared by every worker's app, not isolated (D-012): clickhouse (stateful), kafka (stateful), redis (stateful); isolation incomplete"
+  ]
+}
