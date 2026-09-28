@@ -19,6 +19,5 @@ export function isolatePaths(repoDir: string) {
     rerunsLog: path.join(root, 'logs', 'reruns.log'),
     rerunAppLog: (run: number) => path.join(root, 'logs', `rerun-${run}.log`),
     map: path.join(root, 'map.json'),
-    trace: path.join(root, 'trace'),
   };
 }

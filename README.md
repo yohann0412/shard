@@ -38,7 +38,7 @@ npx isolate run --workers 4 -- npx playwright test
 | `isolate run [--workers N] [--baseline] -- <playwright command>` | Run the suite with one app and database per worker. Ends with a timing table and `.isolate/report.json`. `--baseline` instead runs the repo's own config (its `webServer`, its workers) against one fresh copy of `seed`, with the same timing reporter, for comparisons. |
 | `isolate snapshot` | Build, migrate and seed, and cache the result so later runs restore instead of rebuilding. |
 | `isolate trace [--workers N] -- <playwright command>` | Like `run`, and write `.isolate/map.json`: for each test, the server and client files it executed, plus the files that run at boot. |
-| `isolate affected --base <ref> [--strict] [--json]` | Print the tests affected by the changes since `<ref>`, or `all`. |
+| `isolate affected --base <ref> [--strict] [--json]` | Print the tests affected by the changes since `<ref>`, or `all`. A change to test-side code that tracing cannot see (a helper, fixture or page object next to the specs or elsewhere in the Playwright config's directory outside the app's source directories) gives `all`, as do lockfiles and `cache.inputs`, including those above the repo directory. Run it without `--base` for the full rules. |
 | `isolate report --check <file>` | Validate a report against its schema. |
 
 ## How a worker finds its app
