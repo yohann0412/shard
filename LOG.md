@@ -106,3 +106,11 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 - Headline 1/1 (CI 0.025-1). Nothing about Claim B can be concluded from umami beyond the stability and global-set findings.
 
 **14:44 Experiment A on rallly started** with the full protocol on subset L, using the shared-origin mode, mailpit running and shared by all workers.
+
+**16:39 Experiment A on rallly done** (`data/results/rallly/experiment-a.json`, 31 runs; full protocol on subset L (16 files, 70 tests), shared-origin mode, one mailpit shared by all workers).
+- **baseline@1:** 135.3 s. **isolated@1:** 139.7 s (harness effect 0.97).
+- **isolated@2:** 91.0 s, **1.54x**. 4 of 5 rounds valid; one was excluded for 2 differing tests.
+- **isolated@4:** no valid round. Each of the 5 rounds had 2 to 16 tests fail, all by timeout (30 s test timeout, a 5 s `waitFor`, or a 30 s `beforeAll`). Every failed test passed when rerun alone. Five tests count as isolation failures by the protocol's rule (failing in ≥ 2 isolated rounds while passing in the baseline).
+- **Likely cause:** every failing test is in a spec that calls `deleteAllMessages()` in `beforeEach` or waits for an email login code (admin-setup, authentication, conferencing's `beforeAll` login). With one mailpit shared across workers, one worker's delete can remove another worker's pending code. That is a stateful unmanaged service: out of V1's scope, and the run is labelled "isolation incomplete".
+- **CPU also matters:** one rallly worker slot uses 2.18 cores, so the resource ceiling on 4 cores is 1.83x.
+- A control with one mailpit per worker (a config-only change: `SMTP_PORT: '323{i}'` for apps, `MAILPIT_API_URL: 'http://127.0.0.1:324{i}/api'` for tests) is running now.
