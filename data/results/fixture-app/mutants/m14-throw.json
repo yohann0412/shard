@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T10:49:47.874Z",
+  "repoDir": "/home/user/shard/work/repos/fixture-app",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": false,
+    "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74",
+    "db": {
+      "hit": true,
+      "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74"
+    },
+    "build": {
+      "hit": false,
+      "key": "8cbe8fbb87214314a422dd6e447dc93224f155113e30b8b77f8974492ca9020a"
+    }
+  },
+  "wallMs": 102317.390774,
+  "phases": {
+    "setup": 554.666491,
+    "restore": 132.2,
+    "build": 2046.5,
+    "postgresStart": 178.8,
+    "clone": 192,
+    "appBoot": 499.3,
+    "tests": 96804.669987,
+    "teardown": 1909.2542959999992
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.56.1",
+    "loadAvg1": 1.34
+  },
+  "cpu": {
+    "busyPct": 21,
+    "stealPct": 0.8
+  },
+  "playwright": {
+    "testPhaseMs": 93269.800158,
+    "preTestMs": 1398.1999959999998,
+    "postTestMs": 51.18796100000327,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 4156,
+    "bodyMs": 123761
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 35027,
+      "bootMs": 394.7,
+      "peakRssMb": 70.7
+    },
+    {
+      "index": 1,
+      "port": 43129,
+      "bootMs": 489.7,
+      "peakRssMb": 70
+    },
+    {
+      "index": 2,
+      "port": 43897,
+      "bootMs": 390.6,
+      "peakRssMb": 70.6
+    },
+    {
+      "index": 3,
+      "port": 38841,
+      "bootMs": 378,
+      "peakRssMb": 69.8
+    }
+  ],
+  "postgresPeakRssMb": 253.7,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 58.7
+    },
+    {
+      "name": "w1",
+      "ms": 39.2
+    },
+    {
+      "name": "w2",
+      "ms": 34
+    },
+    {
+      "name": "w3",
+      "ms": 32.2
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 5,
+      "passed": 3,
+      "failed": 2
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 1,
+      "passed": 0,
+      "failed": 1
+    }
+  ],
+  "tests": {
+    "total": 12,
+    "passed": 8,
+    "failed": 4,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+      "title": "adding three items raises the count by exactly three",
+      "file": "tests/bulk-items.spec.ts",
+      "line": 4,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+      "title": "adding an item raises the count by exactly one",
+      "file": "tests/items.spec.ts",
+      "line": 9,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/items.spec.ts › every seeded item is listed",
+      "title": "every seeded item is listed",
+      "file": "tests/items.spec.ts",
+      "line": 15,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/items.spec.ts › the two newest items are the two just added",
+      "title": "the two newest items are the two just added",
+      "file": "tests/items.spec.ts",
+      "line": 26,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 48
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 11
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 115
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 11
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/helpers.ts:4: export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';"
+  ]
+}

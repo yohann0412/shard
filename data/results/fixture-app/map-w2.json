@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "createdAt": "2026-09-28T10:36:39.116Z",
+  "commit": "1f62f51a824233acdc26d6e7cb51c93dedcf3d63",
+  "workers": 2,
+  "global": [
+    "src/db.ts",
+    "src/middleware/logger.ts",
+    "src/middleware/maintenance.ts",
+    "src/middleware/session.ts",
+    "src/routes/health.ts",
+    "src/server.ts"
+  ],
+  "bootLoaded": [
+    "src/routes/auth.ts",
+    "src/routes/home.ts",
+    "src/routes/items.ts",
+    "src/routes/settings.ts",
+    "src/views.ts"
+  ],
+  "tests": {
+    "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+      "title": "a wrong password shows an error and stays on the sign-in page",
+      "file": "tests/auth.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js"
+      ]
+    },
+    "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+      "title": "signing out returns to the sign-in page",
+      "file": "tests/auth.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js"
+      ]
+    },
+    "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+      "title": "valid credentials sign in and show the welcome message",
+      "file": "tests/auth.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js"
+      ]
+    },
+    "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+      "title": "adding three items raises the count by exactly three",
+      "file": "tests/bulk-items.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/items.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/items.js"
+      ]
+    },
+    "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+      "title": "the dashboard greets Bob by name",
+      "file": "tests/dashboard.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js"
+      ]
+    },
+    "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+      "title": "the dashboard shows no maintenance banner",
+      "file": "tests/dashboard.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js"
+      ]
+    },
+    "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+      "title": "adding an item raises the count by exactly one",
+      "file": "tests/items.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/items.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/items.js"
+      ]
+    },
+    "chromium › tests/items.spec.ts › every seeded item is listed": {
+      "title": "every seeded item is listed",
+      "file": "tests/items.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/items.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/items.js"
+      ]
+    },
+    "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+      "title": "the two newest items are the two just added",
+      "file": "tests/items.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/items.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/items.js"
+      ]
+    },
+    "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+      "title": "other signed-in users see the banner while maintenance is on",
+      "file": "tests/maintenance.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/settings.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/settings.js"
+      ]
+    },
+    "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+      "title": "the mode survives a reload and signing in again",
+      "file": "tests/maintenance.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/settings.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/settings.js"
+      ]
+    },
+    "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+      "title": "turning maintenance on shows the banner on the dashboard and the settings page",
+      "file": "tests/maintenance.spec.ts",
+      "server": [
+        "src/db.ts",
+        "src/middleware/logger.ts",
+        "src/middleware/maintenance.ts",
+        "src/middleware/session.ts",
+        "src/routes/auth.ts",
+        "src/routes/home.ts",
+        "src/routes/settings.ts",
+        "src/views.ts"
+      ],
+      "client": [
+        "public/js/common.js",
+        "public/js/settings.js"
+      ]
+    }
+  },
+  "executedFunctions": {
+    "src/db.ts": [
+      "checkDatabase",
+      "createPool",
+      "currentDatabase",
+      "query"
+    ],
+    "src/middleware/logger.ts": [
+      "logRequests"
+    ],
+    "src/middleware/maintenance.ts": [
+      "loadMaintenance"
+    ],
+    "src/middleware/session.ts": [
+      "isPublic",
+      "loadSession",
+      "readCookie"
+    ],
+    "src/routes/auth.ts": [
+      "showSignIn",
+      "signIn",
+      "signInPage",
+      "signOut"
+    ],
+    "src/routes/health.ts": [
+      "health"
+    ],
+    "src/routes/home.ts": [
+      "showDashboard"
+    ],
+    "src/routes/items.ts": [
+      "createItem",
+      "listItems",
+      "listItemsApi",
+      "newestItems"
+    ],
+    "src/routes/settings.ts": [
+      "setMaintenance",
+      "showSettings"
+    ],
+    "src/views.ts": [
+      "escapeHtml",
+      "layout"
+    ]
+  },
+  "stats": {
+    "betweenTestTakes": 0,
+    "takeTimeouts": 0,
+    "sourceMapFailures": [],
+    "unresolvedClientUrls": []
+  }
+}

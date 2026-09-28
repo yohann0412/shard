@@ -1,0 +1,3778 @@
+{
+  "version": 1,
+  "experiment": "B",
+  "name": "fixture-app",
+  "createdAt": "2026-09-28T10:36:04.913Z",
+  "harnessCommit": "43fa40c739c6ee68b865778e07c75c005c4526f7",
+  "harnessDirty": false,
+  "command": [
+    "node",
+    "/home/user/shard/dist/scripts/experiments/experiment-b.js",
+    "fixture-app",
+    "--workers",
+    "4"
+  ],
+  "protocol": {
+    "seed": 20260928,
+    "kinds": [
+      "throw",
+      "toplevel",
+      "wrongvalue"
+    ],
+    "maxTargets": null,
+    "workers": 4,
+    "workersFrom": "--workers",
+    "traceWorkers": [
+      4,
+      2
+    ]
+  },
+  "definitions": {
+    "F": "tests failing with the mutant minus every test failing in either unmutated reference run",
+    "P": "the tests `isolate affected --base HEAD --json` selects for the mutated file (all tests when it answers all)",
+    "recall": "|F ∩ P| / |F| when F is non-empty",
+    "selectionRatios": "|P| / all tests, and the sum of reference-run durations of P / of all tests",
+    "headline": "fraction of live, non-global mutants with non-empty F and P not all whose misses (F \\ P) are empty, with a 95% Clopper-Pearson interval",
+    "live": "the mutant's marker (\"isolate-mutant\", \"return undefined\" or the changed number) occurs more often in the served build output than in the clean build",
+    "policies": "default: global files select all tests (function-level, D-011); strict: boot-loaded files do too",
+    "stability": "per file, Jaccard of the tests selecting it in the workers-4 and workers-2 maps, over files selected by < 50% of tests in at least one map; per test, Jaccard of its file sets",
+    "emptyF": "never-executed: the mutated function (or, for a top-level edit, any function of the file) is not in map.executedFunctions; executed-no-failure otherwise"
+  },
+  "recipe": {
+    "name": "fixture-app",
+    "source": "local",
+    "url": null,
+    "commit": null,
+    "status": "works",
+    "blocker": null,
+    "workdir": "examples/fixture-app",
+    "install": [],
+    "build": [
+      "pnpm build"
+    ],
+    "env": {},
+    "pathPrefix": [],
+    "playwrightArgs": [],
+    "baselinePorts": [
+      3000
+    ],
+    "protocol": "full",
+    "subsetNote": null,
+    "sourceDirs": [
+      "src",
+      "app",
+      "lib",
+      "server",
+      "public"
+    ],
+    "servedOutput": [
+      "dist",
+      "public"
+    ],
+    "mutantKinds": "all",
+    "isolateConfig": {
+      "packageManager": "pnpm",
+      "build": {
+        "command": "pnpm build",
+        "outputs": [
+          "dist"
+        ],
+        "inputs": [
+          "src",
+          "tsconfig.json",
+          "package.json",
+          "../../pnpm-lock.yaml"
+        ]
+      },
+      "db": {
+        "migrate": "node scripts/migrate.mjs",
+        "seed": "node scripts/seed.mjs",
+        "urlEnv": "DATABASE_URL",
+        "extraUrlEnvs": []
+      },
+      "app": {
+        "start": "node dist/server.js",
+        "portEnv": "PORT",
+        "healthPath": "/health",
+        "env": {},
+        "bootTimeoutMs": 60000
+      },
+      "playwright": {
+        "config": "playwright.config.ts",
+        "baseUrlEnvs": [
+          "BASE_URL"
+        ],
+        "env": {}
+      },
+      "postgres": {},
+      "cache": {
+        "inputs": [
+          "../../pnpm-lock.yaml",
+          "package.json",
+          "migrations",
+          "scripts/migrate.mjs",
+          "scripts/seed.mjs",
+          "isolate.config.ts"
+        ]
+      },
+      "unmanaged": {
+        "allow": false,
+        "services": []
+      },
+      "trace": {
+        "clientRoots": [
+          {
+            "urlPrefix": "/js/",
+            "dir": "public/js"
+          }
+        ]
+      }
+    },
+    "notes": [
+      "The copy links node_modules back to examples/fixture-app (installed by the root `pnpm install`), as e2e's copyFixture does.",
+      "The baseline arms start the repo's own webServer on the literal port 3000 (playwright.config.ts), so each baseline run waits until 3000 is free."
+    ]
+  },
+  "checkout": {
+    "root": "work/repos/fixture-app",
+    "appDir": "work/repos/fixture-app",
+    "commit": "1f62f51a824233acdc26d6e7cb51c93dedcf3d63"
+  },
+  "browsers": {
+    "path": "/opt/pw-browsers",
+    "expected": {
+      "chromium": "1194",
+      "headlessShell": "1194",
+      "ffmpeg": "1011"
+    },
+    "installed": {
+      "chromium": "1194",
+      "headlessShell": "1194",
+      "ffmpeg": "1011"
+    },
+    "shim": false
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.18.44-fc-v37",
+    "node": "v22.22.2",
+    "postgres": null,
+    "playwright": "1.56.1",
+    "cloudSandbox": true
+  },
+  "maps": {
+    "files": [
+      "data/results/fixture-app/map-w4.json",
+      "data/results/fixture-app/map-w2.json"
+    ],
+    "traces": [
+      {
+        "label": "trace-w4",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "trace",
+          "--workers",
+          "4",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:36:07.217Z",
+        "loadAvg1AtStart": 2.91,
+        "exitCode": 0,
+        "exceededCap": false,
+        "outsideWallMs": 19333,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/trace-w4.json",
+          "results": "data/results/fixture-app/mutants/trace-w4.pw-results.json",
+          "log": "data/results/fixture-app/mutants/trace-w4.log"
+        }
+      },
+      {
+        "label": "trace-w2",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "trace",
+          "--workers",
+          "2",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:36:26.554Z",
+        "loadAvg1AtStart": 3.91,
+        "exitCode": 0,
+        "exceededCap": false,
+        "outsideWallMs": 13897,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/trace-w2.json",
+          "results": "data/results/fixture-app/mutants/trace-w2.pw-results.json",
+          "log": "data/results/fixture-app/mutants/trace-w2.log"
+        }
+      }
+    ],
+    "global": [
+      "src/db.ts",
+      "src/middleware/logger.ts",
+      "src/middleware/maintenance.ts",
+      "src/middleware/session.ts",
+      "src/routes/health.ts",
+      "src/server.ts"
+    ],
+    "bootLoaded": [
+      "src/routes/auth.ts",
+      "src/routes/home.ts",
+      "src/routes/items.ts",
+      "src/routes/settings.ts",
+      "src/views.ts"
+    ],
+    "stability": {
+      "perFile": {
+        "files": 4,
+        "median": 1,
+        "min": 1,
+        "leftOutAsCommon": 8
+      },
+      "perTest": {
+        "tests": 12,
+        "median": 1,
+        "min": 1,
+        "inOneMapOnly": 0
+      }
+    }
+  },
+  "reference": {
+    "runs": [
+      {
+        "label": "reference-1",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:36:40.465Z",
+        "loadAvg1AtStart": 3.92,
+        "exitCode": 0,
+        "exceededCap": false,
+        "outsideWallMs": 13051,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/reference-1.json",
+          "results": "data/results/fixture-app/mutants/reference-1.pw-results.json",
+          "log": "data/results/fixture-app/mutants/reference-1.log"
+        }
+      },
+      {
+        "label": "reference-2",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:36:53.517Z",
+        "loadAvg1AtStart": 4.15,
+        "exitCode": 0,
+        "exceededCap": false,
+        "outsideWallMs": 14131,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/reference-2.json",
+          "results": "data/results/fixture-app/mutants/reference-2.pw-results.json",
+          "log": "data/results/fixture-app/mutants/reference-2.log"
+        }
+      }
+    ],
+    "excluded": [],
+    "allTests": [
+      "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+      "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+      "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+      "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+      "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+      "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+      "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+      "chromium › tests/items.spec.ts › every seeded item is listed",
+      "chromium › tests/items.spec.ts › the two newest items are the two just added",
+      "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+      "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+      "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+    ],
+    "durations": {
+      "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": 828.5,
+      "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": 751,
+      "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": 975,
+      "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": 1835.5,
+      "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": 666,
+      "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": 850.5,
+      "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": 1289.5,
+      "chromium › tests/items.spec.ts › every seeded item is listed": 1032.5,
+      "chromium › tests/items.spec.ts › the two newest items are the two just added": 1073,
+      "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": 1129.5,
+      "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": 1171.5,
+      "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": 1791
+    }
+  },
+  "targets": {
+    "sourceFiles": 15,
+    "byStratum": {
+      "inTests": 8,
+      "bootLoadedOnly": 0,
+      "global": 6,
+      "absent": 1
+    },
+    "sample": [
+      {
+        "file": "src/routes/home.ts",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "src/locals.ts",
+        "stratum": "absent",
+        "side": "server"
+      },
+      {
+        "file": "src/middleware/logger.ts",
+        "stratum": "global",
+        "side": "server"
+      },
+      {
+        "file": "public/js/items.js",
+        "stratum": "inTests",
+        "side": "client"
+      },
+      {
+        "file": "src/middleware/session.ts",
+        "stratum": "global",
+        "side": "server"
+      },
+      {
+        "file": "src/routes/settings.ts",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "src/db.ts",
+        "stratum": "global",
+        "side": "server"
+      },
+      {
+        "file": "public/js/settings.js",
+        "stratum": "inTests",
+        "side": "client"
+      },
+      {
+        "file": "src/routes/items.ts",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "public/js/common.js",
+        "stratum": "inTests",
+        "side": "client"
+      },
+      {
+        "file": "src/routes/auth.ts",
+        "stratum": "inTests",
+        "side": "server"
+      },
+      {
+        "file": "src/views.ts",
+        "stratum": "inTests",
+        "side": "server"
+      }
+    ],
+    "noMutant": [
+      {
+        "kind": "toplevel",
+        "file": "src/routes/home.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "throw",
+        "file": "src/locals.ts",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/locals.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "wrongvalue",
+        "file": "src/locals.ts",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/middleware/logger.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "throw",
+        "file": "public/js/items.js",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "wrongvalue",
+        "file": "public/js/items.js",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/routes/settings.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/db.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "throw",
+        "file": "public/js/settings.js",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "wrongvalue",
+        "file": "public/js/settings.js",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/routes/items.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "throw",
+        "file": "public/js/common.js",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "toplevel",
+        "file": "public/js/common.js",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "wrongvalue",
+        "file": "public/js/common.js",
+        "skipped": "no exported function with a block body"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/routes/auth.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      },
+      {
+        "kind": "toplevel",
+        "file": "src/views.ts",
+        "skipped": "no module-scope const with a string or number literal"
+      }
+    ]
+  },
+  "mutants": [
+    {
+      "id": "m01-throw",
+      "kind": "throw",
+      "file": "src/routes/home.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 5,
+      "functionName": "showDashboard",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of showDashboard()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/home.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/home.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/home.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m01-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:37:10.762Z",
+        "loadAvg1AtStart": 4.61,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 36959,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m01-throw.json",
+          "results": "data/results/fixture-app/mutants/m01-throw.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m01-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 11,
+            "countRatio": 0.917,
+            "timeRatio": 0.938,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m02-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/routes/home.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 5,
+      "functionName": "showDashboard",
+      "description": "return undefined as never; at the start of showDashboard()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/home.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/home.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/home.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m02-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:37:50.845Z",
+        "loadAvg1AtStart": 3.88,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 155232,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m02-wrongvalue.json",
+          "results": "data/results/fixture-app/mutants/m02-wrongvalue.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m02-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 11,
+            "countRatio": 0.917,
+            "timeRatio": 0.938,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m03-throw",
+      "kind": "throw",
+      "file": "src/middleware/logger.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 4,
+      "functionName": "logRequests",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of logRequests()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/logger.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/logger.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/logger.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/logger.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m03-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:40:29.024Z",
+        "loadAvg1AtStart": 0.82,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 65012,
+        "tooManyClients": false,
+        "error": "app w0 was not ready within 60000 ms. Last lines of /home/user/shard/work/repos/fixture-app/.isolate/logs/w0.log:",
+        "files": {
+          "report": null,
+          "results": null,
+          "log": "data/results/fixture-app/mutants/m03-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+      ],
+      "notRun": null,
+      "bootFailure": true,
+      "score": {
+        "F": [
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m04-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/middleware/logger.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 4,
+      "functionName": "logRequests",
+      "description": "return undefined as never; at the start of logRequests()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/logger.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/logger.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/logger.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/logger.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m04-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:41:36.792Z",
+        "loadAvg1AtStart": 0.86,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 66375,
+        "tooManyClients": false,
+        "error": "app w0 was not ready within 60000 ms. Last lines of /home/user/shard/work/repos/fixture-app/.isolate/logs/w0.log:",
+        "files": {
+          "report": null,
+          "results": null,
+          "log": "data/results/fixture-app/mutants/m04-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+      ],
+      "notRun": null,
+      "bootFailure": true,
+      "score": {
+        "F": [
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m05-toplevel",
+      "kind": "toplevel",
+      "file": "public/js/items.js",
+      "stratum": "inTests",
+      "side": "client",
+      "line": 2,
+      "functionName": "",
+      "description": "'#item-filter' → \"isolate-mutant\" in const filter",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added"
+            ],
+            "changed": [
+              "public/js/items.js"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added"
+            ],
+            "changed": [
+              "public/js/items.js"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m05-toplevel",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:42:45.802Z",
+        "loadAvg1AtStart": 1.14,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 17469,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m05-toplevel.json",
+          "results": "data/results/fixture-app/mutants/m05-toplevel.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m05-toplevel.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/items.spec.ts › every seeded item is listed"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/items.spec.ts › every seeded item is listed"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 4,
+            "countRatio": 0.333,
+            "timeRatio": 0.391,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 4,
+            "countRatio": 0.333,
+            "timeRatio": 0.391,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m06-throw",
+      "kind": "throw",
+      "file": "src/middleware/session.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 23,
+      "functionName": "loadSession",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of loadSession()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/session.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/session.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/session.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/session.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m06-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:43:05.971Z",
+        "loadAvg1AtStart": 1.56,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 64437,
+        "tooManyClients": false,
+        "error": "app w0 was not ready within 60000 ms. Last lines of /home/user/shard/work/repos/fixture-app/.isolate/logs/w0.log:",
+        "files": {
+          "report": null,
+          "results": null,
+          "log": "data/results/fixture-app/mutants/m06-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+      ],
+      "notRun": null,
+      "bootFailure": true,
+      "score": {
+        "F": [
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m07-toplevel",
+      "kind": "toplevel",
+      "file": "src/middleware/session.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 6,
+      "functionName": "",
+      "description": "'sid' → \"isolate-mutant\" in const SESSION_COOKIE",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/session.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/session.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/session.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/session.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m07-toplevel",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:44:13.202Z",
+        "loadAvg1AtStart": 1.58,
+        "exitCode": 0,
+        "exceededCap": false,
+        "outsideWallMs": 13214,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m07-toplevel.json",
+          "results": "data/results/fixture-app/mutants/m07-toplevel.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m07-toplevel.log"
+        }
+      },
+      "failing": [],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "executed-no-failure",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m08-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/middleware/session.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 23,
+      "functionName": "loadSession",
+      "description": "return undefined as never; at the start of loadSession()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/session.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/session.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/middleware/session.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/middleware/session.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m08-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:44:29.426Z",
+        "loadAvg1AtStart": 1.97,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 66199,
+        "tooManyClients": false,
+        "error": "app w0 was not ready within 60000 ms. Last lines of /home/user/shard/work/repos/fixture-app/.isolate/logs/w0.log:",
+        "files": {
+          "report": null,
+          "results": null,
+          "log": "data/results/fixture-app/mutants/m08-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+      ],
+      "notRun": null,
+      "bootFailure": true,
+      "score": {
+        "F": [
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m09-throw",
+      "kind": "throw",
+      "file": "src/routes/settings.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 6,
+      "functionName": "showSettings",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of showSettings()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/settings.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/settings.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/settings.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m09-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:45:38.724Z",
+        "loadAvg1AtStart": 2.61,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 103058,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m09-throw.json",
+          "results": "data/results/fixture-app/mutants/m09-throw.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m09-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 3,
+            "countRatio": 0.25,
+            "timeRatio": 0.306,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m10-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/routes/settings.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 6,
+      "functionName": "showSettings",
+      "description": "return undefined as never; at the start of showSettings()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/settings.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/settings.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/settings.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m10-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:47:24.541Z",
+        "loadAvg1AtStart": 1.09,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 118472,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m10-wrongvalue.json",
+          "results": "data/results/fixture-app/mutants/m10-wrongvalue.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m10-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 3,
+            "countRatio": 0.25,
+            "timeRatio": 0.306,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m11-throw",
+      "kind": "throw",
+      "file": "src/db.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 6,
+      "functionName": "createPool",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of createPool()",
+      "buildError": "build with m11-throw failed (exit code 2). Last lines of /home/user/shard/data/results/fixture-app/mutants/m11-throw.build.log:",
+      "live": false,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": null
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/db.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/db.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/db.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/db.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": null,
+      "failing": null,
+      "notRun": null,
+      "bootFailure": false,
+      "score": {
+        "F": null,
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m12-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/db.ts",
+      "stratum": "global",
+      "side": "server",
+      "line": 6,
+      "functionName": "createPool",
+      "description": "return undefined as never; at the start of createPool()",
+      "buildError": "build with m12-wrongvalue failed (exit code 2). Last lines of /home/user/shard/data/results/fixture-app/mutants/m12-wrongvalue.build.log:",
+      "live": false,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": null
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/db.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/db.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/db.ts runs at app boot (global)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/db.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": null,
+      "failing": null,
+      "notRun": null,
+      "bootFailure": false,
+      "score": {
+        "F": null,
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m13-toplevel",
+      "kind": "toplevel",
+      "file": "public/js/settings.js",
+      "stratum": "inTests",
+      "side": "client",
+      "line": 2,
+      "functionName": "",
+      "description": "'#maintenance-form' → \"isolate-mutant\" in const form",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "public/js/settings.js"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "public/js/settings.js"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m13-toplevel",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:49:31.310Z",
+        "loadAvg1AtStart": 0.74,
+        "exitCode": 0,
+        "exceededCap": false,
+        "outsideWallMs": 13637,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m13-toplevel.json",
+          "results": "data/results/fixture-app/mutants/m13-toplevel.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m13-toplevel.log"
+        }
+      },
+      "failing": [],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [],
+        "emptyF": "never-executed",
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 3,
+            "countRatio": 0.25,
+            "timeRatio": 0.306,
+            "recall": null,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": false,
+            "selected": 3,
+            "countRatio": 0.25,
+            "timeRatio": 0.306,
+            "recall": null,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m14-throw",
+      "kind": "throw",
+      "file": "src/routes/items.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 17,
+      "functionName": "listItems",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of listItems()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added"
+            ],
+            "changed": [
+              "src/routes/items.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/items.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/items.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m14-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:49:47.865Z",
+        "loadAvg1AtStart": 1.34,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 102415,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m14-throw.json",
+          "results": "data/results/fixture-app/mutants/m14-throw.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m14-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 4,
+            "countRatio": 0.333,
+            "timeRatio": 0.391,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m15-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/routes/items.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 17,
+      "functionName": "listItems",
+      "description": "return undefined as never; at the start of listItems()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added"
+            ],
+            "changed": [
+              "src/routes/items.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/items.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/items.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m15-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:51:33.023Z",
+        "loadAvg1AtStart": 0.92,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 117729,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m15-wrongvalue.json",
+          "results": "data/results/fixture-app/mutants/m15-wrongvalue.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m15-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 4,
+            "countRatio": 0.333,
+            "timeRatio": 0.391,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m16-throw",
+      "kind": "throw",
+      "file": "src/routes/auth.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 23,
+      "functionName": "showSignIn",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of showSignIn()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/auth.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/auth.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/auth.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m16-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:53:37.031Z",
+        "loadAvg1AtStart": 5.81,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 140779,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m16-throw.json",
+          "results": "data/results/fixture-app/mutants/m16-throw.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m16-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m17-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/routes/auth.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 23,
+      "functionName": "showSignIn",
+      "description": "return undefined as never; at the start of showSignIn()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/auth.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/routes/auth.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/routes/auth.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m17-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:56:00.581Z",
+        "loadAvg1AtStart": 2.44,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 153497,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m17-wrongvalue.json",
+          "results": "data/results/fixture-app/mutants/m17-wrongvalue.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m17-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m18-throw",
+      "kind": "throw",
+      "file": "src/views.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 11,
+      "functionName": "escapeHtml",
+      "description": "throw new Error(\"isolate-mutant\"); at the start of escapeHtml()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "isolate-mutant",
+        "cleanCount": 0,
+        "mutantCount": 1
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/views.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/views.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/views.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m18-throw",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T10:58:36.725Z",
+        "loadAvg1AtStart": 0.46,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 133597,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m18-throw.json",
+          "results": "data/results/fixture-app/mutants/m18-throw.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m18-throw.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "m19-wrongvalue",
+      "kind": "wrongvalue",
+      "file": "src/views.ts",
+      "stratum": "inTests",
+      "side": "server",
+      "line": 11,
+      "functionName": "escapeHtml",
+      "description": "return undefined as never; at the start of escapeHtml()",
+      "buildError": null,
+      "live": true,
+      "liveness": {
+        "marker": "return undefined",
+        "cleanCount": 1,
+        "mutantCount": 2
+      },
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": false,
+            "reason": null,
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/views.ts"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "src/views.ts is loaded at app boot (--strict)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "src/views.ts"
+            ]
+          },
+          "error": null
+        }
+      ],
+      "run": {
+        "label": "m19-wrongvalue",
+        "argv": [
+          "node",
+          "dist/src/cli.js",
+          "run",
+          "--workers",
+          "4",
+          "--no-rerun",
+          "--",
+          "npx",
+          "playwright",
+          "test",
+          "--retries=0"
+        ],
+        "cwd": "work/repos/fixture-app",
+        "env": {
+          "CI": "true",
+          "PLAYWRIGHT_HTML_OPEN": "never",
+          "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+        },
+        "startedAt": "2026-09-28T11:00:52.954Z",
+        "loadAvg1AtStart": 2.72,
+        "exitCode": 1,
+        "exceededCap": false,
+        "outsideWallMs": 35459,
+        "tooManyClients": false,
+        "error": null,
+        "files": {
+          "report": "data/results/fixture-app/mutants/m19-wrongvalue.json",
+          "results": "data/results/fixture-app/mutants/m19-wrongvalue.pw-results.json",
+          "log": "data/results/fixture-app/mutants/m19-wrongvalue.log"
+        }
+      },
+      "failing": [
+        "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+        "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+        "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+        "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+        "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+        "chromium › tests/items.spec.ts › every seeded item is listed",
+        "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+        "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+        "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+        "chromium › tests/items.spec.ts › the two newest items are the two just added",
+        "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+        "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+      ],
+      "notRun": [],
+      "bootFailure": false,
+      "score": {
+        "F": [
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+          "chromium › tests/items.spec.ts › every seeded item is listed",
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+          "chromium › tests/items.spec.ts › the two newest items are the two just added",
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on"
+        ],
+        "emptyF": null,
+        "policies": [
+          {
+            "policy": "default",
+            "error": null,
+            "all": false,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          },
+          {
+            "policy": "strict",
+            "error": null,
+            "all": true,
+            "selected": 12,
+            "countRatio": 1,
+            "timeRatio": 1,
+            "recall": 1,
+            "misses": []
+          }
+        ]
+      }
+    }
+  ],
+  "nonJsEdits": [
+    {
+      "kind": "css",
+      "file": null,
+      "note": "no tracked file matches /\\.(css|scss|sass|less)$/",
+      "affected": []
+    },
+    {
+      "kind": "sql",
+      "file": "migrations/001_init.sql",
+      "note": null,
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "migrations/001_init.sql is a build or seed input (cache.inputs: migrations)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "migrations/001_init.sql"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "migrations/001_init.sql is a build or seed input (cache.inputs: migrations)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "migrations/001_init.sql"
+            ]
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "kind": "json",
+      "file": "tsconfig.json",
+      "note": null,
+      "affected": [
+        {
+          "policy": "default",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "tsconfig.json is a test support file (in the Playwright config's directory, outside the app's source directories)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "tsconfig.json"
+            ]
+          },
+          "error": null
+        },
+        {
+          "policy": "strict",
+          "argv": [
+            "node",
+            "dist/src/cli.js",
+            "affected",
+            "--base",
+            "HEAD",
+            "--strict",
+            "--json"
+          ],
+          "result": {
+            "all": true,
+            "reason": "tsconfig.json is a test support file (in the Playwright config's directory, outside the app's source directories)",
+            "tests": [
+              "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+              "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+              "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+              "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+              "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+              "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+              "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+              "chromium › tests/items.spec.ts › every seeded item is listed",
+              "chromium › tests/items.spec.ts › the two newest items are the two just added",
+              "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+              "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+              "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page"
+            ],
+            "changed": [
+              "tsconfig.json"
+            ]
+          },
+          "error": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "headline": {
+      "default": {
+        "policy": "default",
+        "n": 11,
+        "zeroMisses": 11,
+        "fraction": 1,
+        "ci95": {
+          "lower": 0.715,
+          "upper": 1
+        },
+        "leftOut": {
+          "global file": 5,
+          "not live": 2,
+          "never-executed": 1
+        }
+      },
+      "strict": {
+        "policy": "strict",
+        "n": 1,
+        "zeroMisses": 1,
+        "fraction": 1,
+        "ci95": {
+          "lower": 0.025,
+          "upper": 1
+        },
+        "leftOut": {
+          "affected answered all": 10,
+          "global file": 5,
+          "not live": 2,
+          "never-executed": 1
+        }
+      }
+    },
+    "recall": {
+      "default": {
+        "policy": "default",
+        "n": 11,
+        "median": 1,
+        "worst": 1,
+        "byStratum": {
+          "inTests": {
+            "n": 11,
+            "median": 1,
+            "worst": 1
+          }
+        }
+      },
+      "strict": {
+        "policy": "strict",
+        "n": 1,
+        "median": 1,
+        "worst": 1,
+        "byStratum": {
+          "inTests": {
+            "n": 1,
+            "median": 1,
+            "worst": 1
+          }
+        }
+      }
+    },
+    "selection": {
+      "default": {
+        "policy": "default",
+        "files": 10,
+        "medianCountRatio": 0.959,
+        "medianTimeRatio": 0.969
+      },
+      "strict": {
+        "policy": "strict",
+        "files": 10,
+        "medianCountRatio": 1,
+        "medianTimeRatio": 1
+      }
+    },
+    "controlMisses": {
+      "liveControls": 0,
+      "withFailures": 0,
+      "mutants": []
+    },
+    "emptyF": {
+      "neverExecuted": 1,
+      "executedNoFailure": 1
+    },
+    "stability": {
+      "perFile": {
+        "files": 4,
+        "median": 1,
+        "min": 1,
+        "leftOutAsCommon": 8
+      },
+      "perTest": {
+        "tests": 12,
+        "median": 1,
+        "min": 1,
+        "inOneMapOnly": 0
+      }
+    }
+  }
+}

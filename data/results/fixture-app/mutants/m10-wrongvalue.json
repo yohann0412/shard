@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T10:47:24.549Z",
+  "repoDir": "/home/user/shard/work/repos/fixture-app",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": false,
+    "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74",
+    "db": {
+      "hit": true,
+      "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74"
+    },
+    "build": {
+      "hit": false,
+      "key": "bce876e40bd965550cf81ffc3e67d3ba4264797677593268ceaa8ab58c012f05"
+    }
+  },
+  "wallMs": 118400.663124,
+  "phases": {
+    "setup": 576.3423969999997,
+    "restore": 148.1,
+    "build": 2063.3,
+    "postgresStart": 180.5,
+    "clone": 178.4,
+    "appBoot": 377.6,
+    "tests": 112985.64201000001,
+    "teardown": 1890.7787169999938
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.56.1",
+    "loadAvg1": 1.09
+  },
+  "cpu": {
+    "busyPct": 8.1,
+    "stealPct": 0.3
+  },
+  "playwright": {
+    "testPhaseMs": 109502.90906800001,
+    "preTestMs": 1274.960981,
+    "postTestMs": 32.10565499999211,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 19554,
+    "bodyMs": 94136
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 41187,
+      "bootMs": 366.5,
+      "peakRssMb": 70.2
+    },
+    {
+      "index": 1,
+      "port": 34865,
+      "bootMs": 364.7,
+      "peakRssMb": 70.3
+    },
+    {
+      "index": 2,
+      "port": 44461,
+      "bootMs": 366,
+      "peakRssMb": 70.1
+    },
+    {
+      "index": 3,
+      "port": 40581,
+      "bootMs": 362.3,
+      "peakRssMb": 73
+    }
+  ],
+  "postgresPeakRssMb": 255.5,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 60.5
+    },
+    {
+      "name": "w1",
+      "ms": 38.9
+    },
+    {
+      "name": "w2",
+      "ms": 30.7
+    },
+    {
+      "name": "w3",
+      "ms": 28
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 5,
+      "passed": 3,
+      "failed": 2
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 3,
+      "passed": 2,
+      "failed": 1
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0
+    }
+  ],
+  "tests": {
+    "total": 12,
+    "passed": 9,
+    "failed": 3,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+      "title": "turning maintenance on shows the banner on the dashboard and the settings page",
+      "file": "tests/maintenance.spec.ts",
+      "line": 4,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+      "title": "the mode survives a reload and signing in again",
+      "file": "tests/maintenance.spec.ts",
+      "line": 18,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+      "title": "other signed-in users see the banner while maintenance is on",
+      "file": "tests/maintenance.spec.ts",
+      "line": 32,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 46
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 30
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 23
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 50
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/helpers.ts:4: export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';"
+  ]
+}

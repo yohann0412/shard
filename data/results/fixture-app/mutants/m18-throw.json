@@ -1,0 +1,277 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T10:58:36.733Z",
+  "repoDir": "/home/user/shard/work/repos/fixture-app",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": false,
+    "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74",
+    "db": {
+      "hit": true,
+      "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74"
+    },
+    "build": {
+      "hit": false,
+      "key": "c0690305884ce5351b8afc701ea7ac1afcd73d04cc880b23bb8f17c34752b120"
+    }
+  },
+  "wallMs": 133516.255845,
+  "phases": {
+    "setup": 545.1790259999998,
+    "restore": 132.2,
+    "build": 1869.7,
+    "postgresStart": 181.7,
+    "clone": 207.6,
+    "appBoot": 387.8,
+    "tests": 128064.295859,
+    "teardown": 2127.7809600000037
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.56.1",
+    "loadAvg1": 0.46
+  },
+  "cpu": {
+    "busyPct": 40.7,
+    "stealPct": 1.2
+  },
+  "playwright": {
+    "testPhaseMs": 125165.330861,
+    "preTestMs": 1189.126564,
+    "postTestMs": 34.21239200000127,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 95061,
+    "bodyMs": 269079
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 39709,
+      "bootMs": 276,
+      "peakRssMb": 68.1
+    },
+    {
+      "index": 1,
+      "port": 43645,
+      "bootMs": 378.8,
+      "peakRssMb": 68.5
+    },
+    {
+      "index": 2,
+      "port": 45231,
+      "bootMs": 370.6,
+      "peakRssMb": 68.6
+    },
+    {
+      "index": 3,
+      "port": 41117,
+      "bootMs": 364.2,
+      "peakRssMb": 68.7
+    }
+  ],
+  "postgresPeakRssMb": 246.7,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 63.9
+    },
+    {
+      "name": "w1",
+      "ms": 39.9
+    },
+    {
+      "name": "w2",
+      "ms": 31.6
+    },
+    {
+      "name": "w3",
+      "ms": 48.9
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 2,
+      "passed": 0,
+      "failed": 2
+    }
+  ],
+  "tests": {
+    "total": 12,
+    "passed": 0,
+    "failed": 12,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner",
+      "title": "the dashboard shows no maintenance banner",
+      "file": "tests/dashboard.spec.ts",
+      "line": 4,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three",
+      "title": "adding three items raises the count by exactly three",
+      "file": "tests/bulk-items.spec.ts",
+      "line": 4,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message",
+      "title": "valid credentials sign in and show the welcome message",
+      "file": "tests/auth.spec.ts",
+      "line": 4,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/items.spec.ts › adding an item raises the count by exactly one",
+      "title": "adding an item raises the count by exactly one",
+      "file": "tests/items.spec.ts",
+      "line": 9,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name",
+      "title": "the dashboard greets Bob by name",
+      "file": "tests/dashboard.spec.ts",
+      "line": 9,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page",
+      "title": "turning maintenance on shows the banner on the dashboard and the settings page",
+      "file": "tests/maintenance.spec.ts",
+      "line": 4,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page",
+      "title": "a wrong password shows an error and stays on the sign-in page",
+      "file": "tests/auth.spec.ts",
+      "line": 10,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/items.spec.ts › every seeded item is listed",
+      "title": "every seeded item is listed",
+      "file": "tests/items.spec.ts",
+      "line": 15,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again",
+      "title": "the mode survives a reload and signing in again",
+      "file": "tests/maintenance.spec.ts",
+      "line": 18,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/auth.spec.ts › signing out returns to the sign-in page",
+      "title": "signing out returns to the sign-in page",
+      "file": "tests/auth.spec.ts",
+      "line": 19,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/items.spec.ts › the two newest items are the two just added",
+      "title": "the two newest items are the two just added",
+      "file": "tests/items.spec.ts",
+      "line": 26,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on",
+      "title": "other signed-in users see the banner while maintenance is on",
+      "file": "tests/maintenance.spec.ts",
+      "line": 32,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 12
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 12
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 8
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 6
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/helpers.ts:4: export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';"
+  ]
+}
