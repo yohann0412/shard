@@ -4,7 +4,7 @@ Running log of what was tried, what failed, and what was learned, in order. Time
 
 ## Resumes
 
-Rate-limit resumes used: 0 of 4 (no resume after 2026-09-28 12:00 UTC).
+Rate-limit resumes used: 0 of 4 (no resume after 2026-09-28 12:00 UTC). Timers fired at 10:22, 11:25 and 11:58 while work was in progress; none was needed.
 
 ## 2026-09-28
 
@@ -79,3 +79,5 @@ Tool gaps found:
 **11:21 Experiment A on umami (browser suite) started** on the same tool version (the shared-origin mode is integrated only afterwards, so both results use one tool version).
 
 **11:25 Dead-man timer fired while work was in progress (no rate limit): not counted as a resume.** Re-armed one last time for 11:58 UTC instead of +60 min. A timer at 12:26 would fire after the user's 12:00 UTC cutoff for resuming, so it could never trigger a resume.
+
+**11:58 Final dead-man timer fired while work was in progress (no rate limit): not a resume, not re-armed.** No rate-limit resumes were needed in the whole window (0 of 4). Work continues past 12:00 UTC; only automatic resumption stops there, as instructed.
