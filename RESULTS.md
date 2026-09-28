@@ -130,7 +130,22 @@ By the pre-registered rule, the claim holds only if the interval's lower bound i
 
 ### Real repositories
 
-_pending._
+**umami** (Next.js 16 production build, Playwright 1.63, traced through the version-independent auto-fixture hook; browser suite; N=4; throw mutants; 10 targets drawn with seed 20260928 from 1,126 source files). Source: `data/results/umami/experiment-b.json`, maps `map-w4.json` / `map-w2.json`, and `trace-map-w2.json` from a separate spike.
+
+- **The map is lopsided.**
+  - Server code source-maps back to `src/`. But 227 source files are global, because Next.js's `preloadEntriesOnStart` runs every route module at boot, so any edit to one of them selects every test.
+  - 156 source files (pages and components rendered per request) have per-test sets.
+  - Client code resolves to no source file: production builds ship no browser source maps, and 49 chunk URLs stay unresolved.
+- **The map is not stable.** Across the N=4 and N=2 builds, the per-file Jaccard of selecting tests has median 0.875 and minimum 0.5, over 215 files. That is below the pre-registered 0.9, so, per the spec, the rest of this experiment is weaker. Per-test file sets are identical for most tests (median 1.0) but not all (minimum 0.157). This is consistent with async requests (prefetches, polling) crossing test boundaries: 3 between-test takes found code.
+- **The mutation study says more about the suite than about the map.**
+  - 9 mutants, 1 not live (a React hook mutant broke the build).
+  - 7 of the 8 live mutants changed no test outcome. The 7 stale tests fail with or without the mutant, so they are excluded from F. For all 7, the harness found the mutated function was never executed by any test, which says the 38-test suite does not reach those pages.
+  - One mutant (`websites/[websiteId]/layout.tsx`) broke 3 tests, all 3 predicted (4 selected).
+  - Headline 1/1, 95% CI 0.025-1: nothing can be concluded from it.
+  - The 2 live controls (files in no test's set) broke nothing.
+- **rallly (Playwright 1.58.1) and documenso** were not traced: time went to making rallly isolate at all (the shared-origin mode) and to its full Experiment A. rallly is a Next.js/Turbopack production build, so the same boot-time preloading and missing client source maps apply.
+
+Tracing produced a usable map on one real repo, not three. **That is the Experiment B result on real repos:** on a Next.js production build, file-level impact maps are lopsided and unstable. Most route code is global, client code is invisible, and attribution varies with the worker count. The fixture, a plain Express app compiled with `tsc` with source maps, is the only place where the map was both stable and precise.
 
 ## What I would build next
 
