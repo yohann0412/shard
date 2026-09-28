@@ -14,7 +14,7 @@ Every number cites a committed file under `data/results/` or `experiments/recipe
   - The fixture (never pooled): 1.48x at N=4.
   - rallly: 1.54x at N=2, which is 0.77 of the 2x possible at N=2.
   - rallly at N=4, one mail catcher per worker: 1.58x. This is a control, indicative only: 3 rounds, no warm-up, spread 1.17 (over the 1.10 limit), only 1 of 3 rounds valid by the outcome rule, and the denominator comes from the main run.
-- **This setup could not have supported Claim A.** The ceilings, computed from the N=1 runs, were already below the "holds" bar of 3x before any N=4 timing: fixture 2.14 (CPU), umami 1.23 (file layout), rallly 1.83 (CPU). Neither real repo could reach even 2x. So the result does not separate "isolation does not scale" from "these suites on 4 cores cannot scale". A machine with more cores per worker slot, and suites with more, shorter files, are needed for a real test.
+- **This setup could not have supported Claim A.** The ceilings, computed from the N=1 runs, were already below the "holds" bar of 3x before any N=4 timing: fixture 2.14 (CPU), umami 1.15 on its passing subset (file layout; 1.23 on the full suite), rallly 1.83 (CPU). Neither real repo could reach even 2x. So the result does not separate "isolation does not scale" from "these suites on 4 cores cannot scale". A machine with more cores per worker slot, and suites with more, shorter files, are needed for a real test.
 - **Isolation held only partly.** No new failures on the fixture or umami's browser suite. But umami's API suite lost 75 of 271 tests at N=2 and 139 at N=4 until a hand-written seed step was added. rallly had 5 isolation failures at N=4 with a shared mailpit, and with one mailpit per worker `login verify page` still failed in 2 of 3 rounds (a timeout at ~95% CPU). rallly also needed the shared-origin proxy even to run.
 - **What capped the speedup.** (1) File-level scheduling: one serial file caps umami, and one caps the fixture at 2.29x. (2) CPU per worker slot: 1.9-2.2 cores on the fixture and rallly, so this 4-core machine fits about 2 slots.
 - **Setup fraction.** Hooks and fixtures are 25-28% of test time on the fixture and rallly. On umami the figure is 10%, but only because stale-test timeouts fill the denominator. Over umami's passing tests, hook and fixture time is about equal to body time.
@@ -166,12 +166,12 @@ Source: `data/results/fixture-app/experiment-b.json`: N=4, seed 20260928, three 
   - 2 top-level mutants broke nothing: a renamed session cookie, and a dead selector in `settings.js`.
   - 11 live, non-global mutants had failing tests, and all 11 were scored.
 - **Recall.** With the default (function-level) global policy, **11 of 11 scored mutants had zero missed tests**, 95% Clopper-Pearson interval 0.715-1. Worst recall 1.0. No control could be made.
-- **Selection.** Median over mutated files: 0.96 of tests by count and 0.97 by time. Only five files let `affected` skip tests: `routes/items.ts` and `js/items.js` select 4/12, `routes/settings.ts` and `js/settings.js` select 3/12, and `routes/home.ts` selects 11/12. Every test signs in through `auth.ts` and renders through `views.ts`, so those select everything.
+- **Selection.** Median over mutated files: 0.96 of tests by count and 0.97 by time (0.39 by time over the non-global files alone). Only five files let `affected` skip tests: `routes/items.ts` and `js/items.js` select 4/12, `routes/settings.ts` and `js/settings.js` select 3/12, and `routes/home.ts` selects 11/12. Every test signs in through `auth.ts` and renders through `views.ts`, so those select everything.
 - **Stability.** The N=4 and N=2 maps are identical, as expected for a deterministic app.
 - **Strict policy.** Every bootLoaded file selects all tests, so 10 of the 11 scored mutants answer `all`.
 - **Non-JS edits.** A migration SQL edit gives `all` (a seed/migration input); a `tsconfig.json` edit gives `all` (a test-support/config rule).
 
-By the pre-registered rule, the claim holds only if the interval's lower bound is ≥ 0.9. That needs about 36 scored mutants with zero misses, and the fixture has too few source files to supply them. So the fixture shows the mechanism works (no miss), but it cannot establish Claim B. Its selection numbers also show the flip side: on an app where every test crosses the same core files, per-file selection saves little.
+By the pre-registered rule, the claim holds only if the interval's lower bound is ≥ 0.9, and it is falsified below 0.8. The fixture's 0.715 trips the falsification line on sample size alone: reaching 0.9 with zero misses needs about 36 scored mutants, and the fixture has too few source files to supply them. So the fixture shows the mechanism works (no miss), but it cannot establish Claim B. Its selection numbers also show the flip side: on an app where every test crosses the same core files, per-file selection saves little.
 
 ### Real repositories
 
@@ -190,7 +190,7 @@ By the pre-registered rule, the claim holds only if the interval's lower bound i
   - The 2 live controls (files in no test's set) broke nothing.
 - **rallly (Playwright 1.58.1) and documenso** were not traced: time went to making rallly isolate at all (the shared-origin mode) and to its full Experiment A. rallly is a Next.js/Turbopack production build, so we expect, but did not verify, that the same boot-time preloading and missing client source maps apply.
 
-Tracing produced a usable map on one real repo, not three. **That is the Experiment B result on real repos:** on a Next.js production build, file-level impact maps are lopsided and unstable. Most route code is global, client code is invisible, and attribution varies with the worker count. The fixture, a plain Express app compiled with `tsc` with source maps, is the only place where the map was both stable and precise.
+Tracing produced a usable map on one real repo, not three. **That is the Experiment B result on real repos:** on a Next.js production build, file-level impact maps are lopsided and unstable. Most route code is global, client code is invisible, and attribution differed between two traces taken at different N and load. The fixture, a plain Express app compiled with `tsc` with source maps, is the only place where the map was both stable and precise.
 
 ## What I would build next
 
