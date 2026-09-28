@@ -1,6 +1,6 @@
 # Results
 
-Every number cites a committed file under `data/results/` or `experiment/recipes/`. The verdict rules were fixed before any data (PLAN.md §1, commit e5c5361). The plot is `data/results/speedup-vs-workers.png`, and `data/results/summary.md` has the generated tables.
+Every number cites a committed file under `data/results/` or `experiments/recipes/`. The verdict rules were fixed before any data (PLAN.md §1, commit e5c5361). The plot is `data/results/speedup-vs-workers.png`, and `data/results/summary.md` has the generated tables.
 
 ## Verdicts
 
