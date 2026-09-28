@@ -4,11 +4,12 @@ import { runSession } from '../session.js';
 import { parseWorkers } from '../stack.js';
 
 const USAGE = `Usage:
-  isolate run [--workers N] [--tag-requests] -- <playwright test command...>
+  isolate run [--workers N] [--tag-requests] [--no-rerun] -- <playwright test command...>
   isolate run --baseline -- <playwright test command...>
 
   --workers N       apps, databases and Playwright workers (default: number of CPUs)
   --tag-requests    send an x-isolate-worker header with every request, so app logs show which worker sent it
+  --no-rerun        do not rerun failed tests to classify them as flaky or deterministic
   --baseline        the repo's own config (webServer, workers, env) against one fresh copy of seed, timed by the
                     isolate reporter: the baseline arm of the experiment
 `;
@@ -22,6 +23,7 @@ export async function main(args: string[]): Promise<number> {
       workers: { type: 'string' },
       'tag-requests': { type: 'boolean', default: false },
       baseline: { type: 'boolean', default: false },
+      'no-rerun': { type: 'boolean', default: false },
     },
   });
   if (positionals.length === 0) {
@@ -38,5 +40,6 @@ export async function main(args: string[]): Promise<number> {
     mode: values.baseline ? 'baseline' : 'run',
     workers: values.workers === undefined ? os.availableParallelism() : parseWorkers(values.workers),
     tagRequests: values['tag-requests'],
+    noRerun: values['no-rerun'],
   });
 }

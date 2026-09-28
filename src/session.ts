@@ -40,6 +40,8 @@ export interface SessionOptions {
   /** Number of apps and databases in `run` and `trace` mode; unused in `baseline` mode. */
   workers: number;
   tagRequests: boolean;
+  /** Skip the flaky/deterministic reruns of failed tests (failures are reported as not rerun). */
+  noRerun: boolean;
 }
 
 /** Name of the one database the baseline runs against. */
@@ -203,7 +205,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
 
     const failed = failedTests(tests.results);
     failures = failed.map(notRerun);
-    if (isolated && failed.length > 0 && guard.signal === null) {
+    if (isolated && !options.noRerun && failed.length > 0 && guard.signal === null) {
       const rerun = await classifyFailures({ repoDir: options.repoDir, config, stack, command, wrapperConfig: wrapper.configFile, tagRequests: options.tagRequests, guard }, failed);
       failures = rerun.failures;
       warnings.push(...rerun.warnings);

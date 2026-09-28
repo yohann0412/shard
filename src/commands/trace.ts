@@ -29,5 +29,6 @@ export async function main(args: string[]): Promise<number> {
     mode: 'trace',
     workers: values.workers === undefined ? os.availableParallelism() : parseWorkers(values.workers),
     tagRequests: values['tag-requests'],
+    noRerun: false,
   });
 }
