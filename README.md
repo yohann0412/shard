@@ -21,6 +21,15 @@ node ../../dist/src/cli.js run --workers 4 -- npx playwright test   # one app an
 
 Or `just demo` from the repository root, which shows both runs and their wall times.
 
+On a real open-source repo, timed against that repo's own setup (its config, its worker count, one shared app and database):
+
+```bash
+just compare-list          # evershop, documenso, umami, rallly, ...
+just compare evershop      # clones, installs and builds it once, then 3 rounds of theirs vs isolate at 2, 4, ... workers
+```
+
+See [HOW_TO_RUN_LOCALLY.md](HOW_TO_RUN_LOCALLY.md) (b).
+
 In your own repo:
 
 ```bash
@@ -35,7 +44,7 @@ npx isolate run --workers 4 -- npx playwright test
 | `isolate init [--allow-unmanaged] [--force]` | Detect package manager, build, migrate, seed, start command, env var names, health path and Playwright config; write `isolate.config.ts`. Refuses when the app needs services isolate does not manage (see below). |
 | `isolate db up --workers N` | Start Postgres with `seed` and N template copies; print their URLs; stop on Ctrl-C. |
 | `isolate app up --workers N` | The above plus N app processes, health-checked; stop on Ctrl-C. |
-| `isolate run [--workers N] [--shared-origin URL] [--baseline] -- <playwright command>` | Run the suite with one app and database per worker. Ends with a timing table and `.isolate/report.json`. `--shared-origin` puts every app behind the origin the app's build baked in (see below). `--baseline` instead runs the repo's own config (its `webServer`, its workers) against one fresh copy of `seed`, with the same timing reporter, for comparisons. |
+| `isolate run [--workers N] [--shared-origin URL] [--baseline [--app]] -- <playwright command>` | Run the suite with one app and database per worker. Ends with a timing table and `.isolate/report.json`. `--shared-origin` puts every app behind the origin the app's build baked in (see below). `--baseline` instead runs the repo's own config (its `webServer`, its workers) against one fresh copy of `seed`, with the same timing reporter, for comparisons; `--app` also starts one app for a config that expects a running server. |
 | `isolate snapshot` | Build, migrate and seed, and cache the result so later runs restore instead of rebuilding. |
 | `isolate trace [--workers N] -- <playwright command>` | Like `run`, and write `.isolate/map.json`: for each test, the server and client files it executed, plus the files that run at boot. |
 | `isolate affected --base <ref> [--strict] [--json]` | Print the tests affected by the changes since `<ref>`, or `all`. A change to test-side code that tracing cannot see (a helper, fixture or page object next to the specs or elsewhere in the Playwright config's directory outside the app's source directories) gives `all`, as do lockfiles and `cache.inputs`, including those above the repo directory. Run it without `--base` for the full rules. |
@@ -56,7 +65,7 @@ Some builds fix the origin the browser talks to: Next.js inlines `NEXT_PUBLIC_*`
 
 ## Configuration
 
-`isolate.config.ts` is plain TypeScript with only erasable syntax. Node loads it natively, which is why Node 22.18 or later is required. In `app.env` and `playwright.env`, the values `{i}` (worker index), `{port}`, `{url}` (the app's own base URL), `{origin}` (the shared origin with `--shared-origin`, otherwise the app's own URL) and `{db}` (the worker's database URL) are filled in per worker, for example `NEXTAUTH_URL: '{url}'` or `NEXT_PUBLIC_BASE_URL: '{origin}'`.
+`isolate.config.ts` is plain TypeScript with only erasable syntax. Node loads it natively, which is why Node 22.18 or later is required. In `app.env` and `playwright.env`, the values `{i}` (worker index), `{port}`, `{url}` (the app's own base URL), `{origin}` (the shared origin with `--shared-origin`, otherwise the app's own URL) and `{db}` (the worker's database URL) and its parts `{dbHost}`, `{dbPort}`, `{dbName}`, `{dbUser}`, `{dbPassword}` are filled in per worker, for example `NEXTAUTH_URL: '{url}'` or `NEXT_PUBLIC_BASE_URL: '{origin}'`. `db.env` takes the same database placeholders for apps configured by host and name instead of a URL (`DB_NAME: '{dbName}'`); it is set for migrate, seed, the apps and Playwright.
 
 A cached Postgres data directory only works with the same Postgres major version and CPU architecture. Both are part of the cache key.
 
@@ -65,7 +74,7 @@ A cached Postgres data directory only works with the same Postgres major version
 - **Unmanaged services.** Redis, S3, queues, search engines, SMTP and third-party APIs are not started, namespaced or mocked. `init` detects them and refuses without `--allow-unmanaged`. With it, all N apps share the real service, and runs are labelled "isolation incomplete".
 - **Non-Node backends.** `run` works for any app that can be started N times with a different port and database URL. Tracing is Node-only.
 - **Per-test isolation.** Tests in the same worker share that worker's database, exactly as the serial suite shares one. `isolate` makes parallel runs behave like serial runs; it does not make order-dependent tests independent.
-- **Shared auth state.** A `globalSetup` or a Playwright "setup" project writes its session into one worker's database, so database-backed sessions are missing in the other workers. `run` warns when it sees either.
+- **Setup projects.** A `globalSetup` is handled: it runs once against w0, whose database is then copied to every worker, so a session or rows it creates exist everywhere (DECISIONS D-015). A Playwright "setup" project (`dependencies`) runs inside one worker and writes into that worker's database only; `run` warns about it.
 - **Build-time URLs.** Values baked into client bundles (Next.js `NEXT_PUBLIC_*`) cannot differ per worker. `--shared-origin` covers the common case, a build that fixes the app's own origin (see above), but not other per-worker values baked into a build.
 - **Other browsers for tracing.** Client-side coverage uses Chromium's `page.coverage`.
 

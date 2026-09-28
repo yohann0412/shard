@@ -39,7 +39,36 @@ The acceptance tests take ~6-8 minutes and run every feature for real (Postgres,
 just e2e
 ```
 
-## (b) Experiment A on one repo of your choosing: 20 minutes to 2 hours
+## (b) Their setup against isolate, on a real repo: `just compare`
+
+```bash
+just compare-list                          # repos with a ready recipe
+just compare evershop                      # 3 rounds: their setup, then isolate at 2, 4 and <cores> (up to 8) workers
+just compare evershop --rounds 1 --workers 4,8
+just compare documenso --rounds 1 -- e2e/api/v1   # anything after -- goes to every `playwright test` command (a subset here)
+```
+
+What it does, all unattended:
+
+1. Clones the repo at the commit the recipe pins into `work/repos/<name>`, installs it and builds it (first time only; `--fresh` redoes it). If the recipe pins a Node, npm or pnpm version, that version is installed into `work/toolchain/` from npm and used for this repo only.
+2. Downloads the Chromium the repo's Playwright version expects (`playwright install chromium`).
+3. Starts any service the recipe needs (documenso: a local SMTP sink that accepts and discards mail).
+4. Runs one untimed warm-up, then R rounds in rotating order of:
+   - **theirs**: the repo's own Playwright config as their CI runs it (`CI=true`, its worker count, one app, one database), through `isolate run --baseline` (and `--app` when their config expects an already-running server);
+   - **isolate@N**: `isolate run --workers N`, one app and database copy per worker.
+5. Prints median wall time and Playwright test-phase time per arm, pass and fail counts, and the speedup over theirs. Raw logs and reports go to `work/compare/<name>/<timestamp>/`.
+
+Both arms run with `--retries=0` and the same database snapshot, so they do the same work. Compare the pass/fail columns too: a faster arm that fails more tests is not a win.
+
+| Recipe | Suite | First prepare | One round (4 cores, sandbox) |
+|---|---|---|---|
+| `evershop` | 164 tests; their config: 1 worker, "Shared DB" | ~3 min | see RESULTS.md |
+| `documenso` | ~1,200 tests; their config: api project at 10 workers, ui at min(6, (cores-2)/2) | ~12 min (Node 24 and npm 11 are fetched) | long: start with a subset |
+| `umami-passing`, `rallly`, `fixture-app` | from the sprint | | |
+
+Disk: each repo takes 1–3 GB under `work/`; `rm -rf work/repos/<name>` removes one.
+
+## (c) Experiment A on one repo of your choosing: 20 minutes to 2 hours
 
 For the fixture (about 20 minutes: warm-up plus 3 rounds of 6 arms):
 
@@ -68,7 +97,7 @@ Repos that work with the committed recipes:
 
 Both recipes pin the commit that was measured.
 
-## (c) The harvest and both experiments, unattended: about 4-6 hours on 4 cores
+## (d) The harvest and both experiments, unattended: about 4-6 hours on 4 cores
 
 ```bash
 just harvest                      # ~4 min: scans ~1000 repos (shallow clones), writes data/repos.json
