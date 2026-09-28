@@ -114,3 +114,9 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 - **Likely cause:** every failing test is in a spec that calls `deleteAllMessages()` in `beforeEach` or waits for an email login code (admin-setup, authentication, conferencing's `beforeAll` login). With one mailpit shared across workers, one worker's delete can remove another worker's pending code. That is a stateful unmanaged service: out of V1's scope, and the run is labelled "isolation incomplete".
 - **CPU also matters:** one rallly worker slot uses 2.18 cores, so the resource ceiling on 4 cores is 1.83x.
 - A control with one mailpit per worker (a config-only change: `SMTP_PORT: '323{i}'` for apps, `MAILPIT_API_URL: 'http://127.0.0.1:324{i}/api'` for tests) is running now.
+
+**16:55 rallly control: one mailpit per worker at N=4** (`data/results/rallly/control-per-worker-mailpit/`, 3 rounds, each started below load 1.0, `--no-rerun`, config-only change).
+- Failures per round dropped from 2-16 with a shared mailpit to 2, 1 and 0.
+- The email-login tests (admin-setup, authentication, conferencing) all pass now. So the shared SMTP catcher caused most of the N=4 failures.
+- What remains is `login verify page` (a 5 s `waitFor`, twice) and `create a new poll` (a 30 s timeout, once), with CPU at 89-95% busy: timeouts under load.
+- Test phase 99.0 / 88.7 / 84.7 s, median 88.7 s, which is 1.57x against isolated@1's 139.7 s. Only one of the three rounds was fully clean.
