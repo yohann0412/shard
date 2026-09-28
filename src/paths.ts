@@ -15,6 +15,9 @@ export function isolatePaths(repoDir: string) {
     cache: path.join(root, 'cache'),
     report: path.join(root, 'report.json'),
     pwResults: path.join(root, 'pw-results.json'),
+    rerunResults: path.join(root, 'rerun-results.json'),
+    rerunsLog: path.join(root, 'logs', 'reruns.log'),
+    rerunAppLog: (run: number) => path.join(root, 'logs', `rerun-${run}.log`),
     map: path.join(root, 'map.json'),
     trace: path.join(root, 'trace'),
   };

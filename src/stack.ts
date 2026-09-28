@@ -39,6 +39,8 @@ export interface Stack {
   /** Empty when the stack was started without apps. */
   apps: RunningApp[];
   timings: StackTimings;
+  /** Output of `postgres --version` for the server in use. */
+  postgresVersion: string;
   /** Pass to spawnGroup to start further processes (such as the Playwright command) under the same cleanup and run ID. */
   reaper: Reaper;
   /** Resolves if an app dies on its own after it was healthy; never resolves for a stack without apps. */
@@ -77,6 +79,7 @@ export async function startStack(options: StackOptions): Promise<Stack> {
   };
 
   let postgres: PostgresServer | undefined;
+  let postgresVersion = '';
   let appGroup: AppGroup | undefined;
   const stopAll = async () => {
     const peakRssMb = await rss.stop();
@@ -99,6 +102,7 @@ export async function startStack(options: StackOptions): Promise<Stack> {
     const server = await timed('postgresStart', async () => {
       const binaries = await findPostgresBinaries(config);
       log.info(`postgres binaries: ${binaries.source} (${binaries.version})`);
+      postgresVersion = binaries.version;
       return startPostgres({ repoDir, config, binaries, workers, reaper });
     });
     postgres = server;
@@ -120,6 +124,7 @@ export async function startStack(options: StackOptions): Promise<Stack> {
       databases,
       apps: appGroup?.apps ?? [],
       timings,
+      postgresVersion,
       reaper,
       appExited: appGroup?.unexpectedExit ?? new Promise<never>(() => {}),
       stop: () => (stopping ??= stopAll()),

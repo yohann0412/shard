@@ -51,9 +51,14 @@ interface StartedApp {
   proc: GroupProcess;
 }
 
-async function startApp(options: AppOptions, index: number, port: number, database: WorkerDatabase): Promise<StartedApp> {
+async function startApp(
+  options: Pick<AppOptions, 'repoDir' | 'config' | 'reaper'>,
+  index: number,
+  port: number,
+  database: WorkerDatabase,
+  logFile = isolatePaths(options.repoDir).appLog(index),
+): Promise<StartedApp> {
   const { repoDir, config, reaper } = options;
-  const logFile = isolatePaths(repoDir).appLog(index);
   writeFileSync(logFile, '');
   const url = `http://127.0.0.1:${port}`;
   const env = appEnv(config, { index, port, url, dbUrl: database.url });
@@ -68,6 +73,20 @@ async function startApp(options: AppOptions, index: number, port: number, databa
   const bootMs = elapsedMs(start);
   log.info(`app w${index} healthy at ${url} in ${bootMs}ms (pid ${proc.pid}, database ${database.name})`);
   return { app: { index, port, url, pid: proc.pid, dbUrl: database.url, bootMs }, proc };
+}
+
+/** What startSingleApp needs: the database, the worker index for `{i}` and ISOLATE_WORKER_INDEX, and the log file. */
+export interface SingleAppOptions extends Pick<AppOptions, 'repoDir' | 'config' | 'reaper'> {
+  index: number;
+  database: WorkerDatabase;
+  logFile: string;
+}
+
+/** Starts one more app on its own free port against `database` (for example for a rerun); returns it and a function that stops it. */
+export async function startSingleApp(options: SingleAppOptions): Promise<RunningApp & { stop(): Promise<void> }> {
+  const [port] = await freePorts(1);
+  const { app, proc } = await startApp(options, options.index, port!, options.database, options.logFile);
+  return { ...app, stop: () => killGroup(proc.pid) };
 }
 
 /**
