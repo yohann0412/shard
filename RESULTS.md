@@ -12,7 +12,9 @@ Every number cites a committed file under `data/results/` or `experiments/recipe
 - **Most important number:** counting umami anyway (a post-hoc reading, logged in LOG.md at 17:18 UTC), its test-phase speedup at N=4 is **1.30x on the full browser suite**. _Its re-timing on the common passing subset, which the protocol requires because 7 stale tests wait out 30 s timeouts, is below._
 - **Context, not verdict evidence:**
   - The fixture (never pooled): 1.48x at N=4.
-  - rallly: 1.54x at N=2. At N=4, a 3-round control with one mail catcher per worker gave 1.58x, with only 1 of its 3 rounds clean.
+  - rallly: 1.54x at N=2, which is 0.77 of the 2x possible at N=2.
+  - rallly at N=4, one mail catcher per worker: 1.58x. This is a control, indicative only: 3 rounds, no warm-up, spread 1.17 (over the 1.10 limit), only 1 of 3 rounds valid by the outcome rule, and the denominator comes from the main run.
+- **This setup could not have supported Claim A.** The ceilings, computed from the N=1 runs, were already below the "holds" bar of 3x before any N=4 timing: fixture 2.14 (CPU), umami 1.23 (file layout), rallly 1.83 (CPU). Neither real repo could reach even 2x. So the result does not separate "isolation does not scale" from "these suites on 4 cores cannot scale". A machine with more cores per worker slot, and suites with more, shorter files, are needed for a real test.
 - **Isolation held only partly.** No new failures on the fixture or umami's browser suite. But umami's API suite lost 75 of 271 tests at N=2 and 139 at N=4 until a hand-written seed step was added. rallly had 5 isolation failures at N=4 with a shared mailpit, and with one mailpit per worker `login verify page` still failed in 2 of 3 rounds (a timeout at ~95% CPU). rallly also needed the shared-origin proxy even to run.
 - **What capped the speedup.** (1) File-level scheduling: one serial file caps umami, and one caps the fixture at 2.29x. (2) CPU per worker slot: 1.9-2.2 cores on the fixture and rallly, so this 4-core machine fits about 2 slots.
 - **Setup fraction.** Hooks and fixtures are 25-28% of test time on the fixture and rallly. On umami the figure is 10%, but only because stale-test timeouts fill the denominator. Over umami's passing tests, hook and fixture time is about equal to body time.
@@ -136,7 +138,7 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 
 ## Experiment B: impact map
 
-Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-b-protocol.md` before running.
+Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-b-protocol.md` before running. Deviations: Experiment B on the fixture ran before Experiment A, at N=4, not at "the best N from Experiment A" (LOG.md 10:35), and without the load gate. B measures which tests fail, not time, but load can still change which tests time out, and it changes the umami maps (below).
 
 ### Fixture app
 
@@ -171,7 +173,7 @@ By the pre-registered rule, the claim holds only if the interval's lower bound i
   - One mutant (`websites/[websiteId]/layout.tsx`) broke 3 tests, all 3 predicted (4 selected).
   - Headline 1/1, 95% CI 0.025-1: nothing can be concluded from it.
   - The 2 live controls (files in no test's set) broke nothing.
-- **rallly (Playwright 1.58.1) and documenso** were not traced: time went to making rallly isolate at all (the shared-origin mode) and to its full Experiment A. rallly is a Next.js/Turbopack production build, so the same boot-time preloading and missing client source maps apply.
+- **rallly (Playwright 1.58.1) and documenso** were not traced: time went to making rallly isolate at all (the shared-origin mode) and to its full Experiment A. rallly is a Next.js/Turbopack production build, so we expect, but did not verify, that the same boot-time preloading and missing client source maps apply.
 
 Tracing produced a usable map on one real repo, not three. **That is the Experiment B result on real repos:** on a Next.js production build, file-level impact maps are lopsided and unstable. Most route code is global, client code is invisible, and attribution varies with the worker count. The fixture, a plain Express app compiled with `tsc` with source maps, is the only place where the map was both stable and precise.
 
@@ -180,7 +182,7 @@ Tracing produced a usable map on one real repo, not three. **That is the Experim
 1. **Setup before cloning.** Run `globalSetup` and Playwright "setup" projects once against an app on `seed`, then clone, so auth sessions and seed files exist in every copy. umami's API suite needed exactly this; I built it there by hand in config.
 2. **Detect baked origins and turn on the shared origin automatically.** Scan built chunks for `localhost:<port>`. Without this, rallly fails at N=1.
 3. **Per-worker side services.** Start one SMTP catcher per worker, and give each worker its own Redis logical database or key prefix. rallly's shared mailpit is still a collision source; Redis blocks 55 of the 96 harvested repos.
-4. **Split long serial files.** On both measured real repos the ceiling was file granularity (umami: one 90 s file). Suggest or apply test-level scheduling where files do not use `describe.serial`.
+4. **Split long serial files where the file ceiling binds.** Test-level scheduling for files that do not use `describe.serial`. None of the measured real repos showed this cleanly: umami's long file is three stale tests timing out, and rallly is bound by CPU (resource ceiling 1.83). The fixture is bound by its file layout (2.29).
 5. **Tracing bundled servers.** Treat bundler module factories as top level, so Next.js's boot-time preloading does not make every route global. Also generate production source maps for trace builds.
 6. **`--baseline --app`** for configs without `webServer`, and reruns at the same N, so failures caused by load are not relabelled "flaky".
 7. **PSS instead of RSS** for memory, so Postgres shared buffers are not counted once per backend.
