@@ -22,10 +22,10 @@ Rate-limit resumes used: 0 of 4 (no resume after 2026-09-28 12:00 UTC).
 
 **08:20 Harvest source check.** `awesome-selfhosted/awesome-selfhosted-data` clones fine: 1351 entries, 1153 with `stargazers_count`, 229 tagged `Nodejs`, refreshed today.
 
-**08:30 Plan v1 → v2.** Measurement reviewer: the baseline's Playwright wall time includes webServer boot while the isolated arms' does not, so the test phase is now first test begin → last test end in every arm, measured by the isolate reporter, which runs in the baseline too through a pass-through wrapper. The verdict denominator is isolated N=1 vs N=4, with 3 rotated rounds after a warm-up, mutation targets drawn from `git ls-files` rather than the map, and more mutant kinds.
+**08:23 Plan v1 → v2 (commit e5c5361).** Measurement reviewer: the baseline's Playwright wall time includes webServer boot while the isolated arms' does not, so the test phase is now first test begin → last test end in every arm, measured by the isolate reporter, which runs in the baseline too through a pass-through wrapper. The verdict denominator is isolated N=1 vs N=4, with 3 rotated rounds after a warm-up, mutation targets drawn from `git ls-files` rather than the map, and more mutant kinds.
 
-**08:40 Pre-registration.** PLAN.md §1 verdict rules fixed as of this entry, before any real-repo data exists.
+**08:23 Pre-registration.** PLAN.md §1 verdict rules fixed in commit e5c5361, before any real-repo data exists.
 
-**08:45 Plan v3.** Mechanism and process reviewers: Postgres refuses to run as root, and this sandbox is root. Confirmed: a `postgres` system user exists (uid 102) and `setpriv` is available. The fix was sent to the F1/F3 subagent. Real-repo scout started now rather than in Phase 4. Clock checkpoints set around the 12:00 UTC no-resume cutoff. Acceptance tests hardened (ca4ad31). `lscpu`: 4 cores, 1 thread per core, 1 socket.
+**08:26 Subagents launched (worktrees):** fixture app; F1+F3; F4+F6 (with a `--baseline` mode added for the experiment); harvester; real-repo scout (no worktree; writes only `experiments/recipes/` and `work/`).
 
-**08:35 Subagents launched (worktrees):** fixture app; F1+F3; F4+F6 (with a `--baseline` mode added for the experiment); harvester; real-repo scout (no worktree; writes only `experiments/recipes/` and `work/`).
+**08:31 Plan v3 (commit 177b978).** Mechanism and process reviewers: Postgres refuses to run as root, and this sandbox is root. Confirmed: a `postgres` system user exists (uid 102) and `setpriv` is available. The fix was sent to the F1/F3 subagent. Real-repo scout started now rather than in Phase 4. Clock checkpoints set around the 12:00 UTC no-resume cutoff. Acceptance tests hardened (ca4ad31). `lscpu`: 4 cores, 1 thread per core, 1 socket.

@@ -175,7 +175,7 @@ Cut order if time runs out: F5 snapshot → F2 auto-detection (keep the unmanage
 
 1. Every number in RESULTS.md cites a committed raw file under `data/results/<repo>/` and the exact command that produced it.
 2. Every attempted repo is listed with its outcome and exclusion reason, with the funnel: sources → scanned → qualified → baseline green → measured.
-3. The verdict rules in §1 were fixed at 08:40 UTC before any data. Any change is timestamped in LOG.md with the reason.
+3. The verdict rules in §1 were fixed in commit e5c5361 (08:23 UTC) before any data. Any change is timestamped in LOG.md with the reason.
 4. Any change to a repo file makes that result "with modifications" and its diff is committed next to it.
 5. A run with invalid routing (a used worker database without activity) or "too many clients" in the Postgres log is excluded and listed as excluded.
 6. Timed runs happen with no subagent active. Load average at start is recorded, and the run is redone if it is above 1.0.
