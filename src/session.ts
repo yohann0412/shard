@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { loadConfig } from './config/load.js';
 import type { IsolateConfig } from './config/schema.js';
+import { startSingleApp } from './app/apps.js';
 import { cloneDatabase, databaseUrlVars, type WorkerDatabase } from './db/databases.js';
 import { scanUnmanaged, unmanagedWarning, type UnmanagedService } from './init/unmanaged.js';
 import { log } from './log.js';
@@ -11,9 +12,10 @@ import { commandWithConfig, parsePlaywrightCommand, type PlaywrightCommand } fro
 import { InterruptGuard } from './playwright/interrupts.js';
 import { readResults, type PwResults } from './playwright/results.js';
 import { startPlaywright } from './playwright/runner.js';
-import { scanForHazards } from './playwright/scan.js';
+import { scanForHazards, usesGlobalSetup } from './playwright/scan.js';
 import { workerEnv } from './playwright/worker-env.js';
 import { writeWrapper, type Wrapper } from './playwright/wrapper.js';
+import { readTail } from './proc/tail.js';
 import { parseSharedOrigin, type SharedOrigin } from './proxy/origin.js';
 import { WORKER_HEADER } from './proxy/protocol.js';
 import { buildReport } from './report/build.js';
@@ -49,6 +51,8 @@ export interface SessionOptions {
   sharedOrigin: string | undefined;
   /** Skip the flaky/deterministic reruns of failed tests (failures are reported as not rerun). */
   noRerun: boolean;
+  /** Baseline mode: start one app on b0 for a config without webServer, and point the base-URL variables at it. */
+  baselineApp?: boolean;
 }
 
 /** Name of the one database the baseline runs against. */
@@ -58,6 +62,8 @@ const BASELINE_DATABASE = 'b0';
 interface Targets {
   databases: WorkerDatabase[];
   env: Record<string, string>;
+  /** The baseline's own app (`--baseline --app`), stopped after the tests. */
+  baselineApp?: { stop(): Promise<void>; bootMs: number };
 }
 
 /** Everything the tests phase produced. */
@@ -83,6 +89,8 @@ interface Prepared {
   sharedOrigin: SharedOrigin | undefined;
   warnings: string[];
   unmanaged: UnmanagedService[];
+  /** Run the repo's globalSetup once against w0 and copy w0 to every worker before the tests (DECISIONS D-015). */
+  fanOut: boolean;
 }
 
 /** Loads the config, parses the command and scans the tests before anything starts, so a refused command costs nothing. */
@@ -95,12 +103,13 @@ async function prepare(options: SessionOptions): Promise<Prepared> {
     defaultConfig: config.playwright.config,
     workers: options.mode === 'baseline' ? null : options.workers,
   });
-  const warnings = options.mode === 'baseline' ? [] : scanForHazards(command.repoConfig, options.repoDir);
+  const warnings = options.mode === 'baseline' ? [] : scanForHazards(command.repoConfig, options.repoDir, config.playwright.globalSetup);
+  const fanOut = options.mode !== 'baseline' && config.playwright.globalSetup === 'fan-out' && usesGlobalSetup(command.repoConfig);
   const unmanaged = scanUnmanaged(options.repoDir);
   const unmanagedNote = unmanagedWarning(unmanaged);
   if (unmanagedNote !== null) warnings.push(unmanagedNote);
   for (const warning of warnings) log.warn(warning);
-  return { config, command, sharedOrigin, warnings, unmanaged };
+  return { config, command, sharedOrigin, warnings, unmanaged, fanOut };
 }
 
 /**
@@ -116,7 +125,11 @@ async function prepareTargets(
 ): Promise<Targets> {
   if (options.mode === 'baseline') {
     const database = await cloneDatabase(stack.postgres, BASELINE_DATABASE);
-    return { databases: [database], env: databaseUrlVars(config, database.url) };
+    if (!options.baselineApp) return { databases: [database], env: databaseUrlVars(config, database.url) };
+    const logFile = isolatePaths(options.repoDir).appLog(0);
+    const app = await startSingleApp({ repoDir: options.repoDir, config, reaper: stack.reaper, index: 0, database, logFile });
+    const { ISOLATE_BASE_URL: _url, ISOLATE_APP_INDEX: _index, ...env } = workerEnv(config, app);
+    return { databases: [database], env: { ...databaseUrlVars(config, database.url), ...env }, baselineApp: app };
   }
   const envs = stack.apps.map((app) => workerEnv(config, app));
   return {
@@ -206,6 +219,35 @@ function testWarnings(repoDir: string, tests: TestsOutcome): string[] {
 }
 
 /**
+ * Runs only the repo's globalSetup, in a Playwright run of its own against w0's app and database (one placeholder test,
+ * no globalTeardown), so that nothing it opens stays connected to w0 when w0 is copied (DECISIONS D-015). Throws with
+ * the log's tail if the run fails.
+ */
+async function runGlobalSetup(options: SessionOptions, config: IsolateConfig, stack: Stack, command: PlaywrightCommand, tagRequests: boolean, guard: InterruptGuard): Promise<void> {
+  const paths = isolatePaths(options.repoDir);
+  const first = stack.apps[0];
+  if (first === undefined) throw new Error('globalSetup needs w0 running, but no app was started');
+  const wrapper = writeWrapper({ mode: 'setup', repoConfig: command.repoConfig, outputFile: paths.pwResults, rootDir: options.repoDir, cliReporters: null });
+  for (const file of wrapper.files) stack.reaper.trackDir(file);
+  writeFileSync(paths.globalSetupLog, '');
+  const env = {
+    ISOLATE_WORKER_ENVS: JSON.stringify([workerEnv(config, first)]),
+    ISOLATE_WORKERS: '1',
+    ISOLATE_TAG_REQUESTS: tagRequests ? '1' : '0',
+    PLAYWRIGHT_HTML_OPEN: 'never',
+  };
+  log.info(`globalSetup: running the repo's globalSetup once against w0 (log: ${paths.globalSetupLog})`);
+  try {
+    const exitCode = await guard.run(startPlaywright(commandWithConfig(command, wrapper.configFile, []), { cwd: options.repoDir, env, reaper: stack.reaper, logFile: paths.globalSetupLog }));
+    if (exitCode !== 0 && guard.signal === null) {
+      throw new Error(`the repo's globalSetup failed (exit code ${exitCode}). Last lines of ${paths.globalSetupLog}:\n${readTail(paths.globalSetupLog)}`);
+    }
+  } finally {
+    wrapper.remove();
+  }
+}
+
+/**
  * Runs a Playwright suite under isolate: starts the stack, writes the wrapper, runs the command, checks routing, writes
  * the impact map (trace mode), reruns failures (run and trace mode), tears down, writes .isolate/report.json and prints
  * the summary table. Returns the exit code:
@@ -215,14 +257,14 @@ export async function runSession(options: SessionOptions): Promise<number> {
   const stopwatch = new Stopwatch();
   const loadAvg1 = os.loadavg()[0] ?? 0;
   const paths = isolatePaths(options.repoDir);
-  const { config, command, sharedOrigin, warnings, unmanaged } = await prepare(options);
+  const { config, command, sharedOrigin, warnings, unmanaged, fanOut } = await prepare(options);
   const tagRequests = options.tagRequests || sharedOrigin !== undefined;
   stopwatch.lap('setup');
 
   const isolated = options.mode !== 'baseline';
   const mapHeaders: Record<string, string> = sharedOrigin === undefined ? {} : { [WORKER_HEADER]: '0' };
   const tracer = options.mode === 'trace' ? await startTracer(options.repoDir, config, options.workers, mapHeaders) : undefined;
-  const stackOptions = { repoDir: options.repoDir, config: tracer?.appConfig ?? config, workers: isolated ? options.workers : 0, apps: isolated, sharedOrigin };
+  const stackOptions = { repoDir: options.repoDir, config: tracer?.appConfig ?? config, workers: isolated ? options.workers : 0, apps: isolated, sharedOrigin, deferApps: fanOut };
   const stack = await startStack(stackOptions).catch(async (error: unknown) => {
     await tracer?.close();
     throw error;
@@ -239,19 +281,27 @@ export async function runSession(options: SessionOptions): Promise<number> {
     wrapper?.remove();
     process.exit(128 + os.constants.signals[signal]);
   });
-  let targets: Targets;
+  let targets: Targets | undefined;
   let tests: TestsOutcome;
   let failures: Failure[];
   let peakRssMb: Record<string, number>;
   try {
+    if (fanOut) {
+      await runGlobalSetup(options, config, stack, command, tagRequests, guard);
+      stopwatch.lap('globalSetup');
+      const fanned = await stack.fanOut();
+      stopwatch.lapParts(fanned, 'setup');
+      log.info(`globalSetup: copied w0 to ${options.workers - 1} other worker(s) and started every app (copy ${fanned.clone}ms, boot ${fanned.appBoot}ms)`);
+    }
     targets = await prepareTargets(options, config, stack, tracer, tagRequests);
-    if (options.mode === 'baseline') stopwatch.lap('clone');
+    if (options.mode === 'baseline') stopwatch.lapParts({ appBoot: targets.baselineApp?.bootMs ?? 0 }, 'clone');
     wrapper = writeWrapper({
       mode: isolated ? 'isolate' : 'passthrough',
       repoConfig: command.repoConfig,
       outputFile: paths.pwResults,
       rootDir: options.repoDir,
       cliReporters: command.cliReporters,
+      skipGlobalSetup: fanOut,
     });
     for (const file of wrapper.files) stack.reaper.trackDir(file);
     stopwatch.lap('setup');
@@ -274,6 +324,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
     }
   } finally {
     wrapper?.remove();
+    await targets?.baselineApp?.stop();
     peakRssMb = (await stack.stop()).peakRssMb;
     await tracer?.close();
     guard.dispose();

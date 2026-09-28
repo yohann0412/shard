@@ -1,5 +1,5 @@
 import type { IsolateConfig } from '../config/schema.js';
-import { databaseUrlVars } from '../db/databases.js';
+import { databaseUrlVars, fillDatabaseParts } from '../db/databases.js';
 
 /** One worker's values, substituted into configured env templates. */
 export interface WorkerValues {
@@ -7,7 +7,7 @@ export interface WorkerValues {
   index: number;
   /** App port, for `{port}`. */
   port: number;
-  /** App base URL (http://127.0.0.1:<port>), for `{url}`. */
+  /** App base URL (http://<app.urlHost>:<port>, 127.0.0.1 by default), for `{url}`. */
   url: string;
   /** The URL the browser uses for this app, for `{origin}`: the shared origin, or `url` without one. */
   origin: string;
@@ -15,14 +15,15 @@ export interface WorkerValues {
   dbUrl: string;
 }
 
-/** Replaces `{i}`, `{port}`, `{url}`, `{origin}` and `{db}` in a template with one worker's values. */
+/** Replaces `{i}`, `{port}`, `{url}`, `{origin}`, `{db}` and the database URL's parts (`{dbName}`...) in a template with one worker's values. */
 export function fillPlaceholders(template: string, worker: WorkerValues): string {
-  return template
+  const filled = template
     .replaceAll('{i}', String(worker.index))
     .replaceAll('{port}', String(worker.port))
     .replaceAll('{url}', worker.url)
     .replaceAll('{origin}', worker.origin)
     .replaceAll('{db}', worker.dbUrl);
+  return fillDatabaseParts(filled, worker.dbUrl);
 }
 
 /**

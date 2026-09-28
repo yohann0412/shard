@@ -32,9 +32,25 @@ export function seedDatabaseUrl(postgres: PostgresServer): string {
   return postgres.url(SEED_DATABASE);
 }
 
-/** `db.urlEnv` and every `db.extraUrlEnvs` variable, each set to `url`. */
+/** Replaces {dbHost}, {dbPort}, {dbName}, {dbUser} and {dbPassword} in a template with the parts of a database URL. */
+export function fillDatabaseParts(template: string, url: string): string {
+  const parsed = new URL(url);
+  return template
+    .replaceAll('{dbHost}', parsed.hostname)
+    .replaceAll('{dbPort}', parsed.port)
+    .replaceAll('{dbName}', decodeURIComponent(parsed.pathname.slice(1)))
+    .replaceAll('{dbUser}', decodeURIComponent(parsed.username))
+    .replaceAll('{dbPassword}', decodeURIComponent(parsed.password));
+}
+
+/**
+ * The variables that point a process at one database: `db.urlEnv` and every `db.extraUrlEnvs` variable set to `url`,
+ * then `db.env` with {db} and the URL's parts filled in (for apps configured by host, port and name instead of a URL).
+ */
 export function databaseUrlVars(config: IsolateConfig, url: string): Record<string, string> {
-  return Object.fromEntries([config.db.urlEnv, ...config.db.extraUrlEnvs].map((name) => [name, url]));
+  const urls = [config.db.urlEnv, ...config.db.extraUrlEnvs].map((name) => [name, url]);
+  const parts = Object.entries(config.db.env).map(([name, template]) => [name, fillDatabaseParts(template.replaceAll('{db}', url), url)]);
+  return Object.fromEntries([...urls, ...parts]);
 }
 
 async function execute(url: string, statement: string): Promise<void> {
@@ -71,24 +87,25 @@ export async function prepareSeed(options: SeedOptions): Promise<string> {
   return seedUrl;
 }
 
-/** Opens a connection to the `postgres` database, terminates every connection to `seed` (a template must have none), then runs `copy`. */
-async function withSeedReleased<T>(postgres: PostgresServer, copy: (client: pg.Client) => Promise<T>): Promise<T> {
+/** Opens a connection to the `postgres` database, terminates every connection to `template` (a template must have none), then runs `copy`. */
+async function withTemplateReleased<T>(postgres: PostgresServer, template: string, copy: (client: pg.Client) => Promise<T>): Promise<T> {
   const client = new pg.Client({ connectionString: postgres.url('postgres') });
   await client.connect();
   try {
-    await client.query('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()', [SEED_DATABASE]);
+    await client.query('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()', [template]);
     return await copy(client);
   } finally {
     await client.end();
   }
 }
 
-/** Copies `seed` into a new database `name` with `CREATE DATABASE ... TEMPLATE seed`, timing the copy. */
-async function copySeed(client: pg.Client, postgres: PostgresServer, name: string): Promise<WorkerDatabase> {
+/** Copies `template` into a new database `name` with `CREATE DATABASE ... TEMPLATE`, dropping an existing `name` first if `replace`, timing the copy. */
+async function copyDatabase(client: pg.Client, postgres: PostgresServer, template: string, name: string, replace = false): Promise<WorkerDatabase> {
   const start = performance.now();
-  await client.query(`CREATE DATABASE "${name}" TEMPLATE "${SEED_DATABASE}"`);
+  if (replace) await client.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+  await client.query(`CREATE DATABASE "${name}" TEMPLATE "${template}"`);
   const copyMs = elapsedMs(start);
-  log.info(`copied ${name} in ${copyMs}ms`);
+  log.info(`copied ${name} from ${template} in ${copyMs}ms`);
   return { name, url: postgres.url(name), copyMs };
 }
 
@@ -97,14 +114,35 @@ async function copySeed(client: pg.Client, postgres: PostgresServer, name: strin
  * one at a time, timing each copy.
  */
 export async function cloneDatabases(postgres: PostgresServer, count: number): Promise<WorkerDatabase[]> {
-  return withSeedReleased(postgres, async (client) => {
+  return withTemplateReleased(postgres, SEED_DATABASE, async (client) => {
     const databases: WorkerDatabase[] = [];
-    for (let index = 0; index < count; index++) databases.push(await copySeed(client, postgres, `w${index}`));
+    for (let index = 0; index < count; index++) databases.push(await copyDatabase(client, postgres, SEED_DATABASE, `w${index}`));
     return databases;
   });
 }
 
-/** Copies `seed` into one more database named `name` (the baseline's `b0`, or a fresh copy for a rerun), timing the copy. */
-export async function cloneDatabase(postgres: PostgresServer, name: string): Promise<WorkerDatabase> {
-  return withSeedReleased(postgres, (client) => copySeed(client, postgres, name));
+/**
+ * Copies `template` (by default `seed`) into one more database named `name` (the baseline's `b0`, or a fresh copy for a
+ * rerun), timing the copy.
+ */
+export async function cloneDatabase(postgres: PostgresServer, name: string, template = SEED_DATABASE): Promise<WorkerDatabase> {
+  return withTemplateReleased(postgres, template, (client) => copyDatabase(client, postgres, template, name));
+}
+
+/** Name of the database that keeps what the repo's globalSetup wrote into w0, for the other workers and for reruns. */
+export const SETUP_DATABASE = 'setup';
+
+/**
+ * After the repo's globalSetup ran against w0 (with nothing connected to w0 any more): copies w0 into `setup`, then
+ * replaces w1..w<count-1> with copies of `setup`. Returns every worker database, w0 unchanged.
+ */
+export async function fanOutDatabases(postgres: PostgresServer, databases: WorkerDatabase[]): Promise<WorkerDatabase[]> {
+  const first = databases[0];
+  if (first === undefined) return databases;
+  await withTemplateReleased(postgres, first.name, (client) => copyDatabase(client, postgres, first.name, SETUP_DATABASE, true));
+  return withTemplateReleased(postgres, SETUP_DATABASE, async (client) => {
+    const copies = [first];
+    for (const database of databases.slice(1)) copies.push(await copyDatabase(client, postgres, SETUP_DATABASE, database.name, true));
+    return copies;
+  });
 }

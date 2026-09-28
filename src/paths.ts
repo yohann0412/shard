@@ -10,6 +10,7 @@ export function isolatePaths(repoDir: string) {
     postgresLog: path.join(root, 'logs', 'postgres.log'),
     buildLog: path.join(root, 'logs', 'build.log'),
     migrateSeedLog: path.join(root, 'logs', 'migrate-seed.log'),
+    globalSetupLog: path.join(root, 'logs', 'global-setup.log'),
     reaperLog: path.join(root, 'logs', 'reaper.log'),
     proxyLog: path.join(root, 'logs', 'proxy.log'),
     reaperState: (pid: number) => path.join(root, `reaper-${pid}.json`),

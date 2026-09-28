@@ -3,7 +3,7 @@ import { startApps, type AppExit, type AppGroup, type RunningApp } from './app/a
 import type { IsolateConfig } from './config/schema.js';
 import { runnableBinaries } from './db/access.js';
 import { findPostgresBinaries, type PostgresBinaries } from './db/binaries.js';
-import { cloneDatabases, prepareSeed, seedDatabaseUrl, type WorkerDatabase } from './db/databases.js';
+import { cloneDatabases, fanOutDatabases, prepareSeed, SETUP_DATABASE, seedDatabaseUrl, type WorkerDatabase } from './db/databases.js';
 import { initCluster, makeCluster, startPostgres, type Cluster, type PostgresServer } from './db/server.js';
 import { log } from './log.js';
 import { isolatePaths } from './paths.js';
@@ -32,6 +32,11 @@ export interface StackOptions {
   cache?: 'use' | 'refresh';
   /** Start the shared-origin proxy on this origin first, and route each app's worker index to it (DECISIONS D-014). */
   sharedOrigin?: SharedOrigin;
+  /**
+   * With apps: start only w0's app, for the repo's globalSetup to run against; `fanOut()` then copies w0 to the other
+   * workers and starts every app (DECISIONS D-015).
+   */
+  deferApps?: boolean;
 }
 
 /**
@@ -52,8 +57,10 @@ export interface Stack {
   postgres: PostgresServer;
   seedUrl: string;
   databases: WorkerDatabase[];
-  /** Empty when the stack was started without apps. */
-  apps: RunningApp[];
+  /** Empty when the stack was started without apps; only w0's app before `fanOut()` when apps were deferred. */
+  readonly apps: RunningApp[];
+  /** The database reruns copy: `seed`, or after `fanOut()` the copy of w0 taken after globalSetup. */
+  readonly rerunTemplate: string;
   /** The shared-origin proxy, or null without a shared origin. */
   proxy: OriginProxy | null;
   timings: StackTimings;
@@ -65,6 +72,11 @@ export interface Stack {
   reaper: Reaper;
   /** Resolves if an app dies on its own after it was healthy; never resolves for a stack without apps. */
   appExited: Promise<AppExit>;
+  /**
+   * Only for a stack started with `deferApps`: stops w0's app, copies w0 into every other worker's database (and into
+   * `setup`, for reruns), then starts every app. Returns the milliseconds spent copying and booting.
+   */
+  fanOut(): Promise<{ clone: number; appBoot: number }>;
   /**
    * Stops the proxy, the apps, then Postgres, deletes the data directory and ends the reaper; returns peak RSS per
    * process tree in MB.
@@ -198,27 +210,54 @@ export async function startStack(options: StackOptions): Promise<Stack> {
     const seedUrl = seedDatabaseUrl(server);
     const databases = await timed('clone', () => cloneDatabases(server, workers));
 
-    if (options.apps) {
-      appGroup = await timed('appBoot', () => startApps({ repoDir, config, databases, reaper, origin: options.sharedOrigin?.href }));
-      for (const app of appGroup.apps) {
+    let exitSeen: (exit: AppExit) => void = () => {};
+    const appExited = new Promise<AppExit>((resolve) => {
+      exitSeen = resolve;
+    });
+    const bootApps = async (count: number) => {
+      const group = await startApps({ repoDir, config, databases: databases.slice(0, count), reaper, origin: options.sharedOrigin?.href });
+      appGroup = group;
+      void group.unexpectedExit.then(exitSeen);
+      for (const app of group.apps) {
         rss.track(`w${app.index}`, app.pid);
         await proxy?.route(app.index, app.port);
       }
-    }
+    };
+    if (options.apps) await timed('appBoot', () => bootApps(options.deferApps ? Math.min(1, databases.length) : databases.length));
     log.info(timings, 'ready; phase times in ms:');
 
+    let rerunTemplate = 'seed';
+    let fannedOut = !options.deferApps;
     let stopping: Promise<{ peakRssMb: Record<string, number> }> | undefined;
     return {
       postgres: server,
       seedUrl,
       databases,
-      apps: appGroup?.apps ?? [],
+      get apps() {
+        return appGroup?.apps ?? [];
+      },
+      get rerunTemplate() {
+        return rerunTemplate;
+      },
       proxy: proxy ?? null,
       timings,
       postgresVersion: binaries.version,
       cache: cacheOutcome(plan),
       reaper,
-      appExited: appGroup?.unexpectedExit ?? new Promise<never>(() => {}),
+      appExited,
+      async fanOut() {
+        if (fannedOut || !options.apps) throw new Error('fanOut() needs a stack started with apps and deferApps, and runs once');
+        fannedOut = true;
+        await appGroup?.stop();
+        appGroup = undefined;
+        const cloneStart = performance.now();
+        await fanOutDatabases(server, databases);
+        rerunTemplate = SETUP_DATABASE;
+        const clone = elapsedMs(cloneStart);
+        const bootStart = performance.now();
+        await bootApps(databases.length);
+        return { clone, appBoot: elapsedMs(bootStart) };
+      },
       stop: () => (stopping ??= stopAll()),
     };
   } catch (error) {

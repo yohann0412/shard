@@ -7,7 +7,7 @@ const megabytes = z.number().nonnegative();
 const percent = z.number().min(0).max(100);
 
 /** Names of the contiguous phases of a run, in the order they happen. Phases that did not happen are omitted. */
-export const PHASE_NAMES = ['setup', 'restore', 'build', 'postgresStart', 'migrateSeed', 'clone', 'appBoot', 'tests', 'reruns', 'teardown'] as const;
+export const PHASE_NAMES = ['setup', 'restore', 'build', 'postgresStart', 'migrateSeed', 'clone', 'appBoot', 'globalSetup', 'tests', 'reruns', 'teardown'] as const;
 
 /** Name of one phase of a run. */
 export type PhaseName = (typeof PHASE_NAMES)[number];

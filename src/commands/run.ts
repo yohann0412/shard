@@ -5,7 +5,7 @@ import { parseWorkers } from '../stack.js';
 
 const USAGE = `Usage:
   isolate run [--workers N] [--tag-requests] [--shared-origin URL] [--no-rerun] -- <playwright test command...>
-  isolate run --baseline -- <playwright test command...>
+  isolate run --baseline [--app] -- <playwright test command...>
 
   --workers N       apps, databases and Playwright workers (default: number of CPUs)
   --tag-requests    send an x-isolate-worker header with every request, so app logs show which worker sent it
@@ -16,6 +16,9 @@ const USAGE = `Usage:
   --no-rerun        do not rerun failed tests to classify them as flaky or deterministic
   --baseline        the repo's own config (webServer, workers, env) against one fresh copy of seed, timed by the
                     isolate reporter: the baseline arm of the experiment
+  --app             with --baseline, for a config without webServer: also start one app (app.start) on that database
+                    and point the config's base-URL variables at it, as the repo's own "start the server, then run
+                    the tests" setup would
 `;
 
 /** `isolate run`: runs a Playwright command with one app and one database copy per worker, then reports timings. */
@@ -29,6 +32,7 @@ export async function main(args: string[]): Promise<number> {
       'shared-origin': { type: 'string' },
       baseline: { type: 'boolean', default: false },
       'no-rerun': { type: 'boolean', default: false },
+      app: { type: 'boolean', default: false },
     },
   });
   if (positionals.length === 0) {
@@ -41,6 +45,10 @@ export async function main(args: string[]): Promise<number> {
     );
     return 2;
   }
+  if (values.app && !values.baseline) {
+    process.stderr.write(`--app only applies to --baseline (isolate run always starts one app per worker).\n\n${USAGE}`);
+    return 2;
+  }
   return runSession({
     repoDir: process.cwd(),
     command: positionals,
@@ -49,5 +57,6 @@ export async function main(args: string[]): Promise<number> {
     tagRequests: values['tag-requests'],
     sharedOrigin: values['shared-origin'],
     noRerun: values['no-rerun'],
+    baselineApp: values.app,
   });
 }

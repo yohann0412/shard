@@ -57,18 +57,23 @@ function hardcodedUrls(files: string[], repoDir: string): string[] {
   return hits;
 }
 
+/** True if the Playwright config mentions globalSetup (then isolate runs it once and fans w0 out, DECISIONS D-015). */
+export function usesGlobalSetup(configFile: string): boolean {
+  return /\bglobalSetup\b/.test(readFileSync(configFile, 'utf8'));
+}
+
 /**
  * Looks for what isolation cannot fix without test edits: absolute local URLs in test and helper files,
  * and shared auth state from globalSetup or setup projects (RISKS R2, R9). Returns one warning per finding kind.
  */
-export function scanForHazards(configFile: string, repoDir: string): string[] {
+export function scanForHazards(configFile: string, repoDir: string, globalSetup: 'fan-out' | 'worker0'): string[] {
   const configText = readFileSync(configFile, 'utf8');
   const warnings: string[] = [];
   const urls = hardcodedUrls(testAndHelperFiles(configFile, configText), repoDir);
   if (urls.length > 0) {
     warnings.push(['hardcoded URL(s) in test files: these requests are not redirected to the per-worker app', ...urls.map((hit) => `  ${hit}`)].join('\n'));
   }
-  if (/\bglobalSetup\b/.test(configText)) {
+  if (globalSetup === 'worker0' && usesGlobalSetup(configFile)) {
     warnings.push("the Playwright config uses globalSetup: whatever it writes to the database (e.g. a signed-in session) lands in worker 0's database only");
   }
   if (/\bdependencies\s*:/.test(configText)) {

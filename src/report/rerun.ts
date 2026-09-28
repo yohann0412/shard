@@ -46,7 +46,7 @@ function selectTest(repoDir: string, test: TestRecord, outputDir: string): strin
 }
 
 /**
- * Runs one test alone against a fresh copy of `seed` and a fresh app started on it, so that leftovers from the main
+ * Runs one test alone against a fresh copy of `seed` (or of w0 after the repo's globalSetup, DECISIONS D-015) and a fresh app started on it, so that leftovers from the main
  * run cannot decide the outcome. `run` numbers the rerun; it names the database, the app log, the output directory and
  * the app's worker index, which is also the index the shared-origin proxy routes to it.
  */
@@ -54,7 +54,7 @@ async function rerunOnce(options: RerunOptions, test: TestRecord, run: number): 
   const { repoDir, config, stack } = options;
   const paths = isolatePaths(repoDir);
   const index = stack.databases.length + run;
-  const database = await cloneDatabase(stack.postgres, `rerun${run}`);
+  const database = await cloneDatabase(stack.postgres, `rerun${run}`, stack.rerunTemplate);
   const app = await startSingleApp({ repoDir, config, reaper: stack.reaper, index, database, logFile: paths.rerunAppLog(run), origin: stack.proxy?.origin.href });
   try {
     await stack.proxy?.route(index, app.port);

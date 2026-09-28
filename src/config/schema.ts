@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 /**
  * Values in `app.env`, `playwright.env` and `app.start` may use {i}, {port}, {url} (the app's own URL), {origin} (the
- * shared origin, or the app's own URL without one) and {db} (the worker's database URL); they are filled in per worker.
+ * shared origin, or the app's own URL without one), {db} (the worker's database URL) and that URL's parts {dbHost},
+ * {dbPort}, {dbName}, {dbUser}, {dbPassword}; they are filled in per worker.
  */
 const envMap = z.record(z.string(), z.string()).default({});
 
@@ -22,6 +23,11 @@ export const configSchema = z.object({
     seed: z.string().min(1).optional(),
     urlEnv: z.string().default('DATABASE_URL'),
     extraUrlEnvs: z.array(z.string()).default([]),
+    /**
+     * More variables that point at the database, set wherever the URL variables are (migrate, seed, apps, Playwright):
+     * {db} and the URL's parts {dbHost}, {dbPort}, {dbName}, {dbUser}, {dbPassword}, e.g. { DB_NAME: '{dbName}' }.
+     */
+    env: envMap,
   }),
   app: z.object({
     start: z.string().min(1),
@@ -29,6 +35,8 @@ export const configSchema = z.object({
     healthPath: z.string().default('/'),
     env: envMap,
     bootTimeoutMs: z.number().int().positive().default(120_000),
+    /** Host in each app's URL ({url}, and the browser's base URL): `localhost` for an app that builds its links from it. */
+    urlHost: z.enum(['127.0.0.1', 'localhost']).default('127.0.0.1'),
   }),
   playwright: z.object({
     config: z.string().min(1),
@@ -36,11 +44,18 @@ export const configSchema = z.object({
     env: envMap,
     /** The origin the app's build baked in (e.g. http://localhost:3201); like `--shared-origin` (DECISIONS D-014). */
     sharedOrigin: z.string().optional(),
+    /**
+     * `fan-out` (default): run the config's globalSetup once against w0, then copy w0's database to every worker
+     * (DECISIONS D-015). `worker0`: run it inside the test run as Playwright does, so its writes reach w0 only.
+     */
+    globalSetup: z.enum(['fan-out', 'worker0']).default('fan-out'),
   }),
   postgres: z
     .object({
       binDir: z.string().optional(),
       sharedBuffers: z.string().optional(),
+      /** Overrides the default max_connections (50 + 40 per worker), e.g. for a suite whose own config runs 10 workers. */
+      maxConnections: z.number().int().positive().optional(),
     })
     .default({}),
   cache: z.object({ inputs: z.array(z.string()).default([]) }).default({ inputs: [] }),

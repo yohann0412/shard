@@ -6,8 +6,9 @@ import { excludeFromGit } from './git-exclude.js';
 /**
  * `isolate`: one app and database per worker (env module, no webServer, workers and baseURL set).
  * `passthrough`: the repo's config unchanged (webServer, workers, env), plus the isolate reporter.
+ * `setup`: only the repo's globalSetup, against w0's app, with one placeholder test (DECISIONS D-015).
  */
-export type WrapperMode = 'isolate' | 'passthrough';
+export type WrapperMode = 'isolate' | 'passthrough' | 'setup';
 
 /** What the generated wrapper needs to know. */
 export interface WrapperOptions {
@@ -20,6 +21,8 @@ export interface WrapperOptions {
   rootDir: string;
   /** Reporters named by a `--reporter` flag moved out of the command, or null to keep the config's. */
   cliReporters: string[] | null;
+  /** Isolate mode: leave out the repo's globalSetup, because a `setup` run already ran it. */
+  skipGlobalSetup?: boolean;
 }
 
 /** The generated files of one run. */
@@ -33,8 +36,13 @@ export interface Wrapper {
 /** Name of the generated config, written next to the repo's Playwright config. */
 export const WRAPPER_CONFIG = '.isolate.playwright.config.ts';
 
-/** Name of the generated env module the wrapper config imports first in isolate mode. */
+/** Name of the generated env module the wrapper config imports first in isolate and setup mode. */
 export const ENV_MODULE = '.isolate.env.ts';
+
+/** Name of the placeholder test a setup run needs, because Playwright runs globalSetup only when there is a test to run. */
+export const SETUP_SPEC = '.isolate.setup.spec.ts';
+
+const SETUP_SPEC_SOURCE = `import { test } from '@playwright/test';\n\ntest('isolate: the repo globalSetup ran', () => {});\n`;
 
 const REPORTER = fileURLToPath(new URL('./reporter.js', import.meta.url));
 
@@ -71,7 +79,7 @@ function wrapperSource(options: WrapperOptions): string {
   if (options.mode === 'passthrough') {
     return `${HEADER}${importBase}\nexport default { ...base, reporter: ${reporter} };\n`;
   }
-  return `${HEADER}import './${ENV_MODULE.slice(0, -'.ts'.length)}';
+  const prelude = `${HEADER}import './${ENV_MODULE.slice(0, -'.ts'.length)}';
 ${importBase}
 const tagRequests = process.env.ISOLATE_TAG_REQUESTS === '1';
 
@@ -81,10 +89,31 @@ function withIsolate(use: any, inherited?: any): any {
   const worker = process.env.ISOLATE_APP_INDEX ?? '0';
   return { ...isolated, extraHTTPHeaders: { ...inherited?.extraHTTPHeaders, ...use?.extraHTTPHeaders, 'x-isolate-worker': worker } };
 }
+`;
+  if (options.mode === 'setup') {
+    return `${prelude}
+const first = base.projects?.[0];
+const use = withIsolate({ ...base.use, ...first?.use }, base.use);
 
 export default {
   ...base,
   webServer: undefined,
+  globalTeardown: undefined,
+  workers: 1,
+  retries: 0,
+  testDir: ${JSON.stringify(path.dirname(options.repoConfig))},
+  testMatch: /${SETUP_SPEC.replaceAll('.', '\\.')}$/,
+  testIgnore: [],
+  use,
+  projects: [{ name: first?.name ?? 'isolate-setup', use }],
+  reporter: [['line']],
+};
+`;
+  }
+  return `${prelude}
+export default {
+  ...base,
+  webServer: undefined,${options.skipGlobalSetup ? '\n  globalSetup: undefined,' : ''}
   workers: Number(process.env.ISOLATE_WORKERS),
   use: withIsolate(base.use),
   ...(base.projects ? { projects: base.projects.map((project: any) => ({ ...project, use: withIsolate(project.use, base.use) })) } : {}),
@@ -93,15 +122,17 @@ export default {
 `;
 }
 
-/** Writes the wrapper config (and in isolate mode the env module) next to the repo's Playwright config. */
+/** Writes the wrapper config (and the env module, and in setup mode the placeholder test) next to the repo's Playwright config. */
 export function writeWrapper(options: WrapperOptions): Wrapper {
   const dir = path.dirname(options.repoConfig);
   const configFile = path.join(dir, WRAPPER_CONFIG);
   const envFile = path.join(dir, ENV_MODULE);
-  excludeFromGit(dir, [ENV_MODULE, WRAPPER_CONFIG]);
-  if (options.mode === 'isolate') writeFileSync(envFile, ENV_MODULE_SOURCE);
+  const specFile = path.join(dir, SETUP_SPEC);
+  excludeFromGit(dir, [ENV_MODULE, WRAPPER_CONFIG, SETUP_SPEC]);
+  if (options.mode !== 'passthrough') writeFileSync(envFile, ENV_MODULE_SOURCE);
+  if (options.mode === 'setup') writeFileSync(specFile, SETUP_SPEC_SOURCE);
   writeFileSync(configFile, wrapperSource(options));
-  const files = [envFile, configFile];
+  const files = [envFile, configFile, specFile];
   return {
     configFile,
     files,

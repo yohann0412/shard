@@ -64,7 +64,7 @@ async function startApp(
 ): Promise<StartedApp> {
   const { repoDir, config, reaper } = options;
   writeFileSync(logFile, '');
-  const url = `http://127.0.0.1:${port}`;
+  const url = `http://${config.app.urlHost}:${port}`;
   const values = { index, port, url, origin: options.origin ?? url, dbUrl: database.url };
   const env = appEnv(config, values);
   const start = performance.now();

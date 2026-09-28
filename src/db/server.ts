@@ -67,7 +67,7 @@ function makeDataDir(): { dir: string; inRam: boolean } {
 /**
  * Server settings (`-c` options), tuned for speed over durability. shared_buffers is 25% of RAM capped at 2 GB unless
  * the config sets `postgres.sharedBuffers`. max_connections leaves room for N apps with pools (Prisma opens 9 per client
- * on 4 cores) plus tests opening their own. In RAM, dynamic shared memory lives as files in pgdata instead of
+ * on 4 cores) plus tests opening their own, unless the config sets `postgres.maxConnections`. In RAM, dynamic shared memory lives as files in pgdata instead of
  * /dev/shm/PostgreSQL.*, which a killed server would leak.
  */
 function serverSettings(config: IsolateConfig, workers: number, inRam: boolean): string[] {
@@ -78,7 +78,7 @@ function serverSettings(config: IsolateConfig, workers: number, inRam: boolean):
     'synchronous_commit=off',
     'full_page_writes=off',
     `shared_buffers=${sharedBuffers}`,
-    `max_connections=${50 + 40 * workers}`,
+    `max_connections=${config.postgres.maxConnections ?? 50 + 40 * workers}`,
     ...(inRam ? ['dynamic_shared_memory_type=mmap'] : []),
   ];
 }
