@@ -85,3 +85,16 @@ Tool gaps found:
 **13:28 Experiment A on umami (browser suite) done** (`data/results/umami/experiment-a.json`, 21 runs, all valid, every timed run started below load 1.0). Median test phase: isolated@1 130.6 s → isolated@2 111.9 s → isolated@4 100.3 s, **speedup 1.30x at N=4** (1.17x at N=2). Harness effect 1.006. Zero isolation failures: the same 7 stale tests fail in every arm, baseline included. The limit is scheduling, not CPU. `tests/e2e/website.spec.ts` holds 3 serial tests that take 90 s of the 111 s serial sum, so no N can beat 1.23x on a file basis (measured 1.30x, slightly above because that file ran faster alongside the others). One worker slot uses only 0.59 cores, so the resource ceiling is 4. Hooks and fixtures are 10% of test time. Peak memory at N=4: 2.2 GB (four Next.js servers at ~420-490 MB each, plus Postgres).
 
 **13:32 Shared-origin mode accepted** (cb8fd77). The lead ran f8, f4, f6 and f7 on the main tree: all pass. Umami and the fixture were measured on the tool version before it (their report files record the harness commit).
+
+**13:52 rallly under shared-origin mode (quick arms, reduced protocol: 1 run each, no warm-up, no load gate), subset L (16 files, 70 tests).** The repo's own baseline at workers 1 passed 70/70, test phase 143.7 s. With `--shared-origin http://localhost:3201` and `NEXT_PUBLIC_BASE_URL: '{origin}'` in isolate's config (no rallly file changed):
+- N=1: 70/70, 144.6 s.
+- N=2: 70/70, 98.5 s.
+- N=4: 69/70, 99.0 s, CPU 96% busy. The one failure was a 5 s `locator.waitFor` timeout that passed both solo reruns (timeout under load).
+Routing was valid in every run. Proxy counts show every request reached its own worker's app, and 0 were refused. Before the shared-origin mode, all 20 browser tests in these files failed at every N. Evidence: `data/results/rallly/quick-shared-origin-arms/` and `onboarding-without-shared-origin/`.
+
+**13:52 Tracing umami (Next.js production build, Playwright 1.63 through the auto-fixture hook) works but gives a lopsided map** (`data/results/umami/trace-map-w2.json`):
+- Server code source-maps back to `src/`. 229 source files are global, because Next's `preloadEntriesOnStart` runs every route module at boot. 157 server source files (pages and components rendered per request) are in test sets without being global.
+- Client code resolves to nothing: 49 chunk URLs are unresolved, because production builds ship no browser source maps.
+- This matches the mechanism reviewer's prediction (RISKS R19).
+
+Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), then rallly's full Experiment A.
