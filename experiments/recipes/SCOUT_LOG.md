@@ -48,3 +48,79 @@ Stopped here: 3 repos work (rallly, umami, documenso). Not examined: llamenos-pl
 - 08:40 twenty (a431f9a, ~4 min): the server hard-requires Redis (cache, session storage, BullMQ worker). BLOCKED.
 - 08:42 langfuse (e0a2735, ~3 min): the e2e job needs ClickHouse migrations/seed plus Redis and MinIO. BLOCKED.
 - 08:43 cal.com (54343aa, ~4 min): CI injects ~40 real third-party secrets and shards the suite 8 x 4 workers x 20 min; a workers=1 baseline cannot fit the 45-min box. The webServer port is the literal 3000. BLOCKED (not attempted).
+
+## rallly isolate onboarding
+
+09:31-10:40 UTC. Goal: run rallly's own Playwright suite under `isolate run` at N = 1, 2 and 4 without changing any rallly file. This is onboarding, not timing: the machine was shared (load average 3-10), so no number below is a timing result. Artifacts are under `work/`: clone `work/repos/rallly` at fa6bfd4 (recipe build), second clone `work/repos/rallly-mit` (mitigation build), and `work/rallly-isolate/` (env.sh, run-arm.sh, build-mitigation.sh, probes, logs, and one `results/<arm>/` per run with report.json, pw-results.json, isolate logs and test-results). The config is `work/repos/rallly/apps/web/isolate.config.ts`, and `isolateConfig` in rallly.json has the same content.
+
+Result: **not runnable yet.** Routing works: each worker gets its own app and database, and specs' Prisma reaches the worker's database. But every browser test fails at every N, N=1 included, because of the build-time URL (hazard a). The one mitigation tried, a build without the URL, did not help. Only request-level specs pass.
+
+Setup (recipe, Node 24, ports 3200+):
+- `git clone https://github.com/lukevella/rallly work/repos/rallly && git checkout fa6bfd4`, then `pnpm install --frozen-lockfile` (8 s, warm store).
+- `bash experiments/recipes/make-pw-shim.sh 1208 work/rallly-isolate/pw-browsers`.
+- `source work/rallly-isolate/env.sh`, which sets PATH to node24, CI=true, PORT=3201, NEXT_PUBLIC_BASE_URL=http://localhost:3201, SMTP 127.0.0.1:3225, MAILPIT_API_URL=http://127.0.0.1:3226/api, the shim, and PLAYWRIGHT_HTML_OPEN=never.
+- `pnpm db:generate && pnpm turbo build:test --filter=@rallly/web` (234 s).
+- `work/bin/mailpit --smtp 127.0.0.1:3225 --listen 127.0.0.1:3226 --disable-version-check`: one instance shared by all workers, so every run is "isolation incomplete".
+- **CI=true, not CI=1.** playwright.config.ts:6 tests `CI === "true"`. With CI=1 the baseline's webServer runs `rm -rf .next && next dev`, which deletes the build, and the timeouts double.
+- `isolate init` at 09:36 printed "Cannot find module .../dist/src/commands/init.js". After the lead integrated F2 it worked in `work/repos/rallly-mit/apps/web`: exit 3 without `--allow-unmanaged`, and with the flag it wrote a config. The comparison is in rallly.json `isolateNotes`. It differs in `build: pnpm build`, a `db.seed` that CI does not run, `healthPath: /` and a bare `next`.
+
+Arms. Each was run as `run-arm.sh <arm> <isolate args> -- pnpm exec playwright test --retries=0 [files]` from apps/web. S is the 7-file subset tests/{accessibility, house-keeping, otp-email-locale, otp-sign-up, password-sign-up, stripe-portal-auth, zoom-deauthorization}.spec.ts, 21 tests.
+
+| arm | tests | passed | failed | did not run | routingValid | dbActivity (commits) |
+|---|---|---|---|---|---|---|
+| baseline@1 (`--baseline`, `--workers=1`) | 140 | 137 | 1 (email-invites:104, 30 s timeout at 94% CPU: timeout under load) | 2 (serial siblings) | true | b0 5121 |
+| isolated@1, full, recipe build | 54 of 140 reached, **interrupted** by me after 577 s of test phase | 3 | 20 that pass at baseline, plus email-invites:104 interrupted | 30 serial skips, 86 not reached | true (vacuous: reporter wrote no results) | w0 244 |
+| isolated@1, S | 21 | 18 | 2 (accessibility:44, :75) | 1 | true | w0 189 |
+| isolated@2, S | 21 | 18 | 2 (same) | 1 | **false** (w0 0) | w0 0, w1 193 |
+| isolated@4, S | 21 | 17 | 3 (same two, plus otp-sign-up:62 timed out, "flaky" after reruns) | 1 | **false** (w0 0) | w0 0, w1 122, w2 32, w3 33 |
+| mitigation isolated@1, full | 54 reached, **interrupted** after 578 s | 3 | the same 20 (+1 interrupted) | 30 | true (vacuous) | w0 253 |
+
+N=2 and N=4 ran on subset S because N=1 on the full suite would have taken far more than 10 minutes: executed failures each ran to the 30 s timeout. The mitigation was not run at N=2 or N=4 because it changed nothing at N=1.
+
+Failure categories (tests that pass at baseline and fail under isolation):
+- **Build-time URL (hazard a), 20 tests, every N:**
+  - accessibility.spec.ts :44, :75
+  - admin-setup.spec.ts :36, :54, :69, :83, :97
+  - authentication.spec.ts :30
+  - closed-poll-writes.spec.ts :59
+  - comments-disabled.spec.ts :9, :47
+  - conferencing.spec.ts :79
+  - control-panel.spec.ts :30
+  - create-delete-poll.spec.ts :16
+  - cross-timezone.spec.ts :229, :247, :274, :294, :321
+  - edit-options.spec.ts :20
+
+  Serial siblings of these did not run. Mechanism:
+  - isolate puts app i on `http://127.0.0.1:<port chosen by the OS>` (src/proc/ports.ts binds port 0), never on the build origin, so N=1 is affected too.
+  - The build inlines `TURBOPACK_CHUNK_BASE_PATH: "http://localhost:3201/_next/"` (.next/static/chunks/turbopack-*.js), and 63 .next JS files contain the URL.
+  - Every failed trace has `ERR_CONNECTION_REFUSED http://localhost:3201/_next/static/chunks/*.js`. The client never hydrates, the login form falls back to a native `GET /login?identifier=...`, and steps time out, e.g. "waiting for getByRole('heading', { name: /Verify your email|Finish logging in/ })".
+  - Server-side `absoluteUrl()` (packages/utils/src/absolute-url.ts:28) is inlined as well, and it sets better-auth `baseURL`/`trustedOrigins` (apps/web/src/lib/auth.ts:59, 667-668).
+- **Unmanaged service (hazard b), N=4:** otp-sign-up.spec.ts:62 timed out (30 s) on worker 3. It was waiting in `getCode()` (line 75) while otp-email-locale.spec.ts:25 (`beforeEach` → `deleteAllMessages()`) ran on worker 2 at 5.17 s and 5.51 s, inside its window from 5.30 s to 35.3 s. It passed both of isolate's solo reruns.
+- **Hazard (c): verified.** The env module's DATABASE_URL reaches specs' Prisma (packages/database/src/client.ts:14):
+  - At N=4, house-keeping.spec.ts on worker 1 inserts polls with Prisma and app w1 marks exactly 3 deleted (house-keeping.spec.ts:182).
+  - otp-sign-up.spec.ts:40 on worker 3 sets `disableUserRegistration` with Prisma and app w3 answers SIGNUP_DISABLED.
+- **Routing false alarm:** at N=2 and N=4, w0 only ran accessibility.spec.ts. With a dead client, those tests make no DB queries. isolate reports "the app probably ignores DATABASE_URL", but the app log shows it served pages.
+- None were cross-test dependency, shared auth state, hardcoded URL or global state outside the DB. rallly has no globalSetup and no setup project. The hardcoded `http://localhost:3000/hook` at webhooks-settings.spec.ts:219 is typed text, and those specs were not reached in the full runs.
+
+Mitigation (one, no rallly file changed, but a non-recipe build env): `work/rallly-isolate/build-mitigation.sh`. It exports .env.test except NEXT_PUBLIC_BASE_URL, sets `__NEXT_PROCESSED_ENV=true` so `NODE_ENV=test next build` does not reload .env.test, sets `SKIP_ENV_VALIDATION=1` as rallly's Dockerfile:37 does, and runs `pnpm turbo build:test --filter=@rallly/web --env-mode=loose` (145 s). The URL then comes from app.env `NEXT_PUBLIC_BASE_URL={url}`. Outcome:
+- The build contains no build URL, and the chunk base is `/_next/`.
+- Nothing is refused any more, but the client still does not hydrate: the same 21 tests fail and the forms submit natively.
+- Probes run outside isolate (probe-server.sh + probe-hydration.cjs, checking React props on the login button):
+  - The recipe build on its own origin hydrates (control).
+  - The mitigation build with a runtime URL does not hydrate. `next start` re-evaluates next.config.ts, so assetPrefix (next.config.ts:32 = NEXT_PUBLIC_BASE_URL) becomes absolute while the build's chunk base is `/_next/`. There were no console errors.
+  - The mitigation build with no runtime URL hydrates, but it needs SKIP_ENV_VALIDATION and then shows "Login is currently not configured."
+- Conclusion: with `next start`, per-worker runtime URLs from one rallly build are not possible without a rallly change, such as not tying assetPrefix to NEXT_PUBLIC_BASE_URL. That change would make the run "with modifications", and it was not tried.
+- Building for a worker's port is also impossible, because isolate picks ports at random.
+
+isolate bugs and gaps found (src not edited; proposed fixes are in rallly.json `isolateNotes`):
+- Missing capability: shared-origin proxy mode. One proxy on the build origin, routing by the existing `x-isolate-worker` header. This is the fix for hazard (a).
+- Missing capability: pinned ports and per-worker builds.
+- Missing capability: managed per-worker sidecars, e.g. mailpit.
+- Rerun apps get `{i}` = N+run.
+- The routing check blames DATABASE_URL when a worker simply made no queries; per-app request counts are missing.
+- After an interrupt, no per-test results are written, and routing reads "valid".
+- Reruns wipe the main run's test-results/ (Playwright empties outputDir), so its traces are lost.
+- `unmanaged.services` in the config is ignored by `run`.
+- `.isolate/` is not git-excluded.
+
+All processes I started (mailpit, the throwaway `db up`, the probe servers) were stopped at 10:33. Nothing in /home/user/shard was committed.
