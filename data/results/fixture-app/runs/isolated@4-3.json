@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T11:13:48.849Z",
+  "repoDir": "/home/user/shard/work/repos/fixture-app",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": true,
+    "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74",
+    "db": {
+      "hit": true,
+      "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74"
+    },
+    "build": {
+      "hit": true,
+      "key": "8085bc9d3926eee72a102e0871c7bb842b9bae6de7e6f689ea55201b33f825a6"
+    }
+  },
+  "wallMs": 10987.787151,
+  "phases": {
+    "setup": 528.11364,
+    "restore": 159.9,
+    "postgresStart": 167.9,
+    "clone": 206.2,
+    "appBoot": 370.8,
+    "tests": 7774.933067999999,
+    "teardown": 1779.9404430000013
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.56.1",
+    "loadAvg1": 0.98
+  },
+  "cpu": {
+    "busyPct": 64.1,
+    "stealPct": 2.2
+  },
+  "playwright": {
+    "testPhaseMs": 4686.099461,
+    "preTestMs": 1174.1788240000003,
+    "postTestMs": 92.56001000000015,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 3837,
+    "bodyMs": 6876
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 45493,
+      "bootMs": 365.5,
+      "peakRssMb": 70.3
+    },
+    {
+      "index": 1,
+      "port": 33901,
+      "bootMs": 358.2,
+      "peakRssMb": 70.1
+    },
+    {
+      "index": 2,
+      "port": 41981,
+      "bootMs": 359.9,
+      "peakRssMb": 73.1
+    },
+    {
+      "index": 3,
+      "port": 33345,
+      "bootMs": 355.6,
+      "peakRssMb": 72.6
+    }
+  ],
+  "postgresPeakRssMb": 254,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 71.7
+    },
+    {
+      "name": "w1",
+      "ms": 49.2
+    },
+    {
+      "name": "w2",
+      "ms": 34.3
+    },
+    {
+      "name": "w3",
+      "ms": 29.5
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 3,
+      "passed": 3,
+      "failed": 0
+    }
+  ],
+  "tests": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 13
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 4
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 109
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 20
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/helpers.ts:4: export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';"
+  ]
+}

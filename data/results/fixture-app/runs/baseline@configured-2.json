@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T11:12:53.755Z",
+  "repoDir": "/home/user/shard/work/repos/fixture-app",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0"
+  ],
+  "mode": "baseline",
+  "workerCount": 1,
+  "cache": {
+    "hit": true,
+    "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74",
+    "db": {
+      "hit": true,
+      "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74"
+    },
+    "build": null
+  },
+  "wallMs": 10918.237394,
+  "phases": {
+    "setup": 540.669344,
+    "restore": 117.3,
+    "postgresStart": 174.2,
+    "clone": 109.56825899999998,
+    "tests": 9855.665907,
+    "teardown": 120.83388399999967
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.56.1",
+    "loadAvg1": 0.98
+  },
+  "cpu": {
+    "busyPct": 38.2,
+    "stealPct": 1.2
+  },
+  "playwright": {
+    "testPhaseMs": 6108.116104000001,
+    "preTestMs": 1461.3017530000002,
+    "postTestMs": 101.36049099999946,
+    "resolvedWorkers": 1,
+    "maxConcurrent": 1,
+    "parallelIndexes": [
+      0
+    ],
+    "setupMs": 1595,
+    "bodyMs": 4478
+  },
+  "apps": [],
+  "postgresPeakRssMb": 174.3,
+  "clones": [
+    {
+      "name": "b0",
+      "ms": 71.9
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 12,
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "tests": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "dbActivity": [
+    {
+      "name": "b0",
+      "xactCommitDelta": 211
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [],
+  "warnings": []
+}

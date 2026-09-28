@@ -1,0 +1,3374 @@
+{
+  "version": 1,
+  "experiment": "A",
+  "name": "fixture-app",
+  "createdAt": "2026-09-28T11:04:13.641Z",
+  "harnessCommit": "ab852c98951b3314d27f6ffa3f75ba13fbba0ebe",
+  "harnessDirty": false,
+  "command": [
+    "node",
+    "/home/user/shard/dist/scripts/experiments/experiment-a.js",
+    "fixture-app",
+    "--oversubscribe"
+  ],
+  "protocol": {
+    "label": "full",
+    "recipeProtocol": "full",
+    "subsetNote": null,
+    "roundsPlanned": 3,
+    "roundsRun": 5,
+    "extraRounds": [
+      {
+        "round": 4,
+        "unstable": [
+          "isolated@1",
+          "isolated@2"
+        ]
+      },
+      {
+        "round": 5,
+        "unstable": [
+          "baseline@configured",
+          "isolated@1",
+          "isolated@2",
+          "isolated@8"
+        ]
+      }
+    ],
+    "loadWaitS": 180,
+    "oversubscribe": true
+  },
+  "recipe": {
+    "name": "fixture-app",
+    "source": "local",
+    "url": null,
+    "commit": null,
+    "status": "works",
+    "blocker": null,
+    "workdir": "examples/fixture-app",
+    "install": [],
+    "build": [
+      "pnpm build"
+    ],
+    "env": {},
+    "pathPrefix": [],
+    "playwrightArgs": [],
+    "baselinePorts": [
+      3000
+    ],
+    "protocol": "full",
+    "subsetNote": null,
+    "sourceDirs": [
+      "src",
+      "app",
+      "lib",
+      "server",
+      "public"
+    ],
+    "servedOutput": [
+      "dist",
+      "public"
+    ],
+    "mutantKinds": "all",
+    "isolateConfig": {
+      "packageManager": "pnpm",
+      "build": {
+        "command": "pnpm build",
+        "outputs": [
+          "dist"
+        ],
+        "inputs": [
+          "src",
+          "tsconfig.json",
+          "package.json",
+          "../../pnpm-lock.yaml"
+        ]
+      },
+      "db": {
+        "migrate": "node scripts/migrate.mjs",
+        "seed": "node scripts/seed.mjs",
+        "urlEnv": "DATABASE_URL",
+        "extraUrlEnvs": []
+      },
+      "app": {
+        "start": "node dist/server.js",
+        "portEnv": "PORT",
+        "healthPath": "/health",
+        "env": {},
+        "bootTimeoutMs": 60000
+      },
+      "playwright": {
+        "config": "playwright.config.ts",
+        "baseUrlEnvs": [
+          "BASE_URL"
+        ],
+        "env": {}
+      },
+      "postgres": {},
+      "cache": {
+        "inputs": [
+          "../../pnpm-lock.yaml",
+          "package.json",
+          "migrations",
+          "scripts/migrate.mjs",
+          "scripts/seed.mjs",
+          "isolate.config.ts"
+        ]
+      },
+      "unmanaged": {
+        "allow": false,
+        "services": []
+      },
+      "trace": {
+        "clientRoots": [
+          {
+            "urlPrefix": "/js/",
+            "dir": "public/js"
+          }
+        ]
+      }
+    },
+    "notes": [
+      "The copy links node_modules back to examples/fixture-app (installed by the root `pnpm install`), as e2e's copyFixture does.",
+      "The baseline arms start the repo's own webServer on the literal port 3000 (playwright.config.ts), so each baseline run waits until 3000 is free."
+    ]
+  },
+  "checkout": {
+    "root": "work/repos/fixture-app",
+    "appDir": "work/repos/fixture-app",
+    "commit": "dcbaaea61bbacba1f1bf1a8a011dfc6728c6d3ce"
+  },
+  "browsers": {
+    "path": "/opt/pw-browsers",
+    "expected": {
+      "chromium": "1194",
+      "headlessShell": "1194",
+      "ffmpeg": "1011"
+    },
+    "installed": {
+      "chromium": "1194",
+      "headlessShell": "1194",
+      "ffmpeg": "1011"
+    },
+    "shim": false
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.18.44-fc-v37",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.56.1",
+    "cloudSandbox": true
+  },
+  "arms": [
+    {
+      "name": "baseline@configured",
+      "kind": "baseline",
+      "workers": null,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "baseline@1",
+      "kind": "baseline",
+      "workers": 1,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ]
+    },
+    {
+      "name": "isolated@1",
+      "kind": "isolated",
+      "workers": 1,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "isolated@2",
+      "kind": "isolated",
+      "workers": 2,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "isolated@4",
+      "kind": "isolated",
+      "workers": 4,
+      "oversubscribed": false,
+      "args": [
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    },
+    {
+      "name": "isolated@8",
+      "kind": "isolated",
+      "workers": 8,
+      "oversubscribed": true,
+      "args": [
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ]
+    }
+  ],
+  "skippedArms": [],
+  "runs": [
+    {
+      "arm": "isolated@1",
+      "round": "cold",
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 20008,
+        "seen": [
+          1.26,
+          1.06,
+          0.9
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-cold",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:04:35.716Z",
+      "loadAvg1AtStart": 0.9,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 16038,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-cold.json",
+        "results": "data/results/fixture-app/runs/isolated@1-cold.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-cold.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 8,
+        "free": true
+      },
+      "label": "baseline@configured-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:04:51.764Z",
+      "loadAvg1AtStart": 1.15,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11231,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@configured-warmup.json",
+        "results": "data/results/fixture-app/runs/baseline@configured-warmup.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@configured-warmup.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 2,
+        "free": true
+      },
+      "label": "baseline@1-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:05:02.999Z",
+      "loadAvg1AtStart": 1.05,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11051,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@1-warmup.json",
+        "results": "data/results/fixture-app/runs/baseline@1-warmup.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@1-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@1-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:05:14.052Z",
+      "loadAvg1AtStart": 1.28,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 12682,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-warmup.json",
+        "results": "data/results/fixture-app/runs/isolated@1-warmup.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@2-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:05:26.735Z",
+      "loadAvg1AtStart": 1.29,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11067,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@2-warmup.json",
+        "results": "data/results/fixture-app/runs/isolated@2-warmup.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@2-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@4-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:05:37.804Z",
+      "loadAvg1AtStart": 1.24,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11162,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@4-warmup.json",
+        "results": "data/results/fixture-app/runs/isolated@4-warmup.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@4-warmup.log"
+      }
+    },
+    {
+      "arm": "isolated@8",
+      "round": "warmup",
+      "loadWait": null,
+      "portWait": null,
+      "label": "isolated@8-warmup",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:05:48.969Z",
+      "loadAvg1AtStart": 2.33,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11014,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@8-warmup.json",
+        "results": "data/results/fixture-app/runs/isolated@8-warmup.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@8-warmup.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 60052,
+        "seen": [
+          2.2,
+          1.86,
+          1.58,
+          1.33,
+          1.21,
+          1.1,
+          0.93
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@configured-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:07:00.038Z",
+      "loadAvg1AtStart": 0.93,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11055,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@configured-1.json",
+        "results": "data/results/fixture-app/runs/baseline@configured-1.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@configured-1.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10006,
+        "seen": [
+          1.02,
+          0.86
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@1-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:07:21.101Z",
+      "loadAvg1AtStart": 0.86,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10884,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@1-1.json",
+        "results": "data/results/fixture-app/runs/baseline@1-1.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@1-1.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.96
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:07:31.988Z",
+      "loadAvg1AtStart": 0.96,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 13057,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-1.json",
+        "results": "data/results/fixture-app/runs/isolated@1-1.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-1.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 20017,
+        "seen": [
+          1.27,
+          1.07,
+          0.91
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:08:05.064Z",
+      "loadAvg1AtStart": 0.91,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11112,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@2-1.json",
+        "results": "data/results/fixture-app/runs/isolated@2-1.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@2-1.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 20021,
+        "seen": [
+          1.32,
+          1.12,
+          0.95
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:08:36.199Z",
+      "loadAvg1AtStart": 0.95,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11073,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@4-1.json",
+        "results": "data/results/fixture-app/runs/isolated@4-1.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@4-1.log"
+      }
+    },
+    {
+      "arm": "isolated@8",
+      "round": 1,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 40036,
+        "seen": [
+          1.68,
+          1.42,
+          1.2,
+          1.02,
+          0.86
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@8-1",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:09:27.309Z",
+      "loadAvg1AtStart": 0.86,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11188,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@8-1.json",
+        "results": "data/results/fixture-app/runs/isolated@8-1.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@8-1.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 50038,
+        "seen": [
+          1.71,
+          1.45,
+          1.55,
+          1.38,
+          1.17,
+          0.99
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 2,
+        "free": true
+      },
+      "label": "baseline@1-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:10:28.537Z",
+      "loadAvg1AtStart": 0.99,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10781,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@1-2.json",
+        "results": "data/results/fixture-app/runs/baseline@1-2.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@1-2.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.99
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:10:39.320Z",
+      "loadAvg1AtStart": 0.99,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 12113,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-2.json",
+        "results": "data/results/fixture-app/runs/isolated@1-2.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-2.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10010,
+        "seen": [
+          1.07,
+          0.91
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:11:01.444Z",
+      "loadAvg1AtStart": 0.91,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10048,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@2-2.json",
+        "results": "data/results/fixture-app/runs/isolated@2-2.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@2-2.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 40040,
+        "seen": [
+          1.64,
+          1.39,
+          1.18,
+          1,
+          0.84
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:11:51.533Z",
+      "loadAvg1AtStart": 0.84,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11103,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@4-2.json",
+        "results": "data/results/fixture-app/runs/isolated@4-2.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@4-2.log"
+      }
+    },
+    {
+      "arm": "isolated@8",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 30031,
+        "seen": [
+          1.53,
+          1.3,
+          1.1,
+          0.93
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@8-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:12:32.669Z",
+      "loadAvg1AtStart": 0.93,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11063,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@8-2.json",
+        "results": "data/results/fixture-app/runs/isolated@8-2.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@8-2.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 2,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10011,
+        "seen": [
+          1.15,
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@configured-2",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:12:53.745Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10999,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@configured-2.json",
+        "results": "data/results/fixture-app/runs/baseline@configured-2.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@configured-2.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 20020,
+        "seen": [
+          1.38,
+          1.17,
+          0.99
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:13:24.766Z",
+      "loadAvg1AtStart": 0.99,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 13030,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-3.json",
+        "results": "data/results/fixture-app/runs/isolated@1-3.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-3.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:13:37.797Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11028,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@2-3.json",
+        "results": "data/results/fixture-app/runs/isolated@2-3.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@2-3.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:13:48.826Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11083,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@4-3.json",
+        "results": "data/results/fixture-app/runs/isolated@4-3.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@4-3.log"
+      }
+    },
+    {
+      "arm": "isolated@8",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10011,
+        "seen": [
+          1.06,
+          0.9
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@8-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:14:09.921Z",
+      "loadAvg1AtStart": 0.9,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 12102,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@8-3.json",
+        "results": "data/results/fixture-app/runs/isolated@8-3.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@8-3.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 100096,
+        "seen": [
+          4.28,
+          3.7,
+          3.21,
+          2.72,
+          2.38,
+          2.01,
+          1.7,
+          1.44,
+          1.22,
+          1.03,
+          0.87
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@configured-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:16:02.122Z",
+      "loadAvg1AtStart": 0.87,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11010,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@configured-3.json",
+        "results": "data/results/fixture-app/runs/baseline@configured-3.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@configured-3.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 3,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.97
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@1-3",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:16:13.135Z",
+      "loadAvg1AtStart": 0.97,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11025,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@1-3.json",
+        "results": "data/results/fixture-app/runs/baseline@1-3.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@1-3.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 4,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.97
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-4",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:16:24.163Z",
+      "loadAvg1AtStart": 0.97,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10999,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@2-4.json",
+        "results": "data/results/fixture-app/runs/isolated@2-4.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@2-4.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 4,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-4",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:16:35.163Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10092,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@4-4.json",
+        "results": "data/results/fixture-app/runs/isolated@4-4.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@4-4.log"
+      }
+    },
+    {
+      "arm": "isolated@8",
+      "round": 4,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@8-4",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:16:45.256Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 12136,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@8-4.json",
+        "results": "data/results/fixture-app/runs/isolated@8-4.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@8-4.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 4,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 50054,
+        "seen": [
+          2.02,
+          1.78,
+          1.51,
+          1.27,
+          1.08,
+          0.91
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@configured-4",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:17:47.449Z",
+      "loadAvg1AtStart": 0.91,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11796,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@configured-4.json",
+        "results": "data/results/fixture-app/runs/baseline@configured-4.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@configured-4.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 4,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.93
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@1-4",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:17:59.247Z",
+      "loadAvg1AtStart": 0.93,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10936,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@1-4.json",
+        "results": "data/results/fixture-app/runs/baseline@1-4.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@1-4.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 4,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10011,
+        "seen": [
+          1.11,
+          0.94
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-4",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:18:20.195Z",
+      "loadAvg1AtStart": 0.94,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 13192,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-4.json",
+        "results": "data/results/fixture-app/runs/isolated@1-4.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-4.log"
+      }
+    },
+    {
+      "arm": "isolated@4",
+      "round": 5,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10011,
+        "seen": [
+          1.02,
+          0.86
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@4-5",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "4",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:18:43.399Z",
+      "loadAvg1AtStart": 0.86,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11030,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@4-5.json",
+        "results": "data/results/fixture-app/runs/isolated@4-5.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@4-5.log"
+      }
+    },
+    {
+      "arm": "isolated@8",
+      "round": 5,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 20021,
+        "seen": [
+          1.25,
+          1.06,
+          0.9
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@8-5",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "8",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:19:14.451Z",
+      "loadAvg1AtStart": 0.9,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11173,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@8-5.json",
+        "results": "data/results/fixture-app/runs/isolated@8-5.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@8-5.log"
+      }
+    },
+    {
+      "arm": "baseline@configured",
+      "round": 5,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 0,
+        "seen": [
+          0.99
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@configured-5",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:19:25.627Z",
+      "loadAvg1AtStart": 0.99,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 10710,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@configured-5.json",
+        "results": "data/results/fixture-app/runs/baseline@configured-5.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@configured-5.log"
+      }
+    },
+    {
+      "arm": "baseline@1",
+      "round": 5,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10011,
+        "seen": [
+          1.15,
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": {
+        "ports": [
+          3000
+        ],
+        "waitedMs": 1,
+        "free": true
+      },
+      "label": "baseline@1-5",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--baseline",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0",
+        "--workers=1"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:19:46.350Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11079,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/baseline@1-5.json",
+        "results": "data/results/fixture-app/runs/baseline@1-5.pw-results.json",
+        "log": "data/results/fixture-app/runs/baseline@1-5.log"
+      }
+    },
+    {
+      "arm": "isolated@1",
+      "round": 5,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 20021,
+        "seen": [
+          1.28,
+          1.08,
+          0.91
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@1-5",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "1",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:20:17.452Z",
+      "loadAvg1AtStart": 0.91,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 13111,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@1-5.json",
+        "results": "data/results/fixture-app/runs/isolated@1-5.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@1-5.log"
+      }
+    },
+    {
+      "arm": "isolated@2",
+      "round": 5,
+      "loadWait": {
+        "threshold": 1,
+        "maxWaitMs": 180000,
+        "waitedMs": 10010,
+        "seen": [
+          1.15,
+          0.98
+        ],
+        "below": true
+      },
+      "portWait": null,
+      "label": "isolated@2-5",
+      "argv": [
+        "node",
+        "dist/src/cli.js",
+        "run",
+        "--workers",
+        "2",
+        "--",
+        "npx",
+        "playwright",
+        "test",
+        "--retries=0"
+      ],
+      "cwd": "work/repos/fixture-app",
+      "env": {
+        "CI": "true",
+        "PLAYWRIGHT_HTML_OPEN": "never",
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers"
+      },
+      "startedAt": "2026-09-28T11:20:40.574Z",
+      "loadAvg1AtStart": 0.98,
+      "exitCode": 0,
+      "exceededCap": false,
+      "outsideWallMs": 11094,
+      "tooManyClients": false,
+      "error": null,
+      "files": {
+        "report": "data/results/fixture-app/runs/isolated@2-5.json",
+        "results": "data/results/fixture-app/runs/isolated@2-5.pw-results.json",
+        "log": "data/results/fixture-app/runs/isolated@2-5.log"
+      }
+    }
+  ],
+  "aggregate": {
+    "definitions": {
+      "testPhaseMs": "first test begin to last test end, from the isolate reporter (the verdict span)",
+      "wallMs": "the isolate command's whole wall time from its report (setup, build, Postgres, migrate/seed, clone, app boot, tests, reruns, teardown)",
+      "preTestMs": "Playwright start to first test begin: webServer boot, globalSetup, worker and browser start",
+      "playwrightWallMs": "pre-test + test phase + post-test: Playwright alone",
+      "endToEndMs": "wallMs minus the build phase (done once before timing) and the failure reruns",
+      "valid": "a run counts when it wrote a report and results, stayed under the 45-min cap, routing was valid, no \"too many clients\", and its per-test outcomes equal baseline@1's reference outcomes (most frequent outcome over its timed rounds)",
+      "speedups": "medians of valid timed runs: test phase, Playwright wall (\"wall\") and end-to-end of isolated@1 divided by those of isolated@N; vs-baseline divides the baseline arm by isolated@N",
+      "harnessEffect": "test phase of baseline@1 / isolated@1; outside 0.85-1.15 it is flagged and vs-baseline speedups should not be quoted",
+      "schedulingCeiling": "T1 / max(T1/N, longest file); T1 = sum of per-test median durations at isolated@1; a file is its longest test if two of its tests were seen running at once in an isolated N > 1 run, else the sum of its tests",
+      "resourceCeiling": "min(N, cores/d); d = machine-wide busy CPU seconds (busyPct x cores x Playwright wall) per test-phase second at isolated@1 (includes Postgres, the app and anything else on the machine)",
+      "perTestInflation": "sum of test durations at N / at N=1 (medians over valid runs)",
+      "setupFraction": "sum of hook and fixture time / sum of test durations; pre-test and post-test shares of the Playwright wall",
+      "isolationFailure": "fails in >= 2 isolated@4 timed rounds and passes in >= 2 baseline@1 timed rounds",
+      "memory": "peak RSS of every app tree plus the Postgres tree at the largest N that ran (each tree sampled once a second, peaks summed)",
+      "cacheEffect": "the cold run (fresh .isolate/, before everything) against the valid timed isolated@1 runs; never part of a speedup"
+    },
+    "referenceOutcomes": {
+      "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": "passed",
+      "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": "passed",
+      "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": "passed",
+      "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": "passed",
+      "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": "passed",
+      "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": "passed",
+      "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": "passed",
+      "chromium › tests/items.spec.ts › every seeded item is listed": "passed",
+      "chromium › tests/items.spec.ts › the two newest items are the two just added": "passed",
+      "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": "passed",
+      "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": "passed",
+      "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": "passed"
+    },
+    "validity": [
+      {
+        "arm": "isolated@1",
+        "round": "cold",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@8",
+        "round": "warmup",
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@8",
+        "round": 1,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@8",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 2,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@8",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 3,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 4,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 4,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@8",
+        "round": 4,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 4,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 4,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 4,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@4",
+        "round": 5,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@8",
+        "round": 5,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@configured",
+        "round": 5,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "baseline@1",
+        "round": 5,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@1",
+        "round": 5,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      },
+      {
+        "arm": "isolated@2",
+        "round": 5,
+        "valid": true,
+        "reasons": [],
+        "routingValid": true,
+        "tooManyClients": false,
+        "mismatches": []
+      }
+    ],
+    "perArm": [
+      {
+        "arm": "baseline@configured",
+        "kind": "baseline",
+        "workers": null,
+        "oversubscribed": false,
+        "timedRuns": 5,
+        "validRuns": 5,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 5,
+          "median": 6380.8,
+          "min": 6093.6,
+          "max": 6850.7
+        },
+        "wallMs": {
+          "n": 5,
+          "median": 10932.8,
+          "min": 10638.2,
+          "max": 11726.5
+        },
+        "preTestMs": {
+          "n": 5,
+          "median": 1462.6,
+          "min": 1416,
+          "max": 1571.6
+        },
+        "playwrightWallMs": {
+          "n": 5,
+          "median": 8014.2,
+          "min": 7596.7,
+          "max": 8527.9
+        },
+        "endToEndMs": {
+          "n": 5,
+          "median": 10932.8,
+          "min": 10638.2,
+          "max": 11726.5
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 5,
+          "median": 6380.8,
+          "min": 6093.6,
+          "max": 6850.7
+        },
+        "maxOverMinTestPhase": 1.124,
+        "concurrency": {
+          "resolvedWorkers": [
+            1
+          ],
+          "maxConcurrent": 1,
+          "distinctParallelIndexes": 1,
+          "label": "at most 1 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › every seeded item is listed": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "baseline@1",
+        "kind": "baseline",
+        "workers": 1,
+        "oversubscribed": false,
+        "timedRuns": 5,
+        "validRuns": 5,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 5,
+          "median": 6472,
+          "min": 6205.6,
+          "max": 6663.6
+        },
+        "wallMs": {
+          "n": 5,
+          "median": 10869.9,
+          "min": 10712.2,
+          "max": 11011.3
+        },
+        "preTestMs": {
+          "n": 5,
+          "median": 1482.1,
+          "min": 1469.5,
+          "max": 1507.7
+        },
+        "playwrightWallMs": {
+          "n": 5,
+          "median": 8088,
+          "min": 7763,
+          "max": 8259.4
+        },
+        "endToEndMs": {
+          "n": 5,
+          "median": 10869.9,
+          "min": 10712.2,
+          "max": 11011.3
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 5,
+          "median": 6472,
+          "min": 6205.6,
+          "max": 6663.6
+        },
+        "maxOverMinTestPhase": 1.074,
+        "concurrency": {
+          "resolvedWorkers": [
+            1
+          ],
+          "maxConcurrent": 1,
+          "distinctParallelIndexes": 1,
+          "label": "at most 1 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › every seeded item is listed": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@1",
+        "kind": "isolated",
+        "workers": 1,
+        "oversubscribed": false,
+        "timedRuns": 5,
+        "validRuns": 5,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 5,
+          "median": 6598.4,
+          "min": 6272.1,
+          "max": 7045.4
+        },
+        "wallMs": {
+          "n": 5,
+          "median": 12983.6,
+          "min": 12046.7,
+          "max": 13099.4
+        },
+        "preTestMs": {
+          "n": 5,
+          "median": 1060.8,
+          "min": 1032.1,
+          "max": 1184.6
+        },
+        "playwrightWallMs": {
+          "n": 5,
+          "median": 7730.9,
+          "min": 7424,
+          "max": 8301.6
+        },
+        "endToEndMs": {
+          "n": 5,
+          "median": 12983.6,
+          "min": 12046.7,
+          "max": 13099.4
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 5,
+          "median": 6598.4,
+          "min": 6272.1,
+          "max": 7045.4
+        },
+        "maxOverMinTestPhase": 1.123,
+        "concurrency": {
+          "resolvedWorkers": [
+            1
+          ],
+          "maxConcurrent": 1,
+          "distinctParallelIndexes": 1,
+          "label": "at most 1 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › every seeded item is listed": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@2",
+        "kind": "isolated",
+        "workers": 2,
+        "oversubscribed": false,
+        "timedRuns": 5,
+        "validRuns": 5,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 5,
+          "median": 4651.7,
+          "min": 4365.6,
+          "max": 5299.6
+        },
+        "wallMs": {
+          "n": 5,
+          "median": 10947.1,
+          "min": 9981.3,
+          "max": 11037.8
+        },
+        "preTestMs": {
+          "n": 5,
+          "median": 1108.3,
+          "min": 1071.4,
+          "max": 1139.4
+        },
+        "playwrightWallMs": {
+          "n": 5,
+          "median": 5848.2,
+          "min": 5539.8,
+          "max": 6509.9
+        },
+        "endToEndMs": {
+          "n": 5,
+          "median": 10947.1,
+          "min": 9981.3,
+          "max": 11037.8
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 5,
+          "median": 4651.7,
+          "min": 4365.6,
+          "max": 5299.6
+        },
+        "maxOverMinTestPhase": 1.214,
+        "concurrency": {
+          "resolvedWorkers": [
+            2
+          ],
+          "maxConcurrent": 2,
+          "distinctParallelIndexes": 2,
+          "label": "at most 2 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › every seeded item is listed": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@4",
+        "kind": "isolated",
+        "workers": 4,
+        "oversubscribed": false,
+        "timedRuns": 5,
+        "validRuns": 5,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 5,
+          "median": 4473.1,
+          "min": 4390.7,
+          "max": 4810.7
+        },
+        "wallMs": {
+          "n": 5,
+          "median": 10987.8,
+          "min": 10019.4,
+          "max": 11026.3
+        },
+        "preTestMs": {
+          "n": 5,
+          "median": 1254.3,
+          "min": 1137,
+          "max": 1328.5
+        },
+        "playwrightWallMs": {
+          "n": 5,
+          "median": 5802.9,
+          "min": 5588.6,
+          "max": 6236.6
+        },
+        "endToEndMs": {
+          "n": 5,
+          "median": 10987.8,
+          "min": 10019.4,
+          "max": 11026.3
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 5,
+          "median": 4473.1,
+          "min": 4390.7,
+          "max": 4810.7
+        },
+        "maxOverMinTestPhase": 1.096,
+        "concurrency": {
+          "resolvedWorkers": [
+            4
+          ],
+          "maxConcurrent": 4,
+          "distinctParallelIndexes": 4,
+          "label": "at most 4 at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › every seeded item is listed": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          }
+        }
+      },
+      {
+        "arm": "isolated@8",
+        "kind": "isolated",
+        "workers": 8,
+        "oversubscribed": true,
+        "timedRuns": 5,
+        "validRuns": 5,
+        "excluded": [],
+        "testPhaseMs": {
+          "n": 5,
+          "median": 4682.7,
+          "min": 4424,
+          "max": 4931.9
+        },
+        "wallMs": {
+          "n": 5,
+          "median": 11115.7,
+          "min": 10984.9,
+          "max": 12060.8
+        },
+        "preTestMs": {
+          "n": 5,
+          "median": 1391.1,
+          "min": 1317.6,
+          "max": 1535.1
+        },
+        "playwrightWallMs": {
+          "n": 5,
+          "median": 6153.9,
+          "min": 5825.4,
+          "max": 6413.2
+        },
+        "endToEndMs": {
+          "n": 5,
+          "median": 11115.7,
+          "min": 10984.9,
+          "max": 12060.8
+        },
+        "allTimedRunsTestPhaseMs": {
+          "n": 5,
+          "median": 4682.7,
+          "min": 4424,
+          "max": 4931.9
+        },
+        "maxOverMinTestPhase": 1.115,
+        "concurrency": {
+          "resolvedWorkers": [
+            8
+          ],
+          "maxConcurrent": 5,
+          "distinctParallelIndexes": 5,
+          "label": "asked 8, at most 5 ran at once"
+        },
+        "startedAtLoadAboveOne": 0,
+        "outcomes": {
+          "chromium › tests/auth.spec.ts › valid credentials sign in and show the welcome message": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard shows no maintenance banner": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › adding an item raises the count by exactly one": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › turning maintenance on shows the banner on the dashboard and the settings page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/dashboard.spec.ts › the dashboard greets Bob by name": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › a wrong password shows an error and stays on the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/bulk-items.spec.ts › adding three items raises the count by exactly three": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › every seeded item is listed": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/auth.spec.ts › signing out returns to the sign-in page": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/items.spec.ts › the two newest items are the two just added": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › the mode survives a reload and signing in again": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          "chromium › tests/maintenance.spec.ts › other signed-in users see the banner while maintenance is on": {
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          }
+        }
+      }
+    ],
+    "speedups": {
+      "verdict": {
+        "metric": "test phase isolated@1 / isolated@4",
+        "value": 1.475
+      },
+      "harnessEffect": {
+        "value": 0.981,
+        "range": [
+          0.85,
+          1.15
+        ],
+        "flagged": false,
+        "vsBaselineQuotable": true
+      },
+      "cpuDemandAtIsolated1": 1.87,
+      "scheduling": {
+        "t1Ms": 6155,
+        "longestFile": {
+          "project": "chromium",
+          "file": "tests/maintenance.spec.ts",
+          "parallel": false,
+          "tests": 3,
+          "durationMs": 2692
+        },
+        "files": [
+          {
+            "project": "chromium",
+            "file": "tests/maintenance.spec.ts",
+            "parallel": false,
+            "tests": 3,
+            "durationMs": 2692
+          },
+          {
+            "project": "chromium",
+            "file": "tests/items.spec.ts",
+            "parallel": false,
+            "tests": 3,
+            "durationMs": 1281
+          },
+          {
+            "project": "chromium",
+            "file": "tests/auth.spec.ts",
+            "parallel": false,
+            "tests": 3,
+            "durationMs": 1056
+          },
+          {
+            "project": "chromium",
+            "file": "tests/bulk-items.spec.ts",
+            "parallel": false,
+            "tests": 1,
+            "durationMs": 633
+          },
+          {
+            "project": "chromium",
+            "file": "tests/dashboard.spec.ts",
+            "parallel": false,
+            "tests": 2,
+            "durationMs": 493
+          }
+        ]
+      },
+      "byWorkers": [
+        {
+          "arm": "isolated@1",
+          "workers": 1,
+          "oversubscribed": false,
+          "testPhase": 1,
+          "wall": 1,
+          "endToEnd": 1,
+          "vsBaselineConfigured": {
+            "testPhase": 0.967,
+            "endToEnd": 0.842
+          },
+          "vsBaseline1": {
+            "testPhase": 0.981,
+            "endToEnd": 0.837
+          },
+          "schedulingCeiling": 1,
+          "resourceCeiling": 1,
+          "fractionOfLowerCeiling": 1,
+          "perTestInflation": 1
+        },
+        {
+          "arm": "isolated@2",
+          "workers": 2,
+          "oversubscribed": false,
+          "testPhase": 1.418,
+          "wall": 1.322,
+          "endToEnd": 1.186,
+          "vsBaselineConfigured": {
+            "testPhase": 1.372,
+            "endToEnd": 0.999
+          },
+          "vsBaseline1": {
+            "testPhase": 1.391,
+            "endToEnd": 0.993
+          },
+          "schedulingCeiling": 2,
+          "resourceCeiling": 2,
+          "fractionOfLowerCeiling": 0.709,
+          "perTestInflation": 1.13
+        },
+        {
+          "arm": "isolated@4",
+          "workers": 4,
+          "oversubscribed": false,
+          "testPhase": 1.475,
+          "wall": 1.332,
+          "endToEnd": 1.182,
+          "vsBaselineConfigured": {
+            "testPhase": 1.426,
+            "endToEnd": 0.995
+          },
+          "vsBaseline1": {
+            "testPhase": 1.447,
+            "endToEnd": 0.989
+          },
+          "schedulingCeiling": 2.286,
+          "resourceCeiling": 2.139,
+          "fractionOfLowerCeiling": 0.69,
+          "perTestInflation": 1.494
+        },
+        {
+          "arm": "isolated@8",
+          "workers": 8,
+          "oversubscribed": true,
+          "testPhase": 1.409,
+          "wall": 1.256,
+          "endToEnd": 1.168,
+          "vsBaselineConfigured": {
+            "testPhase": 1.363,
+            "endToEnd": 0.984
+          },
+          "vsBaseline1": {
+            "testPhase": 1.382,
+            "endToEnd": 0.978
+          },
+          "schedulingCeiling": 2.286,
+          "resourceCeiling": 2.139,
+          "fractionOfLowerCeiling": 0.659,
+          "perTestInflation": 1.901
+        }
+      ]
+    },
+    "setupFraction": {
+      "isolated1": {
+        "arm": "isolated@1",
+        "runs": 5,
+        "setupShareOfTestTime": 0.283,
+        "preTestShareOfPlaywrightWall": 0.143,
+        "postTestShareOfPlaywrightWall": 0.012
+      },
+      "baseline1": {
+        "arm": "baseline@1",
+        "runs": 5,
+        "setupShareOfTestTime": 0.275,
+        "preTestShareOfPlaywrightWall": 0.183,
+        "postTestShareOfPlaywrightWall": 0.013
+      }
+    },
+    "failures": {
+      "isolatedArm": "isolated@4",
+      "isolatedRounds": 5,
+      "baselineRounds": 5,
+      "tests": []
+    },
+    "memory": {
+      "arm": "isolated@8",
+      "workers": 8,
+      "oversubscribed": true,
+      "peakMb": 926.4,
+      "perRun": [
+        {
+          "round": 1,
+          "totalMb": 926.4,
+          "appsMb": [
+            70.3,
+            70.8,
+            70.3,
+            72.3,
+            72.8,
+            68.5,
+            68.1,
+            68.6
+          ],
+          "postgresMb": 364.7
+        },
+        {
+          "round": 2,
+          "totalMb": 923.7,
+          "appsMb": [
+            70.5,
+            70,
+            69.6,
+            72.6,
+            72.3,
+            68.2,
+            68.6,
+            68.3
+          ],
+          "postgresMb": 363.6
+        },
+        {
+          "round": 3,
+          "totalMb": 923.1,
+          "appsMb": [
+            70.5,
+            69.9,
+            69.6,
+            70.4,
+            72.7,
+            68.6,
+            68.7,
+            68.1
+          ],
+          "postgresMb": 364.6
+        },
+        {
+          "round": 4,
+          "totalMb": 922.5,
+          "appsMb": [
+            70,
+            69.8,
+            69.8,
+            72,
+            71.6,
+            68,
+            68.5,
+            68.5
+          ],
+          "postgresMb": 364.3
+        },
+        {
+          "round": 5,
+          "totalMb": 924.9,
+          "appsMb": [
+            70.1,
+            70.9,
+            70,
+            72.7,
+            73.2,
+            67.8,
+            68.6,
+            68.2
+          ],
+          "postgresMb": 363.4
+        }
+      ]
+    },
+    "cacheEffect": {
+      "cold": {
+        "wallMs": 15954.394064,
+        "phases": {
+          "setup": 513.512735,
+          "build": 1793.7,
+          "postgresStart": 859.8,
+          "migrateSeed": 899.9,
+          "clone": 97.1,
+          "appBoot": 364.1,
+          "tests": 9677.449396,
+          "teardown": 1748.8319329999995
+        },
+        "cache": {
+          "hit": false,
+          "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74",
+          "db": {
+            "hit": false,
+            "key": "0a29b31543c4a6c291a49a207e41891eac44d13c2a546c4c90091d85d1a1cc74"
+          },
+          "build": {
+            "hit": false,
+            "key": "8085bc9d3926eee72a102e0871c7bb842b9bae6de7e6f689ea55201b33f825a6"
+          }
+        },
+        "valid": true
+      },
+      "warm": {
+        "arm": "isolated@1",
+        "runs": 5,
+        "wallMs": 12983.6,
+        "phases": {
+          "setup": 500.5,
+          "restore": 125.3,
+          "postgresStart": 174.3,
+          "clone": 91.1,
+          "appBoot": 348,
+          "tests": 9772.5,
+          "teardown": 1925.4
+        }
+      },
+      "coldOverWarmWall": 1.229,
+      "note": "see cold.cache for the snapshot cache result"
+    },
+    "bestWorkers": 4
+  }
+}
