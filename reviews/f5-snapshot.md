@@ -20,3 +20,10 @@ Subagent report: split database and build keys (D-009), atomic cache writes, 3 e
 
 - That a Postgres data directory copied while the server is cleanly stopped is a valid cluster (true for a clean shutdown).
 - That `postgres --version` plus `process.arch` is enough to guard portability (major version is inside the version string).
+
+## Lead's run on the main tree (09:42-09:48 UTC, after the report wiring patch)
+
+- `just e2e-one f5-snapshot`: pass twice (55.0 s, 43.0 s). Build, migrate and seed each ran exactly once across the two runs (side effects counted outside the tool); the second report has `cache.hit: true`, a `restore` phase, no `build` or `migrateSeed` phase.
+- `just e2e-one f4-run`: pass (171 s). `just e2e-one f6-report`: pass (46 s).
+- The subagent could not edit the main tree (worktree isolation); it sent its report-wiring change as a patch, which the lead read and applied as-is.
+- Verdict: accepted.
