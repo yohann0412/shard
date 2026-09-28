@@ -120,3 +120,9 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 - The email-login tests (admin-setup, authentication, conferencing) all pass now. So the shared SMTP catcher caused most of the N=4 failures.
 - What remains is `login verify page` (a 5 s `waitFor`, twice) and `create a new poll` (a 30 s timeout, once), with CPU at 89-95% busy: timeouts under load.
 - Test phase 99.0 / 88.7 / 84.7 s, median 88.7 s, which is 1.57x against isolated@1's 139.7 s. Only one of the three rounds was fully clean.
+
+**17:00 Fresh-clone check of HOW_TO_RUN_LOCALLY.md.**
+- **First attempt, in the scratch directory (mode 700, root-only):** `just demo` failed. As root, Postgres runs as the `postgres` user, which cannot read binaries inside a root-only directory, and the loader reported `libicuuc.so.60: cannot open shared object file`. That is a real bug for anyone running as root with the repo under `/root`.
+- **Fix (lead, small, logged here):** `src/db/access.ts` checks whether the Postgres user can run the binaries. If not, it copies them once to `/tmp/isolate-postgres-<key>`. Verified: `db up` from the root-only clone now reaches ready.
+- **Second attempt, clone in `/home/user/isolate-fresh`:** `pnpm install` (~1 s with a warm store), then `just demo`. The shared app at 4 workers exits 1 (39.0 s); `isolate run --workers 4` exits 0, 12/12 (13.9 s).
+- HOW_TO_RUN_LOCALLY.md now documents the root case.

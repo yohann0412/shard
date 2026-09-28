@@ -19,7 +19,9 @@ pnpm install              # ~30 s; downloads Postgres binaries for your platform
 pnpm --dir examples/fixture-app exec playwright install chromium   # ~1 min, once (skip if Chromium for Playwright 1.56 is already installed)
 ```
 
-Postgres runs from npm-provided binaries, so no Docker and no system Postgres are needed. On Linux, data lives in `/dev/shm`. On macOS it lives in a temp directory on disk, and the tool logs "database is on disk, not RAM". If you run as root on Linux, Postgres runs as the `postgres` system user through `setpriv`.
+Postgres runs from npm-provided binaries, so no Docker and no system Postgres are needed. On Linux, data lives in `/dev/shm`. On macOS it lives in a temp directory on disk, and the tool logs "database is on disk, not RAM".
+
+If you run as root on Linux, Postgres runs as the `postgres` system user through `setpriv`. When that user cannot read the checkout (a clone under `/root`, say), isolate copies the Postgres binaries once into `/tmp/isolate-postgres-<key>` and runs them from there. The fixture's own `test:baseline` and `test:collide` scripts do not do this, so as root, clone into a directory other users can read.
 
 ## (a) The fixture demo: ~2 minutes
 
