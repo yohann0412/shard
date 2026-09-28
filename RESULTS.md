@@ -48,11 +48,55 @@ Premise check. By their own config text, 47 of the 96 qualified repos run one wo
 
 ## Experiment A: isolation
 
-_pending_
+Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-a-protocol.md` before running. Verdict metric: median test phase (first test begin → last test end) at isolated N=1 divided by the same at isolated N=4. Every arm runs with `CI=true` and `--retries=0`. Each arm gets one discarded warm-up, then at least 3 rounds in rotated order, with rounds added while an arm's max/min exceeds 1.10.
+
+### Fixture app (mechanism demonstration; never pooled with real repos)
+
+Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every timed run started at 1-min load average < 1.0).
+
+| Arm | Median test phase | Speedup vs isolated@1 | Scheduling ceiling | Resource ceiling | Per-test inflation |
+|---|---:|---:|---:|---:|---:|
+| baseline@1 (repo's own config, one shared app) | 6.5 s | — | | | |
+| isolated@1 | 6.4 s | 1.00 | 1.00 | 1.00 | 1.00 |
+| isolated@2 | 4.6 s | 1.42 | 2.00 | 2.00 | 1.13 |
+| **isolated@4** | **4.5 s** | **1.48** | 2.29 | 2.14 | 1.49 |
+| isolated@8 (oversubscribed: 8 > 4 cores) | 4.7 s | 1.41 | 2.29 | 2.14 | 1.90 |
+
+- The shared-app suite fails at workers 4 in every run (`just fixture-collide`; `reviews/fixture.md`). Under isolation, workers 4 passes 12/12 in all 5 rounds: **zero new failures**.
+- **Why 1.48x and not 4x.** The suite has 5 files and `fullyParallel: false`. `maintenance.spec.ts` alone takes 2.7 s of the 6.2 s serial run, so no worker count can beat 2.29x. Separately, one worker slot (Chromium, a Playwright worker, the app, its Postgres backends) uses 1.87 cores at N=1, so 4 cores hold about 2.1 slots. The measured 1.48x is 0.69 of the lower ceiling. Tests also run 1.49x slower each at N=4, which is contention.
+- **Setup fraction.** Hooks and fixtures take 28% of summed test time, and the pre-test phase (runner start, workers, browsers, and `webServer` in the baseline) takes 14-18% of Playwright's wall time. Setup does not dominate this suite.
+- **Harness effect.** baseline@1 / isolated@1 = 0.98, inside 0.85-1.15, so the fixture's vs-baseline speedups can be quoted: 1.45x at N=4 against the repo's own serial run.
+- **Memory at N=8:** 926 MB peak. Apps take ~70 MB each; Postgres takes 364 MB, an upper bound because shared buffers are counted once per backend.
+
+### Real repositories
+
+_pending (umami browser suite running; rallly after the shared-origin mode)._
 
 ## Experiment B: impact map
 
-_pending_
+Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-b-protocol.md` before running.
+
+### Fixture app
+
+Source: `data/results/fixture-app/experiment-b.json`: N=4, seed 20260928, three mutant kinds (throw, top-level literal, wrong-value return), two unmutated reference runs (no failures to exclude).
+
+- **Targets.** All 15 source files, of which 8 are in some test's set, 6 are global and 1 is absent (`src/locals.ts`, types only, so no control mutant is possible). The sample has 10 files and 19 mutants.
+- **Outcomes.**
+  - 2 were not live: the `db.ts` mutants do not compile, because a leading `throw` makes TypeScript flag the next line.
+  - 5 hit global files; 4 of those kept the app from starting at all, which counts as every test failing.
+  - 2 top-level mutants broke nothing: a renamed session cookie, and a dead selector in `settings.js`.
+  - 11 live, non-global mutants had failing tests, and all 11 were scored.
+- **Recall.** With the default (function-level) global policy, **11 of 11 scored mutants had zero missed tests**, 95% Clopper-Pearson interval 0.715-1. Worst recall 1.0. No control could be made.
+- **Selection.** Median over mutated files: 0.96 of tests by count and 0.97 by time. Only four files let `affected` skip tests: `routes/items.ts` and `js/items.js` select 4/12, `routes/settings.ts` and `js/settings.js` select 3/12, and `routes/home.ts` selects 11/12. Every test signs in through `auth.ts` and renders through `views.ts`, so those select everything.
+- **Stability.** The N=4 and N=2 maps are identical, as expected for a deterministic app.
+- **Strict policy.** Every bootLoaded file selects all tests, so 10 of the 11 scored mutants answer `all`.
+- **Non-JS edits.** A migration SQL edit gives `all` (a seed/migration input); a `tsconfig.json` edit gives `all` (a test-support/config rule).
+
+By the pre-registered rule, the claim holds only if the interval's lower bound is ≥ 0.9. That needs about 36 scored mutants with zero misses, and the fixture has too few source files to supply them. So the fixture shows the mechanism works (no miss), but it cannot establish Claim B. Its selection numbers also show the flip side: on an app where every test crosses the same core files, per-file selection saves little.
+
+### Real repositories
+
+_pending._
 
 ## What I would build next
 
