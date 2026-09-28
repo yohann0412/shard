@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T10:08:39.692Z",
+  "repoDir": "/home/user/shard/work/repos/rallly/apps/web",
+  "command": [
+    "pnpm",
+    "exec",
+    "playwright",
+    "test",
+    "--retries=0",
+    "tests/accessibility.spec.ts",
+    "tests/house-keeping.spec.ts",
+    "tests/otp-email-locale.spec.ts",
+    "tests/otp-sign-up.spec.ts",
+    "tests/password-sign-up.spec.ts",
+    "tests/stripe-portal-auth.spec.ts",
+    "tests/zoom-deauthorization.spec.ts"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": true,
+    "key": "4404fd54c23fec41bdd208a81582d8c9b9501a6032b4933c8392f4ac7e664111",
+    "db": {
+      "hit": true,
+      "key": "4404fd54c23fec41bdd208a81582d8c9b9501a6032b4933c8392f4ac7e664111"
+    },
+    "build": null
+  },
+  "wallMs": 278571.042178,
+  "phases": {
+    "setup": 512.5364500000001,
+    "restore": 136.5,
+    "postgresStart": 173,
+    "clone": 276.6,
+    "appBoot": 6364.1,
+    "tests": 82904.683135,
+    "reruns": 185849.757578,
+    "teardown": 2353.8650149999885
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v24.21.0",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.58.1",
+    "loadAvg1": 2.25
+  },
+  "cpu": {
+    "busyPct": 31.2,
+    "stealPct": 0.9
+  },
+  "playwright": {
+    "testPhaseMs": 66718.902394,
+    "preTestMs": 2419.4998890000006,
+    "postTestMs": 118.86100800000713,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 34385,
+    "bodyMs": 70810
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 34979,
+      "bootMs": 5982,
+      "peakRssMb": 554.2
+    },
+    {
+      "index": 1,
+      "port": 37865,
+      "bootMs": 6211.6,
+      "peakRssMb": 536.1
+    },
+    {
+      "index": 2,
+      "port": 39525,
+      "bootMs": 6349.6,
+      "peakRssMb": 492.8
+    },
+    {
+      "index": 3,
+      "port": 41363,
+      "bootMs": 6093.2,
+      "peakRssMb": 484.1
+    }
+  ],
+  "postgresPeakRssMb": 333,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 108.5
+    },
+    {
+      "name": "w1",
+      "ms": 45.3
+    },
+    {
+      "name": "w2",
+      "ms": 48.7
+    },
+    {
+      "name": "w3",
+      "ms": 51.5
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": -1,
+      "tests": 1,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 0,
+      "tests": 3,
+      "passed": 1,
+      "failed": 2
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 6,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 2,
+      "passed": 1,
+      "failed": 1
+    }
+  ],
+  "tests": {
+    "total": 21,
+    "passed": 17,
+    "failed": 3,
+    "flaky": 0,
+    "skipped": 1
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/otp-sign-up.spec.ts › an existing user still signs in with a code",
+      "title": "an existing user still signs in with a code",
+      "file": "tests/otp-sign-up.spec.ts",
+      "line": 62,
+      "project": "chromium",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "chromium › tests/accessibility.spec.ts › accessibility (axe-core, WCAG 2.1 A/AA) › login verify page",
+      "title": "login verify page",
+      "file": "tests/accessibility.spec.ts",
+      "line": 44,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    },
+    {
+      "id": "chromium › tests/accessibility.spec.ts › accessibility (axe-core, WCAG 2.1 A/AA) › invite page › desktop layout",
+      "title": "desktop layout",
+      "file": "tests/accessibility.spec.ts",
+      "line": 75,
+      "project": "chromium",
+      "classification": "deterministic",
+      "reruns": [
+        "failed",
+        "failed"
+      ]
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 0
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 122
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 32
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 33
+    }
+  ],
+  "routingValid": false,
+  "unmanaged": [
+    {
+      "service": "posthog",
+      "kind": "third-party",
+      "evidence": [
+        "POSTHOG_PERSONAL_API_KEY in ../../packages/posthog/.env.sample",
+        "POSTHOG_PUBLIC_API_KEY in ../../packages/posthog/.env.sample"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @upstash/redis in package.json",
+        "KV_REST_API_URL in .env.sample",
+        "KV_REST_API_TOKEN in .env.sample",
+        "image redis:7.4-alpine in ../../docker-compose.dev.yml"
+      ]
+    },
+    {
+      "service": "s3",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @aws-sdk/client-s3 in package.json",
+        "S3_BUCKET_NAME in .env.sample",
+        "S3_ENDPOINT in .env.sample",
+        "S3_ACCESS_KEY_ID in .env.sample",
+        "S3_SECRET_ACCESS_KEY in .env.sample",
+        "S3_REGION in .env.sample"
+      ]
+    },
+    {
+      "service": "smtp",
+      "kind": "stateful",
+      "evidence": [
+        "dependency nodemailer in ../../packages/emails/package.json",
+        "SMTP_HOST in .env.sample",
+        "SMTP_PORT in .env.sample",
+        "SMTP_SECURE in .env.sample",
+        "SMTP_USER in .env.sample",
+        "SMTP_PWD in .env.sample",
+        "SMTP_HOST in .env.test",
+        "SMTP_PORT in .env.test",
+        "SMTP_REJECT_UNAUTHORIZED in .env.test",
+        "image axllent/mailpit in ../../docker-compose.dev.yml"
+      ]
+    },
+    {
+      "service": "stripe",
+      "kind": "third-party",
+      "evidence": [
+        "dependency stripe in ../../packages/billing/package.json",
+        "STRIPE_SECRET_KEY in ../landing/.env.sample"
+      ]
+    },
+    {
+      "service": "zoom",
+      "kind": "third-party",
+      "evidence": [
+        "ZOOM_CLIENT_SECRET in .env.test",
+        "ZOOM_WEBHOOK_SECRET_TOKEN in .env.test"
+      ]
+    }
+  ],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/webhooks-settings.spec.ts:122: url: `http://127.0.0.1:${port}/hook`,\n  tests/webhooks-settings.spec.ts:219: await page.getByLabel(\"URL\").fill(\"http://localhost:3000/hook\");\n  tests/webhooks.spec.ts:53: this.url = `http://127.0.0.1:${port}/hook`;",
+    "unmanaged services shared by every worker's app, not isolated (D-012): posthog (third-party), redis (stateful), s3 (stateful), smtp (stateful), stripe (third-party), zoom (third-party); isolation incomplete",
+    "routing check failed: no committed transactions on w0, although tests ran against it. The app probably ignores DATABASE_URL (for example, a .env file overrides it), so workers shared a database (RISKS R3)."
+  ]
+}

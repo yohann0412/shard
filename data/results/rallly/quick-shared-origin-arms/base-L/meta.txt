@@ -1,0 +1,6 @@
+load before: 1.37 1.47 1.12 2/136 28264
+dist sha256: b01ef7ee3431918c
+web: /home/user/shard/work/repos/rallly/apps/web
+cmd: node /home/user/shard/dist/src/cli.js run --baseline -- pnpm exec playwright test --workers=1 --retries=0 tests/accessibility.spec.ts tests/house-keeping.spec.ts tests/otp-email-locale.spec.ts tests/otp-sign-up.spec.ts tests/password-sign-up.spec.ts tests/stripe-portal-auth.spec.ts tests/zoom-deauthorization.spec.ts tests/admin-setup.spec.ts tests/authentication.spec.ts tests/closed-poll-writes.spec.ts tests/comments-disabled.spec.ts tests/conferencing.spec.ts tests/control-panel.spec.ts tests/create-delete-poll.spec.ts tests/cross-timezone.spec.ts tests/edit-options.spec.ts
+exit=0 wall=162s
+load after: 3.19 2.15 1.43 1/143 29479

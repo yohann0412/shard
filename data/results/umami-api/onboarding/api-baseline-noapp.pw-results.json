@@ -1,0 +1,15 @@
+{
+  "startedAt": "2026-09-28T10:47:14.693Z",
+  "status": "failed",
+  "resolvedWorkers": 1,
+  "beginMs": 120399.704295,
+  "firstTestBeginMs": null,
+  "lastTestEndMs": null,
+  "endMs": 120428.809928,
+  "testPhaseMs": 0,
+  "preTestMs": 120428.809928,
+  "postTestMs": 0,
+  "maxConcurrent": 0,
+  "parallelIndexes": [],
+  "tests": []
+}

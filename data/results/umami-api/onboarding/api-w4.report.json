@@ -1,0 +1,619 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T10:33:39.375Z",
+  "repoDir": "/home/user/shard/work/repos/umami",
+  "command": [
+    "pnpm",
+    "exec",
+    "playwright",
+    "test",
+    "-c",
+    "playwright.api.config.ts",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": true,
+    "key": "05aaf58ac14538d32307a78ad67a442b7fc573c3262322d883dd7ec9564a2fcc",
+    "db": {
+      "hit": true,
+      "key": "05aaf58ac14538d32307a78ad67a442b7fc573c3262322d883dd7ec9564a2fcc"
+    },
+    "build": null
+  },
+  "wallMs": 322009.101112,
+  "phases": {
+    "setup": 611.041102,
+    "restore": 124.9,
+    "postgresStart": 163.8,
+    "clone": 263.5,
+    "appBoot": 1988.8,
+    "tests": 89907.267398,
+    "reruns": 226156.109962,
+    "teardown": 2793.6826500000316
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.63.0",
+    "loadAvg1": 2.08
+  },
+  "cpu": {
+    "busyPct": 68.3,
+    "stealPct": 1.7
+  },
+  "playwright": {
+    "testPhaseMs": 68577.35893700001,
+    "preTestMs": 7564.197271000001,
+    "postTestMs": 316.38159099999757,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 15520,
+    "bodyMs": 63778
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 40937,
+      "bootMs": 1842.9,
+      "peakRssMb": 543.3
+    },
+    {
+      "index": 1,
+      "port": 45315,
+      "bootMs": 1977.2,
+      "peakRssMb": 283.8
+    },
+    {
+      "index": 2,
+      "port": 44355,
+      "bootMs": 1706.7,
+      "peakRssMb": 283.5
+    },
+    {
+      "index": 3,
+      "port": 41041,
+      "bootMs": 1621,
+      "peakRssMb": 283.6
+    }
+  ],
+  "postgresPeakRssMb": 345.4,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 108.4
+    },
+    {
+      "name": "w1",
+      "ms": 48.2
+    },
+    {
+      "name": "w2",
+      "ms": 47
+    },
+    {
+      "name": "w3",
+      "ms": 38.6
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": -1,
+      "tests": 96,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 0,
+      "tests": 132,
+      "passed": 132,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 16,
+      "passed": 0,
+      "failed": 16
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 13,
+      "passed": 0,
+      "failed": 13
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 14,
+      "passed": 0,
+      "failed": 14
+    }
+  ],
+  "tests": {
+    "total": 271,
+    "passed": 132,
+    "failed": 43,
+    "flaky": 0,
+    "skipped": 96
+  },
+  "failures": [
+    {
+      "id": "api › tests/api/analytics.spec.ts › Analytics › GET /api/websites/{websiteId}/stats returns totals for the range",
+      "title": "GET /api/websites/{websiteId}/stats returns totals for the range",
+      "file": "tests/api/analytics.spec.ts",
+      "line": 10,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/users lists every user",
+      "title": "GET /api/admin/users lists every user",
+      "file": "tests/api/admin.spec.ts",
+      "line": 8,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/annotations.spec.ts › Annotations › POST /api/websites/{websiteId}/annotations creates an annotation",
+      "title": "POST /api/websites/{websiteId}/annotations creates an annotation",
+      "file": "tests/api/annotations.spec.ts",
+      "line": 25,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/users supports search, sorting and paging",
+      "title": "GET /api/admin/users supports search, sorting and paging",
+      "file": "tests/api/admin.spec.ts",
+      "line": 36,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/boards.spec.ts › Boards › POST /api/boards creates a board for the current user",
+      "title": "POST /api/boards creates a board for the current user",
+      "file": "tests/api/boards.spec.ts",
+      "line": 20,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/login returns a token and the user",
+      "title": "POST /api/auth/login returns a token and the user",
+      "file": "tests/api/auth.spec.ts",
+      "line": 5,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/users requires an admin session",
+      "title": "GET /api/admin/users requires an admin session",
+      "file": "tests/api/admin.spec.ts",
+      "line": 68,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/boards.spec.ts › Dashboard › POST /api/dashboard creates or updates the caller dashboard",
+      "title": "POST /api/dashboard creates or updates the caller dashboard",
+      "file": "tests/api/boards.spec.ts",
+      "line": 277,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/login matches usernames case-insensitively",
+      "title": "POST /api/auth/login matches usernames case-insensitively",
+      "file": "tests/api/auth.spec.ts",
+      "line": 27,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/websites lists every website with its owner",
+      "title": "GET /api/admin/websites lists every website with its owner",
+      "file": "tests/api/admin.spec.ts",
+      "line": 81,
+      "project": "api",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "api › tests/api/event-data.spec.ts › Event data › GET /api/websites/{websiteId}/event-data lists events with their properties",
+      "title": "GET /api/websites/{websiteId}/event-data lists events with their properties",
+      "file": "tests/api/event-data.spec.ts",
+      "line": 24,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/login rejects bad credentials",
+      "title": "POST /api/auth/login rejects bad credentials",
+      "file": "tests/api/auth.spec.ts",
+      "line": 47,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/websites supports search, sorting and paging",
+      "title": "GET /api/admin/websites supports search, sorting and paging",
+      "file": "tests/api/admin.spec.ts",
+      "line": 102,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/pixels.spec.ts › Pixels › POST /api/pixels creates a pixel for the current user",
+      "title": "POST /api/pixels creates a pixel for the current user",
+      "file": "tests/api/pixels.spec.ts",
+      "line": 24,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/login validates the body",
+      "title": "POST /api/auth/login validates the body",
+      "file": "tests/api/auth.spec.ts",
+      "line": 66,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/websites requires an admin session",
+      "title": "GET /api/admin/websites requires an admin session",
+      "file": "tests/api/admin.spec.ts",
+      "line": 134,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Saved reports › POST /api/reports creates a report",
+      "title": "POST /api/reports creates a report",
+      "file": "tests/api/reports.spec.ts",
+      "line": 28,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/verify returns the current session",
+      "title": "POST /api/auth/verify returns the current session",
+      "file": "tests/api/auth.spec.ts",
+      "line": 77,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/attribution returns attribution by channel",
+      "title": "POST /api/reports/attribution returns attribution by channel",
+      "file": "tests/api/reports.spec.ts",
+      "line": 230,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/teams lists every team with members",
+      "title": "GET /api/admin/teams lists every team with members",
+      "file": "tests/api/admin.spec.ts",
+      "line": 140,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/verify rejects anonymous, invalid and API key callers",
+      "title": "POST /api/auth/verify rejects anonymous, invalid and API key callers",
+      "file": "tests/api/auth.spec.ts",
+      "line": 98,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/teams supports search, sorting and paging",
+      "title": "GET /api/admin/teams supports search, sorting and paging",
+      "file": "tests/api/admin.spec.ts",
+      "line": 160,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/breakdown returns rows grouped by field",
+      "title": "POST /api/reports/breakdown returns rows grouped by field",
+      "file": "tests/api/reports.spec.ts",
+      "line": 279,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/logout acknowledges the logout",
+      "title": "POST /api/auth/logout acknowledges the logout",
+      "file": "tests/api/auth.spec.ts",
+      "line": 112,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/funnel returns conversion per step",
+      "title": "POST /api/reports/funnel returns conversion per step",
+      "file": "tests/api/reports.spec.ts",
+      "line": 326,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Listings › GET /api/admin/teams requires an admin session",
+      "title": "GET /api/admin/teams requires an admin session",
+      "file": "tests/api/admin.spec.ts",
+      "line": 181,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/auth.spec.ts › Auth › POST /api/auth/logout requires a session",
+      "title": "POST /api/auth/logout requires a session",
+      "file": "tests/api/auth.spec.ts",
+      "line": 122,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/goal returns goal completion",
+      "title": "POST /api/reports/goal returns goal completion",
+      "file": "tests/api/reports.spec.ts",
+      "line": 371,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Global 2FA enforcement › POST /api/admin/2fa/global validates the body",
+      "title": "POST /api/admin/2fa/global validates the body",
+      "file": "tests/api/admin.spec.ts",
+      "line": 196,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/system.spec.ts › System › GET /api/heartbeat responds without authentication",
+      "title": "GET /api/heartbeat responds without authentication",
+      "file": "tests/api/system.spec.ts",
+      "line": 4,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/heatmap returns click and scroll data",
+      "title": "POST /api/reports/heatmap returns click and scroll data",
+      "file": "tests/api/reports.spec.ts",
+      "line": 401,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › Team 2FA enforcement › POST /api/admin/teams/{teamId}/2fa validates the body",
+      "title": "POST /api/admin/teams/{teamId}/2fa validates the body",
+      "file": "tests/api/admin.spec.ts",
+      "line": 261,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/system.spec.ts › System › GET /api/config reports the runtime feature flags",
+      "title": "GET /api/config reports the runtime feature flags",
+      "file": "tests/api/system.spec.ts",
+      "line": 11,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/journey returns paths between steps",
+      "title": "POST /api/reports/journey returns paths between steps",
+      "file": "tests/api/reports.spec.ts",
+      "line": 444,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/admin.spec.ts › Admin › User 2FA enforcement › GET /api/admin/users/{userId}/2fa reports whether 2FA is enabled",
+      "title": "GET /api/admin/users/{userId}/2fa reports whether 2FA is enabled",
+      "file": "tests/api/admin.spec.ts",
+      "line": 325,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/system.spec.ts › System › GET /api/scripts/telemetry serves a javascript response",
+      "title": "GET /api/scripts/telemetry serves a javascript response",
+      "file": "tests/api/system.spec.ts",
+      "line": 25,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/performance returns web vitals",
+      "title": "POST /api/reports/performance returns web vitals",
+      "file": "tests/api/reports.spec.ts",
+      "line": 484,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/users.spec.ts › Users › POST /api/users creates a user",
+      "title": "POST /api/users creates a user",
+      "file": "tests/api/users.spec.ts",
+      "line": 19,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/websites.spec.ts › Websites › POST /api/websites creates a website for the current user",
+      "title": "POST /api/websites creates a website for the current user",
+      "file": "tests/api/websites.spec.ts",
+      "line": 37,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/retention returns cohorts by day",
+      "title": "POST /api/reports/retention returns cohorts by day",
+      "file": "tests/api/reports.spec.ts",
+      "line": 524,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/revenue returns revenue totals",
+      "title": "POST /api/reports/revenue returns revenue totals",
+      "file": "tests/api/reports.spec.ts",
+      "line": 551,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/utm returns views per utm parameter",
+      "title": "POST /api/reports/utm returns views per utm parameter",
+      "file": "tests/api/reports.spec.ts",
+      "line": 592,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    },
+    {
+      "id": "api › tests/api/reports.spec.ts › Report runs › POST /api/reports/{type} validates the discriminator and envelope",
+      "title": "POST /api/reports/{type} validates the discriminator and envelope",
+      "file": "tests/api/reports.spec.ts",
+      "line": 621,
+      "project": "api",
+      "classification": "not-rerun",
+      "reruns": []
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 2221
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 0
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 0
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 0
+    }
+  ],
+  "routingValid": false,
+  "unmanaged": [
+    {
+      "service": "clickhouse",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @clickhouse/client in package.json",
+        "image clickhouse/clickhouse-server:25.8 in docker-compose.test.yml"
+      ]
+    },
+    {
+      "service": "kafka",
+      "kind": "stateful",
+      "evidence": [
+        "dependency kafkajs in package.json"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency redis in package.json"
+      ]
+    }
+  ],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/api/paths.ts:8: process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${process.env.UMAMI_TEST_PORT ?? '3100'}`;",
+    "the Playwright config uses globalSetup: whatever it writes to the database (e.g. a signed-in session) lands in worker 0's database only",
+    "unmanaged services shared by every worker's app, not isolated (D-012): clickhouse (stateful), kafka (stateful), redis (stateful); isolation incomplete",
+    "routing check failed: no committed transactions on w1, w2, w3, although tests ran against it. The app probably ignores DATABASE_URL (for example, a .env file overrides it), so workers shared a database (RISKS R3).",
+    "33 failed test(s) were not rerun (at most 10 are)"
+  ]
+}

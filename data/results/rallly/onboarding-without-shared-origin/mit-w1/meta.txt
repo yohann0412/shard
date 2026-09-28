@@ -1,0 +1,6 @@
+load before: 5.12 4.17 4.71 3/377 26229
+dist sha256: 00bacdc5ccd672b7 (affected.js affected.js.map app.js app.js.map db.js db.js.map init.js init.js.map report.js report.js.map run.js run.js.map snapshot.js snapshot.js.map trace.js trace.js.map )
+web: /home/user/shard/work/repos/rallly-mit/apps/web
+cmd: node /home/user/shard/dist/src/cli.js run --workers 1 -- pnpm exec playwright test --retries=0
+exit=130 wall=594s
+load after: 4.70 6.00 5.62 2/248 16527

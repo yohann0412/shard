@@ -1,0 +1,4 @@
+load before: 2.68 5.40 6.24 3/423 30787
+cmd: node /home/user/shard/dist/src/cli.js run --baseline -- pnpm exec playwright test --workers=1 --retries=0
+exit=1 wall=531s
+load after: 9.34 10.21 8.54 8/616 18162

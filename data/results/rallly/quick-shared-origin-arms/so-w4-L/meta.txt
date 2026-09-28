@@ -1,0 +1,6 @@
+load before: 7.90 4.52 2.53 1/138 31703
+dist sha256: b01ef7ee3431918c
+web: /home/user/shard/work/repos/rallly/apps/web
+cmd: node /home/user/shard/dist/src/cli.js run --workers 4 --shared-origin http://localhost:3201 -- pnpm exec playwright test --retries=0 tests/accessibility.spec.ts tests/house-keeping.spec.ts tests/otp-email-locale.spec.ts tests/otp-sign-up.spec.ts tests/password-sign-up.spec.ts tests/stripe-portal-auth.spec.ts tests/zoom-deauthorization.spec.ts tests/admin-setup.spec.ts tests/authentication.spec.ts tests/closed-poll-writes.spec.ts tests/comments-disabled.spec.ts tests/conferencing.spec.ts tests/control-panel.spec.ts tests/create-delete-poll.spec.ts tests/cross-timezone.spec.ts tests/edit-options.spec.ts
+exit=1 wall=150s
+load after: 8.36 7.10 3.85 1/138 1007

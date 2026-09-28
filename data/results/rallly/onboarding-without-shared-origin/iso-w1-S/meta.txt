@@ -1,0 +1,5 @@
+load before: 5.86 5.41 6.46 4/546 5307
+dist sha256: 00bacdc5ccd672b7 (affected.js affected.js.map app.js app.js.map db.js db.js.map init.js init.js.map report.js report.js.map run.js run.js.map snapshot.js snapshot.js.map trace.js trace.js.map )
+cmd: node /home/user/shard/dist/src/cli.js run --workers 1 -- pnpm exec playwright test --retries=0 tests/accessibility.spec.ts tests/house-keeping.spec.ts tests/otp-email-locale.spec.ts tests/otp-sign-up.spec.ts tests/password-sign-up.spec.ts tests/stripe-portal-auth.spec.ts tests/zoom-deauthorization.spec.ts
+exit=1 wall=259s
+load after: 4.14 4.79 5.99 7/400 12874

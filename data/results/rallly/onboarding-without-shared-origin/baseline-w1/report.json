@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T09:39:49.815Z",
+  "repoDir": "/home/user/shard/work/repos/rallly/apps/web",
+  "command": [
+    "pnpm",
+    "exec",
+    "playwright",
+    "test",
+    "--workers=1",
+    "--retries=0"
+  ],
+  "mode": "baseline",
+  "workerCount": 1,
+  "cache": null,
+  "wallMs": 530478.680682,
+  "phases": {
+    "setup": 469.73851700000057,
+    "postgresStart": 1103.6,
+    "migrateSeed": 5885,
+    "clone": 128.23938899999922,
+    "tests": 522711.06465,
+    "teardown": 181.03812599997036
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v24.21.0",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.58.1",
+    "loadAvg1": 2.68
+  },
+  "cpu": {
+    "busyPct": 93.8,
+    "stealPct": 1.8
+  },
+  "playwright": {
+    "testPhaseMs": 508269.69222500006,
+    "preTestMs": 9708.786178,
+    "postTestMs": 1205.0849619999644,
+    "resolvedWorkers": 1,
+    "maxConcurrent": 1,
+    "parallelIndexes": [
+      0
+    ],
+    "setupMs": 92320,
+    "bodyMs": 409698
+  },
+  "apps": [],
+  "postgresPeakRssMb": 615.1,
+  "clones": [
+    {
+      "name": "b0",
+      "ms": 83
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": -1,
+      "tests": 2,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 0,
+      "tests": 138,
+      "passed": 137,
+      "failed": 1
+    }
+  ],
+  "tests": {
+    "total": 140,
+    "passed": 137,
+    "failed": 1,
+    "flaky": 0,
+    "skipped": 2
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/email-invites.spec.ts › Email invites › pro host sends, sees status, and is stopped on duplicates",
+      "title": "pro host sends, sees status, and is stopped on duplicates",
+      "file": "tests/email-invites.spec.ts",
+      "line": 104,
+      "project": "chromium",
+      "classification": "not-rerun",
+      "reruns": []
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "b0",
+      "xactCommitDelta": 5121
+    }
+  ],
+  "routingValid": true,
+  "warnings": []
+}

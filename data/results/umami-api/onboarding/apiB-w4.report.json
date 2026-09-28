@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T10:45:09.843Z",
+  "repoDir": "/home/user/shard/work/repos/umami",
+  "command": [
+    "pnpm",
+    "exec",
+    "playwright",
+    "test",
+    "-c",
+    "playwright.api.config.ts",
+    "--retries=0"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": true,
+    "key": "fe27c0e507d87c862d8a730e3d593170b3d9f74518b80dd3855693ce7d25711a",
+    "db": {
+      "hit": true,
+      "key": "fe27c0e507d87c862d8a730e3d593170b3d9f74518b80dd3855693ce7d25711a"
+    },
+    "build": null
+  },
+  "wallMs": 83814.359247,
+  "phases": {
+    "setup": 589.1280569999997,
+    "restore": 137.1,
+    "postgresStart": 169.6,
+    "clone": 277.9,
+    "appBoot": 1509.4,
+    "tests": 79049.109234,
+    "teardown": 2082.1219560000027
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.63.0",
+    "loadAvg1": 1.17
+  },
+  "cpu": {
+    "busyPct": 36.5,
+    "stealPct": 1.1
+  },
+  "playwright": {
+    "testPhaseMs": 74607.143542,
+    "preTestMs": 1900.207969,
+    "postTestMs": 358.76881700000376,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 20760,
+    "bodyMs": 94634
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 36551,
+      "bootMs": 1392.8,
+      "peakRssMb": 433.9
+    },
+    {
+      "index": 1,
+      "port": 45471,
+      "bootMs": 1379.2,
+      "peakRssMb": 451.6
+    },
+    {
+      "index": 2,
+      "port": 40555,
+      "bootMs": 1486.5,
+      "peakRssMb": 439.2
+    },
+    {
+      "index": 3,
+      "port": 46159,
+      "bootMs": 1431.6,
+      "peakRssMb": 407
+    }
+  ],
+  "postgresPeakRssMb": 891.9,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 97.5
+    },
+    {
+      "name": "w1",
+      "ms": 41.3
+    },
+    {
+      "name": "w2",
+      "ms": 62.9
+    },
+    {
+      "name": "w3",
+      "ms": 53.2
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 69,
+      "passed": 69,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 61,
+      "passed": 61,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 76,
+      "passed": 76,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 65,
+      "passed": 65,
+      "failed": 0
+    }
+  ],
+  "tests": {
+    "total": 271,
+    "passed": 271,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 757
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 775
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 902
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 703
+    }
+  ],
+  "routingValid": true,
+  "unmanaged": [
+    {
+      "service": "clickhouse",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @clickhouse/client in package.json",
+        "image clickhouse/clickhouse-server:25.8 in docker-compose.test.yml"
+      ]
+    },
+    {
+      "service": "kafka",
+      "kind": "stateful",
+      "evidence": [
+        "dependency kafkajs in package.json"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency redis in package.json"
+      ]
+    }
+  ],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/api/paths.ts:8: process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${process.env.UMAMI_TEST_PORT ?? '3100'}`;",
+    "the Playwright config uses globalSetup: whatever it writes to the database (e.g. a signed-in session) lands in worker 0's database only",
+    "unmanaged services shared by every worker's app, not isolated (D-012): clickhouse (stateful), kafka (stateful), redis (stateful); isolation incomplete"
+  ]
+}
