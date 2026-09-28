@@ -51,7 +51,7 @@ repo url: build
 demo: build
     #!/usr/bin/env bash
     set -uo pipefail
-    now_ms() { date +%s%3N; }
+    now_ms() { node -e 'console.log(Date.now())'; }
     seconds() { printf '%d.%01d s' $(( $1 / 1000 )) $(( $1 % 1000 / 100 )); }
     node dist/scripts/experiments/wait-port.js 3000
     echo "== 1/2: 4 Playwright workers against ONE shared app and database (pnpm run test:collide)"
