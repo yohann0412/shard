@@ -98,3 +98,11 @@ Routing was valid in every run. Proxy counts show every request reached its own 
 - This matches the mechanism reviewer's prediction (RISKS R19).
 
 Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), then rallly's full Experiment A.
+
+**14:41 Experiment B on umami done** (`data/results/umami/experiment-b.json`, N=4, throw mutants, 10 targets from 1,126 source files).
+- **Map stability fails the pre-registered bar:** per-file Jaccard median 0.875 and minimum 0.5 across the N=4 and N=2 builds.
+- **The map is lopsided:** 227 source files are global because Next.js preloads route modules at boot, and no client file resolves because there are no production browser source maps.
+- **Mutants:** 8 of 9 were live. 7 changed no outcome: umami's suite never executed the mutated functions, and its 7 stale failures are excluded as reference failures. 1 (the websites layout) broke 3 tests, all predicted. The 2 live controls broke nothing.
+- Headline 1/1 (CI 0.025-1). Nothing about Claim B can be concluded from umami beyond the stability and global-set findings.
+
+**14:44 Experiment A on rallly started** with the full protocol on subset L, using the shared-origin mode, mailpit running and shared by all workers.
