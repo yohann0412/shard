@@ -1,0 +1,25 @@
+{
+  "name": "fixture-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "migrate": "node scripts/migrate.mjs",
+    "seed": "node scripts/seed.mjs",
+    "test:baseline": "pnpm build && node scripts/with-db.mjs -- playwright test --workers=1",
+    "test:collide": "pnpm build && node scripts/with-db.mjs -- playwright test --workers=4"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.4",
+    "@types/pg": "^8.23.1",
+    "embedded-postgres": "18.4.0-beta.17",
+    "typescript": "~5.9.3"
+  }
+}

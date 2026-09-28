@@ -17,3 +17,11 @@ e2e: build
 # Run one acceptance test file, e.g. `just e2e-one f1-db`.
 e2e-one name: build
     node --test --test-reporter=spec dist/e2e/{{name}}.test.js
+
+# Fixture suite at workers 1 against one shared app (passes).
+fixture-baseline:
+    pnpm --dir examples/fixture-app run test:baseline
+
+# Fixture suite at workers 4 against one shared app (collides and fails).
+fixture-collide:
+    pnpm --dir examples/fixture-app run test:collide
