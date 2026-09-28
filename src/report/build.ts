@@ -1,6 +1,7 @@
 import type { RunningApp } from '../app/apps.js';
 import type { WorkerDatabase } from '../db/databases.js';
 import type { PwResults } from '../playwright/results.js';
+import type { CacheOutcome } from '../snapshot/plan.js';
 import type { CpuUsage } from './cpu.js';
 import type { Machine } from './machine.js';
 import type { RoutingCheck } from './routing.js';
@@ -14,6 +15,7 @@ export interface ReportInput {
   command: string[];
   mode: Report['mode'];
   workerCount: number;
+  cache: CacheOutcome;
   stopwatch: Stopwatch;
   machine: Machine;
   cpu: CpuUsage | null;
@@ -35,7 +37,7 @@ export function buildReport(input: ReportInput): Report {
     command: input.command,
     mode: input.mode,
     workerCount: input.workerCount,
-    cache: null,
+    cache: input.cache,
     wallMs: input.stopwatch.wallMs(),
     phases: input.stopwatch.phases(),
     machine: input.machine,

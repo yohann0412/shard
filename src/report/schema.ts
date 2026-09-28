@@ -20,7 +20,18 @@ export const reportSchema = z.strictObject({
   mode: z.enum(['run', 'trace', 'baseline']),
   /** Workers requested from isolate; in baseline mode, the worker count Playwright resolved. */
   workerCount: count,
-  cache: z.strictObject({ hit: z.boolean(), key: z.string() }).nullable(),
+  /**
+   * The snapshot cache: `hit` when the database and (if one ran) the build were both restored, `key` the database key.
+   * `build` is null when no build ran; its key is null when the build could not be keyed and always ran.
+   */
+  cache: z
+    .strictObject({
+      hit: z.boolean(),
+      key: z.string(),
+      db: z.strictObject({ hit: z.boolean(), key: z.string() }),
+      build: z.strictObject({ hit: z.boolean(), key: z.string().nullable() }).nullable(),
+    })
+    .nullable(),
   wallMs: ms,
   phases: z.partialRecord(z.enum(PHASE_NAMES), ms),
   machine: z.strictObject({

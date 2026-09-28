@@ -194,6 +194,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
     command: options.command,
     mode: options.mode,
     workerCount: options.mode === 'run' ? options.workers : (tests.results?.resolvedWorkers ?? 0),
+    cache: stack.cache,
     stopwatch,
     machine: describeMachine(stack.postgresVersion, path.dirname(command.repoConfig), loadAvg1),
     cpu: tests.cpu,
