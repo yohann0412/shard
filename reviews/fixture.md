@@ -20,3 +20,9 @@ Subagent report: 12-test suite, baseline 5/5 green (on the previous test order),
 
 - That the embedded-postgres JS API with `createPostgresUser` is an acceptable stand-in for "the repo's own Postgres" (a real repo would use docker compose). It only affects the fixture's own baseline/collide scripts; the experiments use isolate's own Postgres for every arm.
 - That `/health` passing through the maintenance and session middleware at boot is realistic. It is (many apps put health behind global middleware), and it is what makes those middleware files "global" in the impact map.
+
+## Lead's re-run (09:08-09:11 UTC, merged code, load average 8-14 from other agents)
+
+- `just e2e-one p1-fixture`: pass (84.5 s): baseline exit 0, collide non-zero with failures.
+- 3 more `pnpm --dir examples/fixture-app run test:baseline`: 12 passed each (16.9 s, 16.9 s, 13.7 s Playwright time).
+- Verdict: accepted. The Phase 1 acceptance holds on the final code.
