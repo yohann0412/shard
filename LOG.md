@@ -126,3 +126,5 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 - **Fix (lead, small, logged here):** `src/db/access.ts` checks whether the Postgres user can run the binaries. If not, it copies them once to `/tmp/isolate-postgres-<key>`. Verified: `db up` from the root-only clone now reaches ready.
 - **Second attempt, clone in `/home/user/isolate-fresh`:** `pnpm install` (~1 s with a warm store), then `just demo`. The shared app at 4 workers exits 1 (39.0 s); `isolate run --workers 4` exits 0, 12/12 (13.9 s).
 - HOW_TO_RUN_LOCALLY.md now documents the root case.
+
+**17:02 Final acceptance suite green:** `just e2e` 9/9 in 268 s (f1-f8 + p1), on the main branch including the binary-copy fix.
