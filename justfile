@@ -69,3 +69,7 @@ demo: build
     echo "isolate run, 4 isolated apps:  exit ${isolated_exit}, wall $(seconds "${isolated_ms}")"
     if [ "${shared_exit}" -eq 0 ]; then echo "(the shared run passed this time: its collisions depend on timing)"; fi
     exit "${isolated_exit}"
+
+# Run `isolate run` many times per worker count and print the average speedup, e.g. `just bench 20 1,4`.
+bench runs='20' workers='1,4' dir='examples/fixture-app': build
+    node dist/scripts/bench.js --runs {{runs}} --workers {{workers}} --dir {{dir}}
