@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T15:58:57.756Z",
+  "repoDir": "/home/user/shard/work/repos/rallly/apps/web",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0",
+    "tests/accessibility.spec.ts",
+    "tests/house-keeping.spec.ts",
+    "tests/otp-email-locale.spec.ts",
+    "tests/otp-sign-up.spec.ts",
+    "tests/password-sign-up.spec.ts",
+    "tests/stripe-portal-auth.spec.ts",
+    "tests/zoom-deauthorization.spec.ts",
+    "tests/admin-setup.spec.ts",
+    "tests/authentication.spec.ts",
+    "tests/closed-poll-writes.spec.ts",
+    "tests/comments-disabled.spec.ts",
+    "tests/conferencing.spec.ts",
+    "tests/control-panel.spec.ts",
+    "tests/create-delete-poll.spec.ts",
+    "tests/cross-timezone.spec.ts",
+    "tests/edit-options.spec.ts",
+    "--workers=1"
+  ],
+  "mode": "baseline",
+  "workerCount": 1,
+  "cache": {
+    "hit": true,
+    "key": "c97a5c9701ccbecc1b89a22f141d14728403776e113eb17b2b3e25bf28bb18d9",
+    "db": {
+      "hit": true,
+      "key": "c97a5c9701ccbecc1b89a22f141d14728403776e113eb17b2b3e25bf28bb18d9"
+    },
+    "build": null
+  },
+  "wallMs": 145749.606204,
+  "phases": {
+    "setup": 783.6260350000002,
+    "restore": 157.7,
+    "postgresStart": 192.3,
+    "clone": 160.27153499999991,
+    "tests": 144313.167698,
+    "teardown": 142.54093600000488
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.58.1",
+    "loadAvg1": 0.85
+  },
+  "cpu": {
+    "busyPct": 53.3,
+    "stealPct": 1.4
+  },
+  "playwright": {
+    "testPhaseMs": 135276.079319,
+    "preTestMs": 6283.582478,
+    "postTestMs": 596.1025340000051,
+    "resolvedWorkers": 1,
+    "maxConcurrent": 1,
+    "parallelIndexes": [
+      0
+    ],
+    "setupMs": 28155,
+    "bodyMs": 106797
+  },
+  "apps": [],
+  "postgresPeakRssMb": 453.7,
+  "clones": [
+    {
+      "name": "b0",
+      "ms": 118.7
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": 0,
+      "tests": 70,
+      "passed": 70,
+      "failed": 0
+    }
+  ],
+  "tests": {
+    "total": 70,
+    "passed": 70,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "dbActivity": [
+    {
+      "name": "b0",
+      "xactCommitDelta": 1498
+    }
+  ],
+  "proxy": null,
+  "routingValid": true,
+  "unmanaged": [
+    {
+      "service": "posthog",
+      "kind": "third-party",
+      "evidence": [
+        "POSTHOG_PERSONAL_API_KEY in ../../packages/posthog/.env.sample",
+        "POSTHOG_PUBLIC_API_KEY in ../../packages/posthog/.env.sample"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @upstash/redis in package.json",
+        "KV_REST_API_URL in .env.sample",
+        "KV_REST_API_TOKEN in .env.sample",
+        "image redis:7.4-alpine in ../../docker-compose.dev.yml"
+      ]
+    },
+    {
+      "service": "s3",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @aws-sdk/client-s3 in package.json",
+        "S3_BUCKET_NAME in .env.sample",
+        "S3_ENDPOINT in .env.sample",
+        "S3_ACCESS_KEY_ID in .env.sample",
+        "S3_SECRET_ACCESS_KEY in .env.sample",
+        "S3_REGION in .env.sample"
+      ]
+    },
+    {
+      "service": "smtp",
+      "kind": "stateful",
+      "evidence": [
+        "dependency nodemailer in ../../packages/emails/package.json",
+        "SMTP_HOST in .env.sample",
+        "SMTP_PORT in .env.sample",
+        "SMTP_SECURE in .env.sample",
+        "SMTP_USER in .env.sample",
+        "SMTP_PWD in .env.sample",
+        "SMTP_HOST in .env.test",
+        "SMTP_PORT in .env.test",
+        "SMTP_REJECT_UNAUTHORIZED in .env.test",
+        "image axllent/mailpit in ../../docker-compose.dev.yml"
+      ]
+    },
+    {
+      "service": "stripe",
+      "kind": "third-party",
+      "evidence": [
+        "dependency stripe in ../../packages/billing/package.json",
+        "STRIPE_SECRET_KEY in ../landing/.env.sample"
+      ]
+    },
+    {
+      "service": "zoom",
+      "kind": "third-party",
+      "evidence": [
+        "ZOOM_CLIENT_SECRET in .env.test",
+        "ZOOM_WEBHOOK_SECRET_TOKEN in .env.test"
+      ]
+    }
+  ],
+  "warnings": [
+    "unmanaged services shared by every worker's app, not isolated (D-012): posthog (third-party), redis (stateful), s3 (stateful), smtp (stateful), stripe (third-party), zoom (third-party); isolation incomplete"
+  ]
+}

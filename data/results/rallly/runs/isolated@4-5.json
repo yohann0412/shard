@@ -1,0 +1,318 @@
+{
+  "version": 1,
+  "startedAt": "2026-09-28T16:22:11.091Z",
+  "repoDir": "/home/user/shard/work/repos/rallly/apps/web",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--retries=0",
+    "tests/accessibility.spec.ts",
+    "tests/house-keeping.spec.ts",
+    "tests/otp-email-locale.spec.ts",
+    "tests/otp-sign-up.spec.ts",
+    "tests/password-sign-up.spec.ts",
+    "tests/stripe-portal-auth.spec.ts",
+    "tests/zoom-deauthorization.spec.ts",
+    "tests/admin-setup.spec.ts",
+    "tests/authentication.spec.ts",
+    "tests/closed-poll-writes.spec.ts",
+    "tests/comments-disabled.spec.ts",
+    "tests/conferencing.spec.ts",
+    "tests/control-panel.spec.ts",
+    "tests/create-delete-poll.spec.ts",
+    "tests/cross-timezone.spec.ts",
+    "tests/edit-options.spec.ts"
+  ],
+  "mode": "run",
+  "workerCount": 4,
+  "cache": {
+    "hit": true,
+    "key": "c97a5c9701ccbecc1b89a22f141d14728403776e113eb17b2b3e25bf28bb18d9",
+    "db": {
+      "hit": true,
+      "key": "c97a5c9701ccbecc1b89a22f141d14728403776e113eb17b2b3e25bf28bb18d9"
+    },
+    "build": null
+  },
+  "wallMs": 203899.270901,
+  "phases": {
+    "setup": 721.6377010000002,
+    "restore": 142.3,
+    "postgresStart": 270.7,
+    "clone": 272,
+    "appBoot": 4808.7,
+    "tests": 99666.157925,
+    "reruns": 95676.44481999999,
+    "teardown": 2341.3304550000175
+  },
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cores": 4,
+    "threadsPerCore": 1,
+    "ramGb": 15.7,
+    "os": "Linux 6.18.44-fc-v37 x64",
+    "node": "v22.22.2",
+    "postgres": "postgres (PostgreSQL) 18.4",
+    "playwright": "1.58.1",
+    "loadAvg1": 0.89
+  },
+  "cpu": {
+    "busyPct": 93.3,
+    "stealPct": 1.8
+  },
+  "playwright": {
+    "testPhaseMs": 94461.27528199999,
+    "preTestMs": 2501.4052300000003,
+    "postTestMs": 368.47004300000845,
+    "resolvedWorkers": 4,
+    "maxConcurrent": 4,
+    "parallelIndexes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "setupMs": 98284,
+    "bodyMs": 246127
+  },
+  "apps": [
+    {
+      "index": 0,
+      "port": 41615,
+      "bootMs": 4753.7,
+      "peakRssMb": 731.6,
+      "requests": 613
+    },
+    {
+      "index": 1,
+      "port": 46451,
+      "bootMs": 4799,
+      "peakRssMb": 724.2,
+      "requests": 435
+    },
+    {
+      "index": 2,
+      "port": 44051,
+      "bootMs": 4704.4,
+      "peakRssMb": 807.3,
+      "requests": 739
+    },
+    {
+      "index": 3,
+      "port": 40123,
+      "bootMs": 4696,
+      "peakRssMb": 661.9,
+      "requests": 254
+    }
+  ],
+  "postgresPeakRssMb": 752.5,
+  "clones": [
+    {
+      "name": "w0",
+      "ms": 102.9
+    },
+    {
+      "name": "w1",
+      "ms": 48.5
+    },
+    {
+      "name": "w2",
+      "ms": 46.4
+    },
+    {
+      "name": "w3",
+      "ms": 51.2
+    }
+  ],
+  "workers": [
+    {
+      "parallelIndex": -1,
+      "tests": 8,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 0,
+      "tests": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "parallelIndex": 1,
+      "tests": 25,
+      "passed": 24,
+      "failed": 1
+    },
+    {
+      "parallelIndex": 2,
+      "tests": 16,
+      "passed": 15,
+      "failed": 1
+    },
+    {
+      "parallelIndex": 3,
+      "tests": 11,
+      "passed": 10,
+      "failed": 1
+    }
+  ],
+  "tests": {
+    "total": 70,
+    "passed": 59,
+    "failed": 3,
+    "flaky": 0,
+    "skipped": 8
+  },
+  "failures": [
+    {
+      "id": "chromium › tests/admin-setup.spec.ts › Admin Setup Page Access › should allow access if user is the designated initial admin (and not yet admin role)",
+      "title": "should allow access if user is the designated initial admin (and not yet admin role)",
+      "file": "tests/admin-setup.spec.ts",
+      "line": 36,
+      "project": "chromium",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "chromium › tests/conferencing.spec.ts › conferencing integrations › settings page lists the configured providers to connect",
+      "title": "settings page lists the configured providers to connect",
+      "file": "tests/conferencing.spec.ts",
+      "line": 79,
+      "project": "chromium",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    },
+    {
+      "id": "chromium › tests/authentication.spec.ts › When User Registration is Disabled › allows existing user to log in via email",
+      "title": "allows existing user to log in via email",
+      "file": "tests/authentication.spec.ts",
+      "line": 360,
+      "project": "chromium",
+      "classification": "flaky",
+      "reruns": [
+        "passed",
+        "passed"
+      ]
+    }
+  ],
+  "dbActivity": [
+    {
+      "name": "w0",
+      "xactCommitDelta": 296
+    },
+    {
+      "name": "w1",
+      "xactCommitDelta": 378
+    },
+    {
+      "name": "w2",
+      "xactCommitDelta": 248
+    },
+    {
+      "name": "w3",
+      "xactCommitDelta": 369
+    }
+  ],
+  "proxy": {
+    "origin": "http://localhost:3201",
+    "requests": [
+      {
+        "worker": "0",
+        "app": 0,
+        "requests": 613
+      },
+      {
+        "worker": "1",
+        "app": 1,
+        "requests": 435
+      },
+      {
+        "worker": "2",
+        "app": 2,
+        "requests": 739
+      },
+      {
+        "worker": "3",
+        "app": 3,
+        "requests": 254
+      }
+    ],
+    "refused": 0
+  },
+  "routingValid": true,
+  "unmanaged": [
+    {
+      "service": "posthog",
+      "kind": "third-party",
+      "evidence": [
+        "POSTHOG_PERSONAL_API_KEY in ../../packages/posthog/.env.sample",
+        "POSTHOG_PUBLIC_API_KEY in ../../packages/posthog/.env.sample"
+      ]
+    },
+    {
+      "service": "redis",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @upstash/redis in package.json",
+        "KV_REST_API_URL in .env.sample",
+        "KV_REST_API_TOKEN in .env.sample",
+        "image redis:7.4-alpine in ../../docker-compose.dev.yml"
+      ]
+    },
+    {
+      "service": "s3",
+      "kind": "stateful",
+      "evidence": [
+        "dependency @aws-sdk/client-s3 in package.json",
+        "S3_BUCKET_NAME in .env.sample",
+        "S3_ENDPOINT in .env.sample",
+        "S3_ACCESS_KEY_ID in .env.sample",
+        "S3_SECRET_ACCESS_KEY in .env.sample",
+        "S3_REGION in .env.sample"
+      ]
+    },
+    {
+      "service": "smtp",
+      "kind": "stateful",
+      "evidence": [
+        "dependency nodemailer in ../../packages/emails/package.json",
+        "SMTP_HOST in .env.sample",
+        "SMTP_PORT in .env.sample",
+        "SMTP_SECURE in .env.sample",
+        "SMTP_USER in .env.sample",
+        "SMTP_PWD in .env.sample",
+        "SMTP_HOST in .env.test",
+        "SMTP_PORT in .env.test",
+        "SMTP_REJECT_UNAUTHORIZED in .env.test",
+        "image axllent/mailpit in ../../docker-compose.dev.yml"
+      ]
+    },
+    {
+      "service": "stripe",
+      "kind": "third-party",
+      "evidence": [
+        "dependency stripe in ../../packages/billing/package.json",
+        "STRIPE_SECRET_KEY in ../landing/.env.sample"
+      ]
+    },
+    {
+      "service": "zoom",
+      "kind": "third-party",
+      "evidence": [
+        "ZOOM_CLIENT_SECRET in .env.test",
+        "ZOOM_WEBHOOK_SECRET_TOKEN in .env.test"
+      ]
+    }
+  ],
+  "warnings": [
+    "hardcoded URL(s) in test files: these requests are not redirected to the per-worker app\n  tests/webhooks-settings.spec.ts:122: url: `http://127.0.0.1:${port}/hook`,\n  tests/webhooks-settings.spec.ts:219: await page.getByLabel(\"URL\").fill(\"http://localhost:3000/hook\");\n  tests/webhooks.spec.ts:53: this.url = `http://127.0.0.1:${port}/hook`;",
+    "unmanaged services shared by every worker's app, not isolated (D-012): posthog (third-party), redis (stateful), s3 (stateful), smtp (stateful), stripe (third-party), zoom (third-party); isolation incomplete"
+  ]
+}
