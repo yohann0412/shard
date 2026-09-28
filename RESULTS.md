@@ -66,6 +66,7 @@ Premise check. By their own config text, 47 of the 96 qualified repos run one wo
 | langfuse/langfuse | B | blocked | ClickHouse, Redis, MinIO |
 | calcom/cal.com | B | blocked (not attempted) | ~40 real third-party secrets; CI shards over 8 machines × 4 workers |
 | rhonda-rodododo/llamenos-platform, gitroomhq/postiz-app, payloadcms/payload | — | not examined | the scout stopped after 3 green repos |
+| johanohly/AirTrail | **A** (the only static class A) | not attempted | the harvest finished after the scout had started from the seed list; it uses bun and a fake OIDC server as its `webServer`. Listed in HANDOFF.md |
 
 ## Experiment A: isolation
 
