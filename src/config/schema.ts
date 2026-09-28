@@ -10,6 +10,8 @@ export const configSchema = z.object({
     .object({
       command: z.string().min(1),
       outputs: z.array(z.string()).default([]),
+      /** Files and directories the build reads; they key the build cache. Default: every git-tracked or untracked-not-ignored file. */
+      inputs: z.array(z.string()).optional(),
     })
     .optional(),
   db: z.object({
