@@ -34,7 +34,9 @@ test('every run writes a schema-valid report whose phases add up to the wall tim
   const dir = copyFixture();
   try {
     writeFileSync(path.join(dir, 'tests', 'zz-classify.spec.ts'), CLASSIFY_SPEC);
+    const started = performance.now();
     const run = await isolate(['run', '--workers', '2', '--', 'npx', 'playwright', 'test'], { cwd: dir });
+    const externalWallMs = performance.now() - started;
     assert.notEqual(run.exitCode, 0, 'a run with a failing test must exit non-zero');
 
     const file = path.join(dir, '.isolate', 'report.json');
@@ -42,6 +44,9 @@ test('every run writes a schema-valid report whose phases add up to the wall tim
     assert.equal(check.exitCode, 0, check.all);
 
     const report = readJson<Report>(file);
+    assert.ok(report.wallMs <= externalWallMs && report.wallMs >= 0.9 * externalWallMs, `wallMs ${report.wallMs} vs measured outside ${externalWallMs}`);
+    const known = ['setup', 'restore', 'build', 'postgresStart', 'migrateSeed', 'clone', 'appBoot', 'tests', 'reruns', 'teardown'];
+    for (const key of Object.keys(report.phases)) assert.ok(known.includes(key), `unexpected phase ${key}`);
     const phaseSum = Object.values(report.phases).reduce((a, b) => a + b, 0);
     assert.ok(Math.abs(phaseSum - report.wallMs) <= 0.05 * report.wallMs, `phases ${phaseSum}ms vs wall ${report.wallMs}ms`);
     assert.equal(report.workers.reduce((a, w) => a + w.tests, 0), report.tests.total);

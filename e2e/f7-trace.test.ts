@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { copyFixture, isolate, readJson, removeDir, sh } from './helpers.js';
@@ -22,6 +22,12 @@ test('trace builds a map; affected names only the item tests for an items edit a
     assert.ok(map.global.includes('src/db.ts'), `global set: ${map.global.join(', ')}`);
     assert.ok(Object.keys(map.tests).length >= 8);
     assert.ok(Object.values(map.tests).some((t) => t.client.length > 0), 'client coverage must be recorded');
+
+    writeFileSync(path.join(dir, 'src', 'unused.ts'), 'export const unused = 1;\n');
+    const none = await isolate(['affected', '--base', 'HEAD'], { cwd: dir });
+    assert.equal(none.exitCode, 0, none.all);
+    assert.equal(none.stdout.trim(), '', 'a file no test executes must select no tests');
+    rmSync(path.join(dir, 'src', 'unused.ts'));
 
     appendFileSync(path.join(dir, 'src', 'routes', 'items.ts'), '\n// edited by e2e\n');
     const items = await isolate(['affected', '--base', 'HEAD'], { cwd: dir });
