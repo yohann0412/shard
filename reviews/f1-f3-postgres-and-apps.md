@@ -23,3 +23,9 @@ Subagent report: `f1-db` and `f3-app` green twice each; root handling via `setpr
 - That `setpriv` exists wherever isolate runs as root (it is in util-linux, present on Debian/Ubuntu/Fedora images, but not on Alpine/busybox by default).
 - That `{db}` in `app.env` means the worker's database URL (confirmed by the lead; documented in the README).
 - That the build belongs to `app up` and `run` but not to `db up` (a database-only stack does not need the app built).
+
+## Lead's re-run (merged code, a861b86)
+
+- Sent back once: `postgres.binDir` now wins, and a `binDir` without `initdb` and `postgres` fails loudly.
+- `just e2e-one f1-db`: pass (2.6 s). `just e2e-one f3-app`: pass (14.7 s), including the SIGKILL-of-parent case.
+- Verdict: accepted.
