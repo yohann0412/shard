@@ -29,3 +29,43 @@ fixture-collide:
 # Find candidate repositories and classify them into data/repos.json.
 harvest: build
     node dist/scripts/harvest.js --target 100
+
+# Experiment A (isolation speedup) on one recipe; flags: --rounds R, --oversubscribe (fixture only), --load-wait S.
+experiment-a name='fixture-app' *args: build
+    node dist/scripts/experiments/experiment-a.js {{name}} {{args}}
+
+# Experiment B (impact map) on one recipe; flags: --workers N, --max-targets K, --kinds throw|all, --seed S.
+experiment-b name='fixture-app' *args: build
+    node dist/scripts/experiments/experiment-b.js {{name}} {{args}}
+
+# Plot speedup vs workers (SVG and PNG) and write data/results/summary.md from every experiment result.
+report: build
+    node dist/scripts/experiments/plot.js
+    node dist/scripts/experiments/summary.js
+
+# Onboard a repo: clone it into work/repos, run `isolate init --allow-unmanaged`, write a draft recipe, print next steps.
+repo url: build
+    node dist/scripts/experiments/new-repo.js {{url}}
+
+# Fixture demo: 4 workers on one shared app fail, then `isolate run --workers 4` passes; prints both wall times.
+demo: build
+    #!/usr/bin/env bash
+    set -uo pipefail
+    now_ms() { date +%s%3N; }
+    seconds() { printf '%d.%01d s' $(( $1 / 1000 )) $(( $1 % 1000 / 100 )); }
+    node dist/scripts/experiments/wait-port.js 3000
+    echo "== 1/2: 4 Playwright workers against ONE shared app and database (pnpm run test:collide)"
+    start=$(now_ms)
+    pnpm --dir examples/fixture-app run test:collide
+    shared_exit=$?
+    shared_ms=$(( $(now_ms) - start ))
+    echo "== 2/2: isolate run --workers 4: one app and one database copy per worker"
+    start=$(now_ms)
+    (cd examples/fixture-app && node ../../dist/src/cli.js run --workers 4 -- npx playwright test)
+    isolated_exit=$?
+    isolated_ms=$(( $(now_ms) - start ))
+    echo
+    echo "shared app, 4 workers:         exit ${shared_exit}, wall $(seconds "${shared_ms}")"
+    echo "isolate run, 4 isolated apps:  exit ${isolated_exit}, wall $(seconds "${isolated_ms}")"
+    if [ "${shared_exit}" -eq 0 ]; then echo "(the shared run passed this time: its collisions depend on timing)"; fi
+    exit "${isolated_exit}"
