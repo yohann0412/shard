@@ -7,12 +7,6 @@ export interface DbActivity {
   xactCommitDelta: number;
 }
 
-/** The outcome of the routing check: activity per database, and the used databases that saw none. */
-export interface RoutingCheck {
-  dbActivity: DbActivity[];
-  idle: string[];
-}
-
 /**
  * A backend flushes its statistics at most once a second; what it could not flush then waits until it has been idle
  * for PGSTAT_IDLE_INTERVAL (10 s). So a database that just served its first queries can look idle for up to ~10 s.
@@ -38,25 +32,17 @@ export async function readXactCommits(adminUrl: string, names: string[]): Promis
 }
 
 /**
- * Checks from outside the test process that every `used` database committed transactions since `before`, which fails
- * when an app ignores its database URL (RISKS R3). While one looks idle, polls for up to 11 s, so that statistics the
- * backends have not flushed yet are not mistaken for no traffic.
+ * Measures from outside the test process how many transactions every database committed since `before`, the routing
+ * verdict's evidence that each app uses its own database (RISKS R3). While a `used` database looks idle, polls for up
+ * to 11 s, so that statistics the backends have not flushed yet are not mistaken for no traffic.
  */
-export async function checkRouting(adminUrl: string, before: Map<string, number>, used: string[]): Promise<RoutingCheck> {
+export async function measureDbActivity(adminUrl: string, before: Map<string, number>, used: string[]): Promise<DbActivity[]> {
   const deadline = performance.now() + SETTLE_TIMEOUT_MS;
   for (;;) {
     const after = await readXactCommits(adminUrl, [...before.keys()]);
     const dbActivity = [...before].map(([name, commits]) => ({ name, xactCommitDelta: (after.get(name) ?? 0) - commits }));
-    const idle = dbActivity.filter((db) => used.includes(db.name) && db.xactCommitDelta <= 0).map((db) => db.name);
-    if (idle.length === 0 || performance.now() >= deadline) return { dbActivity, idle };
+    const idle = dbActivity.some((db) => used.includes(db.name) && db.xactCommitDelta <= 0);
+    if (!idle || performance.now() >= deadline) return dbActivity;
     await sleep(SETTLE_POLL_MS);
   }
-}
-
-/** The error printed when a used database saw no activity. */
-export function routingError(idle: string[], urlEnv: string): string {
-  return (
-    `routing check failed: no committed transactions on ${idle.join(', ')}, although tests ran against it. ` +
-    `The app probably ignores ${urlEnv} (for example, a .env file overrides it), so workers shared a database (RISKS R3).`
-  );
 }

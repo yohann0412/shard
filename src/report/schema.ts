@@ -60,7 +60,8 @@ export const reportSchema = z.strictObject({
       bodyMs: ms,
     })
     .nullable(),
-  apps: z.array(z.strictObject({ index: count, port: count, bootMs: ms, peakRssMb: megabytes })),
+  /** `requests`: what the shared-origin proxy forwarded to the app during the tests; null without a shared origin. */
+  apps: z.array(z.strictObject({ index: count, port: count, bootMs: ms, peakRssMb: megabytes, requests: count.nullable() })),
   postgresPeakRssMb: megabytes,
   clones: z.array(z.strictObject({ name: z.string(), ms })),
   workers: z.array(z.strictObject({ parallelIndex: z.number().int(), tests: count, passed: count, failed: count })),
@@ -77,7 +78,19 @@ export const reportSchema = z.strictObject({
     }),
   ),
   dbActivity: z.array(z.strictObject({ name: z.string(), xactCommitDelta: z.number().int() })),
-  routingValid: z.boolean(),
+  /**
+   * Shared-origin mode (DECISIONS D-014): requests the proxy forwarded during the tests per x-isolate-worker value and
+   * app index (null for a port of no app), and the requests it refused with 421. Null without a shared origin.
+   */
+  proxy: z
+    .strictObject({
+      origin: z.string(),
+      requests: z.array(z.strictObject({ worker: z.string(), app: count.nullable(), requests: count })),
+      refused: count,
+    })
+    .nullable(),
+  /** Null when unknown: Playwright wrote no per-test results (for example, it was interrupted) or ran no test. */
+  routingValid: z.boolean().nullable(),
   /** Services the app uses that isolate does not manage (DECISIONS D-012). */
   unmanaged: z.array(unmanagedServiceSchema),
   warnings: z.array(z.string()),

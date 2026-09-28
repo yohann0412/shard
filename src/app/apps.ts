@@ -16,6 +16,8 @@ export interface RunningApp {
   index: number;
   port: number;
   url: string;
+  /** The URL the browser uses for this app: the shared origin, or `url` without one. */
+  origin: string;
   /** PID of the app's process group leader. */
   pid: number;
   dbUrl: string;
@@ -44,6 +46,8 @@ export interface AppOptions {
   config: IsolateConfig;
   databases: WorkerDatabase[];
   reaper: Reaper;
+  /** The shared origin (DECISIONS D-014), for `{origin}`; without one, `{origin}` is each app's own URL. */
+  origin?: string;
 }
 
 interface StartedApp {
@@ -52,7 +56,7 @@ interface StartedApp {
 }
 
 async function startApp(
-  options: Pick<AppOptions, 'repoDir' | 'config' | 'reaper'>,
+  options: Pick<AppOptions, 'repoDir' | 'config' | 'reaper' | 'origin'>,
   index: number,
   port: number,
   database: WorkerDatabase,
@@ -61,9 +65,10 @@ async function startApp(
   const { repoDir, config, reaper } = options;
   writeFileSync(logFile, '');
   const url = `http://127.0.0.1:${port}`;
-  const env = appEnv(config, { index, port, url, dbUrl: database.url });
+  const values = { index, port, url, origin: options.origin ?? url, dbUrl: database.url };
+  const env = appEnv(config, values);
   const start = performance.now();
-  const command = fillPlaceholders(config.app.start, { index, port, url, dbUrl: database.url });
+  const command = fillPlaceholders(config.app.start, values);
   const proc = await spawnGroup('/bin/sh', ['-c', command], { cwd: repoDir, env, logFile, reaper });
   try {
     await waitForHealthy(port, config.app.healthPath, proc, `w${index}`, config.app.bootTimeoutMs);
@@ -73,11 +78,11 @@ async function startApp(
   }
   const bootMs = elapsedMs(start);
   log.info(`app w${index} healthy at ${url} in ${bootMs}ms (pid ${proc.pid}, database ${database.name})`);
-  return { app: { index, port, url, pid: proc.pid, dbUrl: database.url, bootMs }, proc };
+  return { app: { ...values, pid: proc.pid, bootMs }, proc };
 }
 
 /** What startSingleApp needs: the database, the worker index for `{i}` and ISOLATE_WORKER_INDEX, and the log file. */
-export interface SingleAppOptions extends Pick<AppOptions, 'repoDir' | 'config' | 'reaper'> {
+export interface SingleAppOptions extends Pick<AppOptions, 'repoDir' | 'config' | 'reaper' | 'origin'> {
   index: number;
   database: WorkerDatabase;
   logFile: string;

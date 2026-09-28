@@ -47,8 +47,16 @@ function summarize(map: ImpactMap, file: string): string {
   );
 }
 
-async function writeTraceMap(repoDir: string, root: string, config: IsolateConfig, workers: number, controller: Controller, ranTestIds: string[]): Promise<string[]> {
-  const resolver = new SourceResolver(root, config.trace.clientRoots, controller.record.sources);
+async function writeTraceMap(
+  repoDir: string,
+  root: string,
+  config: IsolateConfig,
+  workers: number,
+  controller: Controller,
+  ranTestIds: string[],
+  mapHeaders: Record<string, string>,
+): Promise<string[]> {
+  const resolver = new SourceResolver(root, config.trace.clientRoots, controller.record.sources, mapHeaders);
   const map = await buildMap(controller.record, resolver, { workers, commit: await headCommit(repoDir) });
   const file = isolatePaths(repoDir).map;
   writeMap(file, map);
@@ -65,8 +73,9 @@ async function writeTraceMap(repoDir: string, root: string, config: IsolateConfi
 /**
  * Starts tracing for `isolate trace`: a socket directory for the apps' coverage (a short path under the OS temp
  * directory, since Unix socket paths are limited to about 100 bytes) and the control server the workers call.
+ * `mapHeaders` go with every client source map fetched from the apps (the worker header, behind a shared origin).
  */
-export async function startTracer(repoDir: string, config: IsolateConfig, workers: number): Promise<Tracer> {
+export async function startTracer(repoDir: string, config: IsolateConfig, workers: number, mapHeaders: Record<string, string>): Promise<Tracer> {
   const traceDir = mkdtempSync(path.join(os.tmpdir(), 'isolate-trace-'));
   const root = realpathSync(repoDir);
   const controller = await startController(traceDir);
@@ -84,7 +93,7 @@ export async function startTracer(repoDir: string, config: IsolateConfig, worker
       ISOLATE_CONTROL_URL: controller.url,
       ISOLATE_TRACE_ROOT: repoDir,
     },
-    finish: (ranTestIds) => writeTraceMap(repoDir, root, config, workers, controller, ranTestIds),
+    finish: (ranTestIds) => writeTraceMap(repoDir, root, config, workers, controller, ranTestIds, mapHeaders),
     close: async () => {
       await controller.close();
       rmSync(traceDir, { recursive: true, force: true });

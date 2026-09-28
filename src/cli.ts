@@ -8,6 +8,7 @@ Usage:
   isolate db up --workers N                  Start Postgres with N template copies of the seeded database
   isolate app up --workers N                 Start Postgres and N app processes
   isolate run [--workers N] -- <cmd...>      Run a Playwright command with one app and database per worker
+                                             (--shared-origin URL: all apps behind the origin the build baked in)
   isolate snapshot                           Build, migrate and seed, then cache the result
   isolate trace [--workers N] -- <cmd...>    Like run, and record which files each test executes
   isolate affected --base <ref>              Print the tests affected by changes since <ref>, or "all"

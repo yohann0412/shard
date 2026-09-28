@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-/** Values in `app.env`, `playwright.env` and `app.start` may use {i}, {port}, {url} and {db} (the worker's database URL); they are filled in per worker. */
+/**
+ * Values in `app.env`, `playwright.env` and `app.start` may use {i}, {port}, {url} (the app's own URL), {origin} (the
+ * shared origin, or the app's own URL without one) and {db} (the worker's database URL); they are filled in per worker.
+ */
 const envMap = z.record(z.string(), z.string()).default({});
 
 /** Schema of `isolate.config.ts`. */
@@ -31,6 +34,8 @@ export const configSchema = z.object({
     config: z.string().min(1),
     baseUrlEnvs: z.array(z.string()).default(['BASE_URL']),
     env: envMap,
+    /** The origin the app's build baked in (e.g. http://localhost:3201); like `--shared-origin` (DECISIONS D-014). */
+    sharedOrigin: z.string().optional(),
   }),
   postgres: z
     .object({

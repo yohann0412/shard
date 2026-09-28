@@ -35,38 +35,44 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Playwright arguments that select exactly this test's file and line in its project, on one worker, without retries. */
-function selectTest(repoDir: string, test: TestRecord): string[] {
+/**
+ * Playwright arguments that select exactly this test's file and line in its project, on one worker, without retries,
+ * with artifacts in `outputDir` (Playwright empties its output directory, which would lose the main run's traces).
+ */
+function selectTest(repoDir: string, test: TestRecord, outputDir: string): string[] {
   const file = `^${escapeRegExp(path.resolve(repoDir, test.file))}$:${test.line}`;
   const project = test.project === '' ? [] : ['--project', test.project];
-  return [file, ...project, '--workers', '1', '--retries', '0'];
+  return [file, ...project, '--workers', '1', '--retries', '0', '--output', outputDir];
 }
 
 /**
  * Runs one test alone against a fresh copy of `seed` and a fresh app started on it, so that leftovers from the main
- * run cannot decide the outcome. `run` numbers the rerun; it names the database, the app log and the app's worker index.
+ * run cannot decide the outcome. `run` numbers the rerun; it names the database, the app log, the output directory and
+ * the app's worker index, which is also the index the shared-origin proxy routes to it.
  */
 async function rerunOnce(options: RerunOptions, test: TestRecord, run: number): Promise<Outcome> {
   const { repoDir, config, stack } = options;
   const paths = isolatePaths(repoDir);
   const index = stack.databases.length + run;
   const database = await cloneDatabase(stack.postgres, `rerun${run}`);
-  const app = await startSingleApp({ repoDir, config, reaper: stack.reaper, index, database, logFile: paths.rerunAppLog(run) });
+  const app = await startSingleApp({ repoDir, config, reaper: stack.reaper, index, database, logFile: paths.rerunAppLog(run), origin: stack.proxy?.origin.href });
   try {
+    await stack.proxy?.route(index, app.port);
     rmSync(paths.rerunResults, { force: true });
     const env = {
-      ISOLATE_WORKER_ENVS: JSON.stringify([workerEnv(config, { index, port: app.port, url: app.url, dbUrl: database.url })]),
+      ISOLATE_WORKER_ENVS: JSON.stringify([workerEnv(config, app)]),
       ISOLATE_WORKERS: '1',
       ISOLATE_TAG_REQUESTS: options.tagRequests ? '1' : '0',
       ISOLATE_RESULTS_FILE: paths.rerunResults,
       PLAYWRIGHT_HTML_OPEN: 'never',
     };
-    const argv = commandWithConfig(options.command, options.wrapperConfig, selectTest(repoDir, test));
+    const argv = commandWithConfig(options.command, options.wrapperConfig, selectTest(repoDir, test, paths.rerunOutput(run)));
     const exitCode = await options.guard.run(startPlaywright(argv, { cwd: repoDir, env, reaper: stack.reaper, logFile: paths.rerunsLog }));
     const record = readResults(paths.rerunResults)?.tests.find((result) => result.id === test.id);
     if (record === undefined) throw new Error(`rerun ${run} did not run the test (exit code ${exitCode}); see ${paths.rerunsLog}`);
     return record.ok ? 'passed' : 'failed';
   } finally {
+    await stack.proxy?.unroute(index);
     await app.stop();
   }
 }
@@ -87,6 +93,7 @@ export async function classifyFailures(options: RerunOptions, failed: TestRecord
     log.warn(warnings.at(-1)!);
   }
   const failures: Failure[] = [];
+  rmSync(isolatePaths(options.repoDir).rerunOutputs, { recursive: true, force: true });
   let run = 0;
   for (const [position, test] of failed.entries()) {
     const failure = notRerun(test);

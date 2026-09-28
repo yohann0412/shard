@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { loadConfig } from './config/load.js';
@@ -14,15 +14,19 @@ import { startPlaywright } from './playwright/runner.js';
 import { scanForHazards } from './playwright/scan.js';
 import { workerEnv } from './playwright/worker-env.js';
 import { writeWrapper, type Wrapper } from './playwright/wrapper.js';
+import { parseSharedOrigin, type SharedOrigin } from './proxy/origin.js';
+import { WORKER_HEADER } from './proxy/protocol.js';
 import { buildReport } from './report/build.js';
 import { cpuUsage, readCpuTimes, type CpuUsage } from './report/cpu.js';
 import { describeMachine } from './report/machine.js';
 import { classifyFailures, notRerun } from './report/rerun.js';
-import { checkRouting, readXactCommits, routingError, type RoutingCheck } from './report/routing.js';
+import { misrouted, proxyReport, requestsTo, type ProxyReport } from './report/requests.js';
+import { measureDbActivity, readXactCommits, type DbActivity } from './report/routing.js';
 import type { Failure } from './report/schema.js';
 import { Stopwatch } from './report/stopwatch.js';
 import { failedTests } from './report/summary.js';
 import { renderTable } from './report/table.js';
+import { routingVerdict, type RoutingVerdict, type WorkerEvidence } from './report/verdict.js';
 import { startStack, type Stack } from './stack.js';
 import { startTracer, type Tracer } from './trace/tracer.js';
 
@@ -39,7 +43,10 @@ export interface SessionOptions {
   mode: SessionMode;
   /** Number of apps and databases in `run` and `trace` mode; unused in `baseline` mode. */
   workers: number;
+  /** Send the x-isolate-worker header with every request (always on with a shared origin). */
   tagRequests: boolean;
+  /** `--shared-origin`: overrides `playwright.sharedOrigin`; ignored in baseline mode (DECISIONS D-014). */
+  sharedOrigin: string | undefined;
   /** Skip the flaky/deterministic reruns of failed tests (failures are reported as not rerun). */
   noRerun: boolean;
 }
@@ -58,14 +65,31 @@ interface TestsOutcome {
   exitCode: number;
   results: PwResults | null;
   cpu: CpuUsage | null;
-  routing: RoutingCheck;
+  dbActivity: DbActivity[];
+  proxy: ProxyReport | null;
+  routing: RoutingVerdict;
+}
+
+/** A worker that ran a test: its database's name and its app's index (none for b0 in baseline mode). */
+interface UsedWorker {
+  name: string;
+  app: number | null;
+}
+
+/** What `prepare` found out before anything starts. */
+interface Prepared {
+  config: IsolateConfig;
+  command: PlaywrightCommand;
+  sharedOrigin: SharedOrigin | undefined;
+  warnings: string[];
+  unmanaged: UnmanagedService[];
 }
 
 /** Loads the config, parses the command and scans the tests before anything starts, so a refused command costs nothing. */
-async function prepare(
-  options: SessionOptions,
-): Promise<{ config: IsolateConfig; command: PlaywrightCommand; warnings: string[]; unmanaged: UnmanagedService[] }> {
+async function prepare(options: SessionOptions): Promise<Prepared> {
   const config = await loadConfig(options.repoDir);
+  const origin = options.mode === 'baseline' ? undefined : (options.sharedOrigin ?? config.playwright.sharedOrigin);
+  const sharedOrigin = origin === undefined ? undefined : parseSharedOrigin(origin);
   const command = parsePlaywrightCommand(options.command, {
     repoDir: options.repoDir,
     defaultConfig: config.playwright.config,
@@ -76,41 +100,55 @@ async function prepare(
   const unmanagedNote = unmanagedWarning(unmanaged);
   if (unmanagedNote !== null) warnings.push(unmanagedNote);
   for (const warning of warnings) log.warn(warning);
-  return { config, command, warnings, unmanaged };
+  return { config, command, sharedOrigin, warnings, unmanaged };
 }
 
 /**
  * In run and trace mode, every worker's variables for its app and database (plus the tracer's, when tracing); in
  * baseline mode, a fresh b0 in the database variables.
  */
-async function prepareTargets(options: SessionOptions, config: IsolateConfig, stack: Stack, tracer: Tracer | undefined): Promise<Targets> {
+async function prepareTargets(
+  options: SessionOptions,
+  config: IsolateConfig,
+  stack: Stack,
+  tracer: Tracer | undefined,
+  tagRequests: boolean,
+): Promise<Targets> {
   if (options.mode === 'baseline') {
     const database = await cloneDatabase(stack.postgres, BASELINE_DATABASE);
     return { databases: [database], env: databaseUrlVars(config, database.url) };
   }
-  const envs = stack.apps.map((app) => workerEnv(config, { index: app.index, port: app.port, url: app.url, dbUrl: app.dbUrl }));
+  const envs = stack.apps.map((app) => workerEnv(config, app));
   return {
     databases: stack.databases,
     env: {
       ISOLATE_WORKER_ENVS: JSON.stringify(envs),
       ISOLATE_WORKERS: String(envs.length),
-      ISOLATE_TAG_REQUESTS: options.tagRequests ? '1' : '0',
+      ISOLATE_TAG_REQUESTS: tagRequests ? '1' : '0',
       ...tracer?.playwrightEnv,
     },
   };
 }
 
-/** Databases that must show activity: those of the parallel indexes that ran a test (b0 in baseline mode). */
-function usedDatabases(mode: SessionMode, results: PwResults | null, databases: WorkerDatabase[]): string[] {
-  const ran = (results?.tests ?? []).filter((test) => test.status !== 'skipped');
-  if (mode === 'baseline') return ran.length > 0 ? [BASELINE_DATABASE] : [];
+/** The workers that ran a test (b0 in baseline mode), or null when Playwright wrote no per-test results. */
+function usedWorkers(mode: SessionMode, results: PwResults | null, databases: WorkerDatabase[]): UsedWorker[] | null {
+  if (results === null) return null;
+  const ran = results.tests.filter((test) => test.status !== 'skipped');
+  if (mode === 'baseline') return ran.length > 0 ? [{ name: BASELINE_DATABASE, app: null }] : [];
   const indexes = new Set(ran.map((test) => test.parallelIndex));
-  return databases.filter((_, index) => indexes.has(index)).map((database) => database.name);
+  return databases.flatMap((database, index) => (indexes.has(index) ? [{ name: database.name, app: index }] : []));
+}
+
+/** Size in bytes of each app's log, by app index. */
+function appLogSizes(repoDir: string, stack: Stack): Map<number, number> {
+  const paths = isolatePaths(repoDir);
+  return new Map(stack.apps.map((app) => [app.index, statSync(paths.appLog(app.index), { throwIfNoEntry: false })?.size ?? 0]));
 }
 
 /** Runs the Playwright command, reads the reporter's results and checks routing from outside the test process. */
 async function runTests(
   options: SessionOptions,
+  config: IsolateConfig,
   stack: Stack,
   targets: Targets,
   argv: string[],
@@ -119,6 +157,8 @@ async function runTests(
   const paths = isolatePaths(options.repoDir);
   const adminUrl = stack.postgres.url('postgres');
   const before = await readXactCommits(adminUrl, targets.databases.map((database) => database.name));
+  const logsBefore = appLogSizes(options.repoDir, stack);
+  await stack.proxy?.take();
   const cpuBefore = readCpuTimes();
   rmSync(paths.pwResults, { force: true });
 
@@ -126,46 +166,67 @@ async function runTests(
   const env = { ...targets.env, ISOLATE_RESULTS_FILE: paths.pwResults, PLAYWRIGHT_HTML_OPEN: 'never' };
   const exitCode = await guard.run(startPlaywright(argv, { cwd: options.repoDir, env, reaper: stack.reaper }));
   const cpu = cpuUsage(cpuBefore, readCpuTimes());
+  const proxy = stack.proxy === null ? null : proxyReport(stack.proxy.origin.href, await stack.proxy.take(), stack.apps);
+  const logsAfter = appLogSizes(options.repoDir, stack);
 
   const results = readResults(paths.pwResults);
-  const routing = await checkRouting(adminUrl, before, usedDatabases(options.mode, results, targets.databases));
-  return { exitCode, results, cpu, routing };
+  const used = usedWorkers(options.mode, results, targets.databases);
+  const dbActivity = await measureDbActivity(adminUrl, before, (used ?? []).map((worker) => worker.name));
+  const evidence = used?.map(
+    ({ name, app }): WorkerEvidence => ({
+      name,
+      xactCommitDelta: dbActivity.find((db) => db.name === name)?.xactCommitDelta ?? 0,
+      proxied: proxy === null || app === null ? null : requestsTo(proxy, app),
+      logBytes: app === null ? null : (logsAfter.get(app) ?? 0) - (logsBefore.get(app) ?? 0),
+    }),
+  );
+  const routing = routingVerdict({ used: evidence ?? null, misrouted: proxy === null ? [] : misrouted(proxy), urlEnv: config.db.urlEnv });
+  return { exitCode, results, cpu, dbActivity, proxy, routing };
 }
 
-/** Prints and returns what makes the tests phase suspect: no reporter results, invalid routing, refused connections (PLAN §8, rule 5). */
-function testWarnings(repoDir: string, config: IsolateConfig, tests: TestsOutcome): string[] {
-  const warnings: string[] = [];
-  if (tests.results === null) warnings.push('Playwright exited without writing the isolate reporter results');
-  if (tests.routing.idle.length > 0) warnings.push(routingError(tests.routing.idle, config.db.urlEnv));
-  const postgresLog = isolatePaths(repoDir).postgresLog;
-  if (existsSync(postgresLog) && readFileSync(postgresLog, 'utf8').includes('too many clients')) {
-    warnings.push(`Postgres refused connections ("too many clients", see ${postgresLog}): exclude this run from timing`);
+/**
+ * Prints and returns what makes the tests phase suspect: no reporter results, the routing verdict's errors and
+ * warnings, requests the shared-origin proxy refused, refused Postgres connections (PLAN §8, rule 5).
+ */
+function testWarnings(repoDir: string, tests: TestsOutcome): string[] {
+  const errors: string[] = [];
+  if (tests.results === null) errors.push('Playwright exited without writing the isolate reporter results');
+  errors.push(...tests.routing.errors);
+  const warnings = [...tests.routing.warnings];
+  const paths = isolatePaths(repoDir);
+  if (tests.proxy !== null && tests.proxy.refused > 0) {
+    warnings.push(`the shared-origin proxy refused ${tests.proxy.refused} request(s) without a usable ${WORKER_HEADER} header (421); see ${paths.proxyLog}`);
   }
-  for (const warning of warnings) log.error(warning);
-  return warnings;
+  if (existsSync(paths.postgresLog) && readFileSync(paths.postgresLog, 'utf8').includes('too many clients')) {
+    errors.push(`Postgres refused connections ("too many clients", see ${paths.postgresLog}): exclude this run from timing`);
+  }
+  for (const error of errors) log.error(error);
+  for (const warning of warnings) log.warn(warning);
+  return [...errors, ...warnings];
 }
 
 /**
  * Runs a Playwright suite under isolate: starts the stack, writes the wrapper, runs the command, checks routing, writes
  * the impact map (trace mode), reruns failures (run and trace mode), tears down, writes .isolate/report.json and prints
  * the summary table. Returns the exit code:
- * Playwright's, 1 if routing was invalid, or 128 + n after a signal.
+ * Playwright's, 1 if routing was invalid (not if it is unknown), or 128 + n after a signal.
  */
 export async function runSession(options: SessionOptions): Promise<number> {
   const stopwatch = new Stopwatch();
   const loadAvg1 = os.loadavg()[0] ?? 0;
   const paths = isolatePaths(options.repoDir);
-  const { config, command, warnings, unmanaged } = await prepare(options);
+  const { config, command, sharedOrigin, warnings, unmanaged } = await prepare(options);
+  const tagRequests = options.tagRequests || sharedOrigin !== undefined;
   stopwatch.lap('setup');
 
   const isolated = options.mode !== 'baseline';
-  const tracer = options.mode === 'trace' ? await startTracer(options.repoDir, config, options.workers) : undefined;
-  const stack = await startStack({ repoDir: options.repoDir, config: tracer?.appConfig ?? config, workers: isolated ? options.workers : 0, apps: isolated }).catch(
-    async (error: unknown) => {
-      await tracer?.close();
-      throw error;
-    },
-  );
+  const mapHeaders: Record<string, string> = sharedOrigin === undefined ? {} : { [WORKER_HEADER]: '0' };
+  const tracer = options.mode === 'trace' ? await startTracer(options.repoDir, config, options.workers, mapHeaders) : undefined;
+  const stackOptions = { repoDir: options.repoDir, config: tracer?.appConfig ?? config, workers: isolated ? options.workers : 0, apps: isolated, sharedOrigin };
+  const stack = await startStack(stackOptions).catch(async (error: unknown) => {
+    await tracer?.close();
+    throw error;
+  });
   if (tracer !== undefined) stack.reaper.trackDir(tracer.dir);
   stopwatch.lapParts({ ...stack.timings }, 'setup');
   void stack.appExited.then((exit) => {
@@ -183,7 +244,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
   let failures: Failure[];
   let peakRssMb: Record<string, number>;
   try {
-    targets = await prepareTargets(options, config, stack, tracer);
+    targets = await prepareTargets(options, config, stack, tracer, tagRequests);
     if (options.mode === 'baseline') stopwatch.lap('clone');
     wrapper = writeWrapper({
       mode: isolated ? 'isolate' : 'passthrough',
@@ -195,8 +256,8 @@ export async function runSession(options: SessionOptions): Promise<number> {
     for (const file of wrapper.files) stack.reaper.trackDir(file);
     stopwatch.lap('setup');
 
-    tests = await runTests(options, stack, targets, commandWithConfig(command, wrapper.configFile), guard);
-    warnings.push(...testWarnings(options.repoDir, config, tests));
+    tests = await runTests(options, config, stack, targets, commandWithConfig(command, wrapper.configFile), guard);
+    warnings.push(...testWarnings(options.repoDir, tests));
     if (tracer !== undefined) {
       const ran = (tests.results?.tests ?? []).filter((test) => test.status !== 'skipped').map((test) => test.id);
       warnings.push(...(await tracer.finish(ran)));
@@ -206,7 +267,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
     const failed = failedTests(tests.results);
     failures = failed.map(notRerun);
     if (isolated && !options.noRerun && failed.length > 0 && guard.signal === null) {
-      const rerun = await classifyFailures({ repoDir: options.repoDir, config, stack, command, wrapperConfig: wrapper.configFile, tagRequests: options.tagRequests, guard }, failed);
+      const rerun = await classifyFailures({ repoDir: options.repoDir, config, stack, command, wrapperConfig: wrapper.configFile, tagRequests, guard }, failed);
       failures = rerun.failures;
       warnings.push(...rerun.warnings);
       stopwatch.lap('reruns');
@@ -233,12 +294,14 @@ export async function runSession(options: SessionOptions): Promise<number> {
     peakRssMb,
     clones: targets.databases,
     failures,
-    routing: tests.routing,
+    dbActivity: tests.dbActivity,
+    proxy: tests.proxy,
+    routingValid: tests.routing.valid,
     unmanaged,
     warnings,
   });
   writeFileSync(paths.report, `${JSON.stringify(report, null, 2)}\n`);
   process.stderr.write(renderTable(report, paths.report));
   if (guard.signal !== null) return 128 + os.constants.signals[guard.signal];
-  return report.routingValid || tests.exitCode !== 0 ? tests.exitCode : 1;
+  return report.routingValid === false && tests.exitCode === 0 ? 1 : tests.exitCode;
 }

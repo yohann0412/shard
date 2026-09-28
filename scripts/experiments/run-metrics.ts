@@ -108,7 +108,8 @@ export function runValidity(run: ArmRun, reference: Record<string, Outcome> | nu
   if (run.run.exceededCap) reasons.push('exceeded cap');
   if (run.report === null) reasons.push('no report');
   if (run.results === null || run.report?.playwright === null) reasons.push('no Playwright results');
-  if (run.report !== null && !run.report.routingValid) reasons.push('routing invalid');
+  if (run.report?.routingValid === false) reasons.push('routing invalid');
+  if (run.report?.routingValid === null) reasons.push('routing unknown');
   if (tooManyClients) reasons.push('too many clients');
   const differ = reference !== null && run.results !== null ? mismatches(testOutcomes(run.results), reference) : [];
   if (reference === null) reasons.push('no baseline@1 reference outcomes');

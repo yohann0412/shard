@@ -53,6 +53,19 @@ function warningLines(report: Report): string[] {
   return ['warnings:', ...report.warnings.map((warning) => `  ${warning.split('\n')[0]}`)];
 }
 
+/** Requests the shared-origin proxy forwarded to each app, and refused; nothing without a shared origin. */
+function proxyLines(report: Report): string[] {
+  if (report.proxy === null) return [];
+  const apps = report.apps.map((app) => `w${app.index} ${app.requests ?? 0}`).join(', ');
+  return [`proxy ${report.proxy.origin}: requests per app ${apps}; refused (421) ${report.proxy.refused}`];
+}
+
+/** The routing verdict in words. */
+function routingLine(report: Report): string {
+  if (report.routingValid === null) return 'routing: unknown (see warnings)';
+  return `routing: ${report.routingValid ? 'valid' : 'INVALID (see warnings)'}`;
+}
+
 /** Peak resident memory of every app and of Postgres. */
 function memoryLine(report: Report): string {
   const apps = report.apps.map((app) => `w${app.index} ${app.peakRssMb.toFixed(0)} MB`);
@@ -74,7 +87,8 @@ export function renderTable(report: Report, reportFile: string): string {
     ...failureLines(report),
     memoryLine(report),
     report.cpu === null ? 'cpu: not measured' : `cpu during tests: ${report.cpu.busyPct}% busy, ${report.cpu.stealPct}% steal`,
-    `routing: ${report.routingValid ? 'valid' : 'INVALID (see warnings)'}`,
+    ...proxyLines(report),
+    routingLine(report),
     ...warningLines(report),
     `report: ${reportFile}`,
     '',

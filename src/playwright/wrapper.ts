@@ -78,7 +78,7 @@ const tagRequests = process.env.ISOLATE_TAG_REQUESTS === '1';
 function withIsolate(use: any, inherited?: any): any {
   const isolated = { ...use, baseURL: process.env.ISOLATE_BASE_URL };
   if (!tagRequests) return isolated;
-  const worker = process.env.TEST_PARALLEL_INDEX ?? '0';
+  const worker = process.env.ISOLATE_APP_INDEX ?? '0';
   return { ...isolated, extraHTTPHeaders: { ...inherited?.extraHTTPHeaders, ...use?.extraHTTPHeaders, 'x-isolate-worker': worker } };
 }
 

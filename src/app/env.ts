@@ -9,16 +9,19 @@ export interface WorkerValues {
   port: number;
   /** App base URL (http://127.0.0.1:<port>), for `{url}`. */
   url: string;
+  /** The URL the browser uses for this app, for `{origin}`: the shared origin, or `url` without one. */
+  origin: string;
   /** Worker database URL, for `{db}`. */
   dbUrl: string;
 }
 
-/** Replaces `{i}`, `{port}`, `{url}` and `{db}` in a template with one worker's values. */
+/** Replaces `{i}`, `{port}`, `{url}`, `{origin}` and `{db}` in a template with one worker's values. */
 export function fillPlaceholders(template: string, worker: WorkerValues): string {
   return template
     .replaceAll('{i}', String(worker.index))
     .replaceAll('{port}', String(worker.port))
     .replaceAll('{url}', worker.url)
+    .replaceAll('{origin}', worker.origin)
     .replaceAll('{db}', worker.dbUrl);
 }
 

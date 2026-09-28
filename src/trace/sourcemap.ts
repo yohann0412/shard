@@ -98,11 +98,13 @@ export class SourceResolver {
    * @param root Real path of the repository root.
    * @param clientRoots From the config's `trace.clientRoots`.
    * @param clientSources Browser script sources (those with a source map comment) by URL, as the workers sent them.
+   * @param fetchHeaders Headers for fetching a client source map from the app (the worker header behind a shared origin).
    */
   constructor(
     private readonly root: string,
     private readonly clientRoots: ClientRoot[],
     private readonly clientSources: Map<string, string>,
+    private readonly fetchHeaders: Record<string, string>,
   ) {}
 
   /** Repo file of the server function starting at `offset` in the script at `url`, or null. */
@@ -262,7 +264,7 @@ export class SourceResolver {
   }
 
   private async fetchMap(mapUrl: URL): Promise<SourceMapPayload> {
-    const response = await fetch(mapUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    const response = await fetch(mapUrl, { headers: this.fetchHeaders, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
     if (!response.ok) throw new Error(`fetching ${mapUrl.href}: HTTP ${response.status}`);
     return (await response.json()) as SourceMapPayload;
   }

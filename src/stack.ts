@@ -10,6 +10,8 @@ import { runGroup } from './proc/group.js';
 import { startReaper, type Reaper } from './proc/reaper.js';
 import { startRssSampler } from './proc/rss.js';
 import { elapsedMs } from './proc/timing.js';
+import type { SharedOrigin } from './proxy/origin.js';
+import { startProxy, type OriginProxy } from './proxy/proxy.js';
 import type { BuildConfig } from './snapshot/key.js';
 import { cacheOutcome, formatSize, planCache, shortKey, type CacheOutcome, type EntryPlan } from './snapshot/plan.js';
 import { restoreBuild, restoreDatabase, saveBuild, saveDatabase } from './snapshot/store.js';
@@ -27,6 +29,8 @@ export interface StackOptions {
   build?: boolean;
   /** `use` (the default) restores from the snapshot cache on a hit and saves to it on a miss; `refresh` never restores and always saves. */
   cache?: 'use' | 'refresh';
+  /** Start the shared-origin proxy on this origin first, and route each app's worker index to it (DECISIONS D-014). */
+  sharedOrigin?: SharedOrigin;
 }
 
 /**
@@ -49,6 +53,8 @@ export interface Stack {
   databases: WorkerDatabase[];
   /** Empty when the stack was started without apps. */
   apps: RunningApp[];
+  /** The shared-origin proxy, or null without a shared origin. */
+  proxy: OriginProxy | null;
   timings: StackTimings;
   /** Output of `postgres --version` for the server in use. */
   postgresVersion: string;
@@ -58,7 +64,10 @@ export interface Stack {
   reaper: Reaper;
   /** Resolves if an app dies on its own after it was healthy; never resolves for a stack without apps. */
   appExited: Promise<AppExit>;
-  /** Stops the apps, then Postgres, deletes the data directory and ends the reaper; returns peak RSS per process tree in MB. */
+  /**
+   * Stops the proxy, the apps, then Postgres, deletes the data directory and ends the reaper; returns peak RSS per
+   * process tree in MB.
+   */
   stop(): Promise<{ peakRssMb: Record<string, number> }>;
 }
 
@@ -128,11 +137,13 @@ async function seedAndSave(context: StepContext, server: PostgresServer, key: st
 }
 
 /**
- * Brings up everything `db up`, `app up`, `run` and `snapshot` need, in this order: the build (with apps or `build`, and
- * only if configured), Postgres, the `seed` database via migrate and seed, one template copy per worker, and one app per
- * worker (only with apps). The build and the seeded cluster come from the snapshot cache when their keys match (see
- * src/snapshot/), and are saved to it otherwise. A detached reaper watches this process from the first step, so even a
- * SIGKILL leaves nothing behind. If a phase fails, whatever already started is stopped before the error is rethrown.
+ * Brings up everything `db up`, `app up`, `run` and `snapshot` need, in this order: the shared-origin proxy (only with
+ * `sharedOrigin`, first so that a taken port costs nothing), the build (with apps or `build`, and only if configured),
+ * Postgres, the `seed` database via migrate and seed, one template copy per worker, and one app per worker (only with
+ * apps), each routed through the proxy. The build and the seeded cluster come from the snapshot cache when their keys
+ * match (see src/snapshot/), and are saved to it otherwise. A detached reaper watches this process from the first step,
+ * so even a SIGKILL leaves nothing behind. If a phase fails, whatever already started is stopped before the error is
+ * rethrown.
  */
 export async function startStack(options: StackOptions): Promise<Stack> {
   const { repoDir, config, workers } = options;
@@ -149,10 +160,12 @@ export async function startStack(options: StackOptions): Promise<Stack> {
   };
   const context: StepContext = { repoDir, config, reaper, timed };
 
+  let proxy: OriginProxy | undefined;
   let postgres: PostgresServer | undefined;
   let appGroup: AppGroup | undefined;
   const stopAll = async () => {
     const peakRssMb = await rss.stop();
+    await proxy?.stop();
     await appGroup?.stop();
     await postgres?.stop();
     const escaped = await reaper.close();
@@ -161,6 +174,10 @@ export async function startStack(options: StackOptions): Promise<Stack> {
   };
 
   try {
+    if (options.sharedOrigin !== undefined) {
+      proxy = await startProxy(options.sharedOrigin, reaper, paths.proxyLog);
+      log.info(`shared-origin proxy listening for ${proxy.origin.href} (log: ${paths.proxyLog})`);
+    }
     const binaries = await timed('postgresStart', () => findPostgresBinaries(config));
     log.info(`postgres binaries: ${binaries.source} (${binaries.version})`);
     const build = (options.build ?? options.apps) ? config.build : undefined;
@@ -181,8 +198,11 @@ export async function startStack(options: StackOptions): Promise<Stack> {
     const databases = await timed('clone', () => cloneDatabases(server, workers));
 
     if (options.apps) {
-      appGroup = await timed('appBoot', () => startApps({ repoDir, config, databases, reaper }));
-      for (const app of appGroup.apps) rss.track(`w${app.index}`, app.pid);
+      appGroup = await timed('appBoot', () => startApps({ repoDir, config, databases, reaper, origin: options.sharedOrigin?.href }));
+      for (const app of appGroup.apps) {
+        rss.track(`w${app.index}`, app.pid);
+        await proxy?.route(app.index, app.port);
+      }
     }
     log.info(timings, 'ready; phase times in ms:');
 
@@ -192,6 +212,7 @@ export async function startStack(options: StackOptions): Promise<Stack> {
       seedUrl,
       databases,
       apps: appGroup?.apps ?? [],
+      proxy: proxy ?? null,
       timings,
       postgresVersion: binaries.version,
       cache: cacheOutcome(plan),

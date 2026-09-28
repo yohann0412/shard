@@ -5,7 +5,8 @@ import type { UnmanagedService } from '../init/unmanaged.js';
 import type { CacheOutcome } from '../snapshot/plan.js';
 import type { CpuUsage } from './cpu.js';
 import type { Machine } from './machine.js';
-import type { RoutingCheck } from './routing.js';
+import { requestsTo, type ProxyReport } from './requests.js';
+import type { DbActivity } from './routing.js';
 import { reportSchema, type Failure, type Report } from './schema.js';
 import type { Stopwatch } from './stopwatch.js';
 import { playwrightTiming, testTotals, workerCounts } from './summary.js';
@@ -25,7 +26,9 @@ export interface ReportInput {
   peakRssMb: Record<string, number>;
   clones: WorkerDatabase[];
   failures: Failure[];
-  routing: RoutingCheck;
+  dbActivity: DbActivity[];
+  proxy: ProxyReport | null;
+  routingValid: boolean | null;
   unmanaged: UnmanagedService[];
   warnings: string[];
 }
@@ -45,14 +48,21 @@ export function buildReport(input: ReportInput): Report {
     machine: input.machine,
     cpu: input.cpu,
     playwright: playwrightTiming(input.results),
-    apps: input.apps.map((app) => ({ index: app.index, port: app.port, bootMs: app.bootMs, peakRssMb: input.peakRssMb[`w${app.index}`] ?? 0 })),
+    apps: input.apps.map((app) => ({
+      index: app.index,
+      port: app.port,
+      bootMs: app.bootMs,
+      peakRssMb: input.peakRssMb[`w${app.index}`] ?? 0,
+      requests: input.proxy === null ? null : requestsTo(input.proxy, app.index),
+    })),
     postgresPeakRssMb: input.peakRssMb.postgres ?? 0,
     clones: input.clones.map((database) => ({ name: database.name, ms: database.copyMs })),
     workers: workerCounts(input.results),
     tests: testTotals(input.results),
     failures: input.failures,
-    dbActivity: input.routing.dbActivity,
-    routingValid: input.routing.idle.length === 0,
+    dbActivity: input.dbActivity,
+    proxy: input.proxy,
+    routingValid: input.routingValid,
     unmanaged: input.unmanaged,
     warnings: input.warnings,
   });
