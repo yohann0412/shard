@@ -73,7 +73,38 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 
 ### Real repositories
 
-_pending (umami browser suite running; rallly after the shared-origin mode)._
+**umami** (umami-software/umami @ ec0ff5038, Next.js 16 production build, Playwright 1.63, browser suite of 38 tests in 8 files, `fullyParallel: false`). Source: `data/results/umami/experiment-a.json` (21 runs, all valid; every timed run started below load 1.0). No umami file was changed.
+
+| Arm | Median test phase [min-max] | Speedup vs isolated@1 | Scheduling ceiling | Resource ceiling | Median end-to-end |
+|---|---:|---:|---:|---:|---:|
+| baseline@1 (repo's own config and `webServer`) | 131.5 s [128.6-133.1] | — | | | 143.0 s |
+| isolated@1 | 130.6 s [129.7-132.1] | 1.00 | 1.00 | 1.00 | 141.5 s |
+| isolated@2 | 111.9 s [111.3-113.6] | 1.17 | 1.23 | 2.00 | 122.6 s |
+| **isolated@4** | **100.3 s [100.2-101.3]** | **1.30** | 1.23 | 4.00 | 113.3 s |
+
+- **Zero isolation failures.** The same 7 stale tests (tests CI does not run and that no longer match the app) fail in every arm, the baseline included, and pass in none. Every other test passes in every run.
+- **The ceiling is file granularity, not CPU.** `tests/e2e/website.spec.ts` holds 3 serial tests that take 90 of the 111 s summed test time, so no worker count can beat about 1.23x without splitting that file. The measured 1.30x is slightly above that ceiling because the long file ran a little faster at N=4 than at N=1. One worker slot uses only 0.59 cores.
+- **Harness effect 1.006.** Against the repo's own serial run: 1.31x in the test phase and 1.26x end to end.
+- **Setup is small.** Hooks and fixtures are 10% of test time; the pre-test phase is 3-6% of Playwright's wall time.
+- **Memory at N=4:** 2.2 GB peak. Each Next.js server takes 420-490 MB; Postgres takes 435 MB as an upper bound.
+
+**umami API suite** (271 request-level tests; no browser; onboarding runs, not the timed protocol). Source: `data/results/umami-api/onboarding/`.
+- With a plain config it passes 271/271 at N=1, but 75 tests differ from baseline at N=2 and 139 at N=4. The cause is **shared setup state outside the database**: the suite's `globalSetup` runs once in Playwright's main process, seeds only worker 0's app over HTTP, and writes `seed.json`/`openapi.json` under a host-keyed directory. The other workers fail with ENOENT.
+- A config-only fix makes it pass 271/271 at N=1, 2 and 4. `db.seed` starts a temporary app on `seed` and runs umami's own global setup against it, so every copy inherits the seeded state. `API_SKIP_SEED=1` stops the run from reseeding.
+- This is the "setup projects / globalSetup" hazard from RISKS R9, observed in a real repo.
+- It was not timed: `isolate run --baseline` cannot start an app for a Playwright config without `webServer` (a gap recorded in the reviews).
+
+**rallly** (lukevella/rallly @ fa6bfd478b, Next.js with Turbopack, Playwright 1.58.1, `workers: 1`).
+- **Without the shared-origin mode, isolation fails at every N, N=1 included.** The build bakes `http://localhost:3201` into 63 client chunks and into the auth library's trusted origins. isolate's apps listen on random 127.0.0.1 ports, so pages never hydrate: 20 browser tests fail in every isolated arm. One mitigation that changed no rallly file failed, because `next.config.ts` ties `assetPrefix` to the same variable.
+  Source: `data/results/rallly/onboarding-without-shared-origin/`.
+- **With the shared-origin mode (D-014)**, subset L of 16 files and 70 tests, quick arms (1 run each, no warm-up, no load gate; a reduced protocol). Source: `data/results/rallly/quick-shared-origin-arms/`.
+  - Baseline at workers 1: 70/70, test phase 143.7 s.
+  - Isolated N=1: 70/70, 144.6 s. N=2: 70/70, 98.5 s (1.47x). N=4: 69/70, 99.0 s (1.46x), CPU 96% busy.
+  - The one failure at N=4 was a 5 s `locator.waitFor` timeout that passed both solo reruns, so it is categorized as a timeout under load.
+  - The proxy counted every request reaching its own worker's app and refused none.
+- _The full protocol on rallly is pending._
+
+**documenso** was not measured: its `api` project alone takes 939 s at workers 1, over the protocol's 5-minute limit, and CI's rate-limit bypass variable was refused in this sandbox. See HANDOFF.md.
 
 ## Experiment B: impact map
 
