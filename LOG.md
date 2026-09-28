@@ -121,7 +121,7 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 - What remains is `login verify page` (a 5 s `waitFor`, twice) and `create a new poll` (a 30 s timeout, once), with CPU at 89-95% busy: timeouts under load.
 - Test phase 99.0 / 88.7 / 84.7 s, median 88.7 s, which is 1.57x against isolated@1's 139.7 s. Only one of the three rounds was fully clean.
 
-**17:00 Fresh-clone check of HOW_TO_RUN_LOCALLY.md.**
+**16:57 Fresh-clone check of HOW_TO_RUN_LOCALLY.md.**
 - **First attempt, in the scratch directory (mode 700, root-only):** `just demo` failed. As root, Postgres runs as the `postgres` user, which cannot read binaries inside a root-only directory, and the loader reported `libicuuc.so.60: cannot open shared object file`. That is a real bug for anyone running as root with the repo under `/root`.
 - **Fix (lead, small, logged here):** `src/db/access.ts` checks whether the Postgres user can run the binaries. If not, it copies them once to `/tmp/isolate-postgres-<key>`. Verified: `db up` from the root-only clone now reaches ready.
 - **Second attempt, clone in `/home/user/isolate-fresh`:** `pnpm install` (~1 s with a warm store), then `just demo`. The shared app at 4 workers exits 1 (39.0 s); `isolate run --workers 4` exits 0, 12/12 (13.9 s).
@@ -129,7 +129,7 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 
 **17:02 Final acceptance suite green:** `just e2e` 9/9 in 268 s (f1-f8 + p1), on the main branch including the binary-copy fix.
 
-**17:18 Post-hoc decisions after the results review (reviews/results.md), recorded as deviations from the pre-registration.**
+**17:04 Post-hoc decisions after the results review (reviews/results.md), recorded as deviations from the pre-registration.**
 1. umami's run reports carry the tool's "isolation incomplete" label (optional ClickHouse/Kafka/Redis clients in its dependencies, none configured). RESULTS.md counts umami anyway and says so; by the letter of the rule, no real repo qualifies for the Claim A median.
 2. rallly's full suite (495 s at workers 1) is also over the 5-minute limit in PLAN §5. It was measured on subset L, chosen after onboarding and weighted toward the files that failed there. documenso was not subset the same way, because its rate limits stay on in this sandbox.
 3. The protocol's "re-time on the common passing subset" (§5 step 5) was not in the harness. It is now applied to umami by running a recipe restricted to the 4 spec files whose tests passed in every baseline round (`experiments/recipes/umami-passing.json`).

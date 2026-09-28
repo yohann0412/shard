@@ -9,7 +9,7 @@ Every number cites a committed file under `data/results/` or `experiments/recipe
   - rallly's runs share one mailpit.
   - umami's run reports also carry the "isolation incomplete" label. The tool's scan found ClickHouse, Kafka and Redis clients in its dependencies. umami uses them only when their URLs are set, and none were.
   - So, literally, no real repo qualifies.
-- **Most important number:** counting umami anyway (a post-hoc reading, logged in LOG.md at 17:18 UTC), its test-phase speedup at N=4 is **1.30x on the full browser suite**. _Its re-timing on the common passing subset, which the protocol requires because 7 stale tests wait out 30 s timeouts, is below._
+- **Most important number:** counting umami anyway (a post-hoc reading, logged in LOG.md at 17:04 UTC), its test-phase speedup at N=4 is **1.30x on the full browser suite**. _Its re-timing on the common passing subset, which the protocol requires because 7 stale tests wait out 30 s timeouts, is below._
 - **Context, not verdict evidence:**
   - The fixture (never pooled): 1.48x at N=4.
   - rallly: 1.54x at N=2, which is 0.77 of the 2x possible at N=2.
@@ -115,7 +115,7 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 - This is the "setup projects / globalSetup" hazard from RISKS R9, observed in a real repo.
 - **Not run under the timed protocol** (single runs, load up to 1.17). With the seeding step, isolated N=1 took 93.5 s, N=2 70.5 s, and N=4 66.9-74.6 s (1.25-1.40x). A baseline through an app started by hand took 76.4 s, a harness effect of 0.82 (flagged). This is consistent with the browser suite and is not verdict evidence. `isolate run --baseline` cannot itself start an app for a Playwright config without `webServer`.
 
-**rallly** (lukevella/rallly @ fa6bfd478b, Next.js 16 with Turbopack, Playwright 1.58.1, `workers: 1`). The full suite (495 s at workers 1) is also over the protocol's 5-minute limit. It was measured on a subset chosen after onboarding, weighted toward the files that failed there: a logged deviation (LOG.md, 17:18).
+**rallly** (lukevella/rallly @ fa6bfd478b, Next.js 16 with Turbopack, Playwright 1.58.1, `workers: 1`). The full suite (495 s at workers 1) is also over the protocol's 5-minute limit. It was measured on a subset chosen after onboarding, weighted toward the files that failed there: a logged deviation (LOG.md, 17:04).
 
 - **Without the shared-origin mode, isolation fails at every N, N=1 included.** The build bakes `http://localhost:3201` into 63 client chunks and into the auth library's trusted origins, while isolate's apps listen on random 127.0.0.1 ports. Pages never hydrate, so 20 browser tests fail in every isolated arm. One mitigation that changed no rallly file failed, because `next.config.ts` ties `assetPrefix` to the same variable. Source: `data/results/rallly/onboarding-without-shared-origin/`.
 - **With the shared-origin mode (D-014)**, subset L: 16 files and 70 tests, including every file that failed above. The config sets `NEXT_PUBLIC_BASE_URL: '{origin}'`; no rallly file changed. One mailpit is shared by all workers (an unmanaged service: "isolation incomplete"). The protocol is labelled reduced because it runs a subset. Source: `data/results/rallly/experiment-a.json` (31 runs).
