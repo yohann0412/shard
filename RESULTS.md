@@ -1,11 +1,24 @@
 # Results
 
-**Status: draft, being filled in as runs finish.** Every number cites a committed file under `data/results/` or `experiments/recipes/`.
+Every number cites a committed file under `data/results/` or `experiment/recipes/`. The verdict rules were fixed before any data (PLAN.md §1, commit e5c5361). The plot is `data/results/speedup-vs-workers.png`, and `data/results/summary.md` has the generated tables.
 
 ## Verdicts
 
-- **Claim A (isolation):** _pending Experiment A._
-- **Claim B (impact map):** _pending Experiment B._
+**Claim A (isolation gives close to N× on the test phase with zero test edits and no new failures): not supported on this 4-core machine.**
+- **Most important number:** the median test-phase speedup at N=4 across real repos with a valid N=4 arm is **1.30x**, from umami alone (n = 1).
+- **By the pre-registered rule the formal verdict is "inconclusive".** Fewer than 3 real repos produced a valid N=4 measurement, and rallly's runs used a shared, unmanaged mail service, so they are labelled "isolation incomplete" and kept out of the median.
+- **Every measurement points the same way.** Fixture 1.48x at N=4; umami 1.30x; rallly 1.54x at N=2, and 1.57x at N=4 in a control with one mail catcher per worker. All are below the 2x falsification line.
+- **Isolation itself did hold.** Zero new deterministic failures on the fixture and umami, with no test edits. rallly needed two things V1 does not do by default: a shared-origin proxy, and one SMTP catcher per worker.
+- **The speedup was lost to two things the thesis did not model.** (1) File-level scheduling: umami's one 90 s serial file caps it at about 1.23x. (2) CPU per worker slot: 1.9-2.2 cores each on the fixture and rallly, so 4 cores fit about 2 slots.
+- **Setup does not dominate.** It is 10-28% of test time.
+
+**Claim B (a per-test file map lets a PR run only the tests that executed the changed files, with the map close to complete): not supported.**
+- **Completeness looked fine, but on too little data.** No scored mutant was missed: 11/11 on the fixture and 1/1 on umami. But the fixture's 95% interval (0.715-1) is below the pre-registered bar of 0.9.
+- **The maps were not useful.**
+  - **Most important number:** the median time-weighted selection ratio, **0.97 on the fixture and 0.96 on umami**. For the median changed file, pruning skips 3-4% of test time.
+  - umami's map was also **unstable** across worker counts: per-file Jaccard median 0.875, below the pre-registered 0.9.
+  - On a Next.js production build, 227 route files are global (preloaded at boot), and client code maps to nothing.
+- Tracing produced a map on 1 real repo, not 3.
 
 ## Machine
 
@@ -22,7 +35,7 @@ Pool: the 23-repo seed list plus awesome-selfhosted-data (daily star counts; sna
 | Static class A / B / C | 1 / 36 / 59 |
 | Tried for real by the scout (top candidates by expected feasibility) | 12 (3 more not examined) |
 | Repo's own suite green at baseline in this sandbox | 3 (rallly, umami, documenso partially) |
-| Runs under isolate | _pending_ |
+| Runs under isolate with no repo edits | 3 (fixture aside): umami (browser suite as-is; API suite with a config-only seeding step), rallly (with the shared-origin mode and, at N=4, one mailpit per worker) |
 
 Why the 902 others did not qualify: 828 have no Playwright config, 74 have no database evidence (`data/harvest-summary.md`). Among the 96, the most common blockers are Redis (55), SMTP (50), S3/MinIO (41), Stripe (24), OpenAI (22), Anthropic (19), a Python backend (16) and BullMQ (14).
 
@@ -35,8 +48,8 @@ Premise check. By their own config text, 47 of the 96 qualified repos run one wo
 | Repo | Static class | Outcome here | Blocker / note |
 |---|---|---|---|
 | fixture-app (this repo) | n/a | runs | built to collide; reported separately and never pooled |
-| lukevella/rallly | B | baseline green (137-140/140) | isolation: build-time origin baked into Next.js chunks and auth trusted origins (see below) |
-| umami-software/umami | B | baseline green (browser suite 24/31, 7 stale tests CI does not run; API suite 271/271) | _pending_ |
+| lukevella/rallly | B | baseline green (137/140 at workers 1; 3 lost to one timeout under load and its serial group) | measured on a 70-test subset with the shared-origin mode; shared mailpit breaks N=4 |
+| umami-software/umami | B | baseline green (browser suite 24 passed + 7 stale failures + 7 not run of 38; API suite 271/271) | measured: Experiment A (browser suite) and Experiment B; API suite needs a config-only seeding step |
 | documenso/documenso | B | baseline partly run (`api` project 458/15/34 in 939 s) | over the 5-minute limit per run; CI's rate-limit bypass variable was refused by the sandbox's permission checker, so rate limits stay on |
 | formbricks/formbricks | B | blocked | pgvector extension, Valkey, SpiceDB, S3, license key |
 | hoppscotch/hoppscotch | — | blocked | no Playwright suite |
@@ -94,15 +107,24 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 - This is the "setup projects / globalSetup" hazard from RISKS R9, observed in a real repo.
 - It was not timed: `isolate run --baseline` cannot start an app for a Playwright config without `webServer` (a gap recorded in the reviews).
 
-**rallly** (lukevella/rallly @ fa6bfd478b, Next.js with Turbopack, Playwright 1.58.1, `workers: 1`).
-- **Without the shared-origin mode, isolation fails at every N, N=1 included.** The build bakes `http://localhost:3201` into 63 client chunks and into the auth library's trusted origins. isolate's apps listen on random 127.0.0.1 ports, so pages never hydrate: 20 browser tests fail in every isolated arm. One mitigation that changed no rallly file failed, because `next.config.ts` ties `assetPrefix` to the same variable.
-  Source: `data/results/rallly/onboarding-without-shared-origin/`.
-- **With the shared-origin mode (D-014)**, subset L of 16 files and 70 tests, quick arms (1 run each, no warm-up, no load gate; a reduced protocol). Source: `data/results/rallly/quick-shared-origin-arms/`.
-  - Baseline at workers 1: 70/70, test phase 143.7 s.
-  - Isolated N=1: 70/70, 144.6 s. N=2: 70/70, 98.5 s (1.47x). N=4: 69/70, 99.0 s (1.46x), CPU 96% busy.
-  - The one failure at N=4 was a 5 s `locator.waitFor` timeout that passed both solo reruns, so it is categorized as a timeout under load.
-  - The proxy counted every request reaching its own worker's app and refused none.
-- _The full protocol on rallly is pending._
+**rallly** (lukevella/rallly @ fa6bfd478b, Next.js 16 with Turbopack, Playwright 1.58.1, `workers: 1`).
+
+- **Without the shared-origin mode, isolation fails at every N, N=1 included.** The build bakes `http://localhost:3201` into 63 client chunks and into the auth library's trusted origins, while isolate's apps listen on random 127.0.0.1 ports. Pages never hydrate, so 20 browser tests fail in every isolated arm. One mitigation that changed no rallly file failed, because `next.config.ts` ties `assetPrefix` to the same variable. Source: `data/results/rallly/onboarding-without-shared-origin/`.
+- **With the shared-origin mode (D-014)**, subset L: 16 files and 70 tests, including every file that failed above. The config sets `NEXT_PUBLIC_BASE_URL: '{origin}'`; no rallly file changed. One mailpit is shared by all workers (an unmanaged service: "isolation incomplete"). The protocol is labelled reduced because it runs a subset. Source: `data/results/rallly/experiment-a.json` (31 runs).
+
+| Arm | Valid rounds | Median test phase [min-max] | Speedup vs isolated@1 |
+|---|---:|---:|---:|
+| baseline@1 | 5/5 | 135.3 s [134.7-141.3] | — |
+| isolated@1 | 5/5 | 139.7 s [133.6-146.6] | 1.00 |
+| isolated@2 | 4/5 | 91.0 s [87.9-95.3] | **1.54** (scheduling ceiling 2.00, resource ceiling 1.83) |
+| isolated@4 | **0/5** | (98.3 s over all 5 runs, none valid) | n/a |
+
+- **At N=4 every round had 2-16 failures, all timeouts, each passing when rerun alone.** Five tests count as isolation failures by the protocol's rule. All are in specs that call `deleteAllMessages()` in `beforeEach` or wait for an email login code in a mailpit shared by the four workers.
+- **Control: one mailpit per worker**, a config-only change: `SMTP_PORT: '323{i}'` for apps, `MAILPIT_API_URL: 'http://127.0.0.1:324{i}/api'` for tests. Source: `data/results/rallly/control-per-worker-mailpit/`, 3 rounds, each started below load 1.0.
+  - Failures per round dropped to 2, 1 and 0. The email-login tests all passed.
+  - The remaining failures (`login verify page`, a 5 s wait; `create a new poll`, a 30 s timeout) happened at 89-95% CPU: timeouts under load.
+  - Median test phase 88.7 s, 1.57x against isolated@1. Only one round was fully clean.
+- **The wider picture.** Harness effect 0.97; hooks and fixtures are 25% of test time. One worker slot uses 2.18 cores, so this machine cannot fit more than about 1.8 slots of rallly. Peak memory at N=4 was 3.9 GB.
 
 **documenso** was not measured: its `api` project alone takes 939 s at workers 1, over the protocol's 5-minute limit, and CI's rate-limit bypass variable was refused in this sandbox. See HANDOFF.md.
 
