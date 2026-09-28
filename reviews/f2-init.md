@@ -20,3 +20,9 @@ Subagent report: detection split into 17 small detectors; `webServer` read throu
 
 - That `public/` is served at `/` (true for Express static and Next.js).
 - That the repo's Playwright can be resolved from the config's directory (true when dependencies are installed).
+
+## Lead's run (main tree, after wiring the hooks, 09:49-09:51 UTC)
+
+- `just e2e-one f2-init`: pass (33.7 s): `init` on a clean fixture copy writes a config that `run --workers 2` accepts; with `ioredis` + `REDIS_URL` it exits non-zero, names Redis and `--allow-unmanaged`, writes no file; with the flag it writes the config listing redis.
+- `just e2e-one f3-app` and `f6-report` still pass after the `app.start` placeholder and report-schema changes.
+- Verdict: accepted.
