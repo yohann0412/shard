@@ -1,0 +1,15 @@
+round 1 load 0.97 16:41:27
+exit 1
+tests: 70 total, 67 passed, 2 failed, 0 flaky, 1 skipped
+playwright: test phase 98,993.7 ms, before first test 2,524.7 ms, after last test 249.5 ms
+cpu during tests: 89.3% busy, 1.7% steal
+round 2 load 0.97 16:46:01
+exit 1
+tests: 70 total, 69 passed, 1 failed, 0 flaky, 0 skipped
+playwright: test phase 88,688.0 ms, before first test 2,748.4 ms, after last test 276.0 ms
+cpu during tests: 95.4% busy, 1.7% steal
+round 3 load 0.98 16:50:35
+exit 0
+tests: 70 total, 70 passed, 0 failed, 0 flaky, 0 skipped
+playwright: test phase 84,669.2 ms, before first test 2,297.6 ms, after last test 247.1 ms
+cpu during tests: 94.6% busy, 1.7% steal
