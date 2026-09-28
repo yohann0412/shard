@@ -1,0 +1,1924 @@
+{
+ "scannedAt": "2026-09-28T18:48:33.505Z",
+ "method": "shallow clone of default branch; static count of Playwright spec files and test( calls; CI workflow shard counts and timeout-minutes",
+ "repos": [
+  {
+   "name": "snapotter-hq/SnapOtter",
+   "configs": 10,
+   "specFiles": 91,
+   "tests": 2023,
+   "workerSettings": [
+    "1",
+    "process.env.PW_WORKERS ? Number(process.env.PW_WORKERS) : 2",
+    "2",
+    "process.env.QA_WORKERS ? Number(process.env.QA_WORKERS) : 4"
+   ],
+   "ciWorkflows": 4,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 120,
+   "ciWorkers": [
+    "1"
+   ],
+   "ciFiles": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/deploy-demo.yml",
+    ".github/workflows/nightly.yml",
+    ".github/workflows/update-visual-baselines.yml"
+   ]
+  },
+  {
+   "name": "payloadcms/payload",
+   "configs": 14,
+   "specFiles": 126,
+   "tests": 1923,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined",
+    "16"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [
+    "1:",
+    "1)",
+    "1",
+    "1'"
+   ],
+   "ciFiles": [
+    ".github/workflows/main.yml"
+   ]
+  },
+  {
+   "name": "toeverything/AFFiNE",
+   "configs": 7,
+   "specFiles": 226,
+   "tests": 1507,
+   "workerSettings": [
+    "process.env.CI && !process.env.COPILOT ? 1 : 4",
+    "4",
+    "'80%'"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 5,
+   "ciMaxTimeoutMin": 40,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/build-test.yml",
+    ".github/workflows/copilot-test.yml",
+    ".github/workflows/release-mobile.yml"
+   ]
+  },
+  {
+   "name": "n8n-io/n8n",
+   "configs": 2,
+   "specFiles": 289,
+   "tests": 1210,
+   "workerSettings": [
+    "WORKERS",
+    "1"
+   ],
+   "ciWorkflows": 13,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 240,
+   "ciWorkers": [
+    "1",
+    "\"$WORKERS\"",
+    "4"
+   ],
+   "ciFiles": [
+    ".github/workflows/ci-pr-quality.yml",
+    ".github/workflows/ci-pull-requests.yml",
+    ".github/workflows/encryption-upgrade-test.yml",
+    ".github/workflows/test-dev-server-smoke-reusable.yml",
+    ".github/workflows/test-e2e-coverage-nightly.yml"
+   ]
+  },
+  {
+   "name": "documenso/documenso",
+   "configs": 1,
+   "specFiles": 135,
+   "tests": 1184,
+   "workerSettings": [
+    "10"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-tests.yml"
+   ]
+  },
+  {
+   "name": "TryGhost/Ghost",
+   "configs": 7,
+   "specFiles": 113,
+   "tests": 1116,
+   "workerSettings": [
+    "process.env.CI ? '100%' : undefined",
+    "parseInt(process.env.TEST_WORKERS_COUNT",
+    "1",
+    "process.env.CI ? 2 : undefined"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 10,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/e2e-runner-image.yml"
+   ]
+  },
+  {
+   "name": "Paca-AI/paca",
+   "configs": 1,
+   "specFiles": 33,
+   "tests": 680,
+   "workerSettings": [
+    "Number(process.env.E2E_WORKERS) || (process.env.CI ? 2 : 3)"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 120,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-tests.yml"
+   ]
+  },
+  {
+   "name": "penpot/penpot",
+   "configs": 1,
+   "specFiles": 65,
+   "tests": 532,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 40,
+   "ciWorkers": [
+    "\"$WORKERS\""
+   ],
+   "ciFiles": [
+    ".github/workflows/tests-e2e.yml"
+   ]
+  },
+  {
+   "name": "solidtime-io/solidtime",
+   "configs": 1,
+   "specFiles": 23,
+   "tests": 502,
+   "workerSettings": [
+    "process.env.CI ? 2 : 4"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [
+    "4"
+   ],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "Stirling-Tools/Stirling-PDF",
+   "configs": 1,
+   "specFiles": 80,
+   "tests": 472,
+   "workerSettings": [
+    "process.env.CI ? 1 : \"50%\""
+   ],
+   "ciWorkflows": 6,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [
+    "${{",
+    "3"
+   ],
+   "ciFiles": [
+    ".github/workflows/build-enterprise.yml",
+    ".github/workflows/build.yml",
+    ".github/workflows/coverage-aggregate.yml",
+    ".github/workflows/e2e-live.yml",
+    ".github/workflows/e2e-stubbed.yml"
+   ]
+  },
+  {
+   "name": "onetimesecret/onetimesecret",
+   "configs": 1,
+   "specFiles": 46,
+   "tests": 462,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 7,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/e2e-full-auth.yml",
+    ".github/workflows/e2e-tenant-connect.yml",
+    ".github/workflows/e2e.yml",
+    ".github/workflows/fresh-clone.yml"
+   ]
+  },
+  {
+   "name": "onyx-dot-app/onyx",
+   "configs": 1,
+   "specFiles": 87,
+   "tests": 459,
+   "workerSettings": [
+    "process.env.CI ? 4 : undefined"
+   ],
+   "ciWorkflows": 4,
+   "ciMaxShards": 2,
+   "ciMaxTimeoutMin": 40,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/merge-group.yml",
+    ".github/workflows/pr-golang-tests.yml",
+    ".github/workflows/pr-playwright-tests.yml",
+    ".github/workflows/pr-python-connector-tests.yml"
+   ]
+  },
+  {
+   "name": "RocketChat/Rocket.Chat",
+   "configs": 1,
+   "specFiles": 68,
+   "tests": 458,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci-test-e2e.yml",
+    ".github/workflows/ci-test-storybook.yml"
+   ]
+  },
+  {
+   "name": "LibreChat-AI/LibreChat",
+   "configs": 3,
+   "specFiles": 137,
+   "tests": 368,
+   "workerSettings": [
+    "1",
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 6,
+   "ciMaxShards": 2,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/cache-integration-tests.yml",
+    ".github/workflows/codegraph-e2e-votes.yml",
+    ".github/workflows/frontend-review.yml",
+    ".github/workflows/playwright-bombadil.yml",
+    ".github/workflows/playwright-mock.yml"
+   ]
+  },
+  {
+   "name": "dubinc/dub",
+   "configs": 1,
+   "specFiles": 35,
+   "tests": 358,
+   "workerSettings": [
+    "process.env.GITHUB_ACTIONS ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yaml"
+   ]
+  },
+  {
+   "name": "hcengineering/platform",
+   "configs": 3,
+   "specFiles": 73,
+   "tests": 308,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/main.yml"
+   ]
+  },
+  {
+   "name": "calcom/cal.com",
+   "configs": 2,
+   "specFiles": 59,
+   "tests": 287,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined",
+    "process.env.PWDEBUG ? 1 : os.cpus().length"
+   ],
+   "ciWorkflows": 9,
+   "ciMaxShards": 8,
+   "ciMaxTimeoutMin": 20,
+   "ciWorkers": [
+    "4"
+   ],
+   "ciFiles": [
+    ".github/workflows/cleanup.yml",
+    ".github/workflows/e2e-app-store.yml",
+    ".github/workflows/e2e-atoms.yml",
+    ".github/workflows/e2e-embed-react.yml",
+    ".github/workflows/e2e-embed.yml"
+   ]
+  },
+  {
+   "name": "strapi/strapi",
+   "configs": 1,
+   "specFiles": 100,
+   "tests": 280,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/tests.yml"
+   ]
+  },
+  {
+   "name": "super-productivity/super-productivity",
+   "configs": 7,
+   "specFiles": 103,
+   "tests": 279,
+   "workerSettings": [
+    "1",
+    "(process.env.CI"
+   ],
+   "ciWorkflows": 5,
+   "ciMaxShards": 6,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [
+    "1"
+   ],
+   "ciFiles": [
+    ".github/workflows/build.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/e2e-scheduled.yml",
+    ".github/workflows/e2e-sync-pr.yml",
+    ".github/workflows/issue-reproduce.yml"
+   ]
+  },
+  {
+   "name": "ether/etherpad",
+   "configs": 1,
+   "specFiles": 76,
+   "tests": 274,
+   "workerSettings": [
+    "2"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/frontend-admin-tests.yml",
+    ".github/workflows/frontend-tests.yml"
+   ]
+  },
+  {
+   "name": "supabase/supabase",
+   "configs": 5,
+   "specFiles": 32,
+   "tests": 262,
+   "workerSettings": [
+    "1",
+    "env.IS_PLATFORM ? 1 : 3"
+   ],
+   "ciWorkflows": 4,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/docs-e2e.yml",
+    ".github/workflows/docs-tests.yml",
+    ".github/workflows/studio-e2e-test.yml",
+    ".github/workflows/www-e2e.yml"
+   ]
+  },
+  {
+   "name": "vendurehq/vendure",
+   "configs": 1,
+   "specFiles": 43,
+   "tests": 212,
+   "workerSettings": [
+    "process.env.CI ? 4 : undefined"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/build_and_test.yml",
+    ".github/workflows/publish_and_install.yml"
+   ]
+  },
+  {
+   "name": "rhonda-rodododo/llamenos-platform",
+   "configs": 3,
+   "specFiles": 28,
+   "tests": 205,
+   "workerSettings": [
+    "process.env.CI ? 4 : 3",
+    "3",
+    "1"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [
+    "1"
+   ],
+   "ciFiles": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/desktop-e2e.yml"
+   ]
+  },
+  {
+   "name": "suitenumerique/docs",
+   "configs": 1,
+   "specFiles": 30,
+   "tests": 200,
+   "workerSettings": [
+    "process.env.CI ? 3 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 10,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-tests.yml"
+   ]
+  },
+  {
+   "name": "hudikhq/hoodik",
+   "configs": 1,
+   "specFiles": 42,
+   "tests": 190,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 3,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/test.yml"
+   ]
+  },
+  {
+   "name": "mattermost/mattermost",
+   "configs": 2,
+   "specFiles": 31,
+   "tests": 178,
+   "workerSettings": [
+    "testConfig.workers"
+   ],
+   "ciWorkflows": 11,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-ci-cache-warm.yml",
+    ".github/workflows/e2e-tests-check.yml",
+    ".github/workflows/e2e-tests-ci.yml",
+    ".github/workflows/e2e-tests-on-merge.yml",
+    ".github/workflows/e2e-tests-on-release.yml"
+   ]
+  },
+  {
+   "name": "nextcloud/server",
+   "configs": 1,
+   "specFiles": 44,
+   "tests": 174,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "saleor/saleor-dashboard",
+   "configs": 2,
+   "specFiles": 39,
+   "tests": 158,
+   "workerSettings": [
+    "1",
+    "parseInt(env.WORKERS || DEFAULT_WORKERS)"
+   ],
+   "ciWorkflows": 6,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/app-smoke-tests.yml",
+    ".github/workflows/e2e-local.yml",
+    ".github/workflows/main.yml",
+    ".github/workflows/pr-automation.yml",
+    ".github/workflows/run-test-manual.yml"
+   ]
+  },
+  {
+   "name": "evershopcommerce/evershop",
+   "configs": 1,
+   "specFiles": 48,
+   "tests": 145,
+   "workerSettings": [
+    "WORKERS"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "lukevella/rallly",
+   "configs": 3,
+   "specFiles": 36,
+   "tests": 144,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml"
+   ]
+  },
+  {
+   "name": "pomerium/pomerium",
+   "configs": 4,
+   "specFiles": 41,
+   "tests": 140,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/acceptance.yaml"
+   ]
+  },
+  {
+   "name": "immich-app/immich",
+   "configs": 1,
+   "specFiles": 21,
+   "tests": 138,
+   "workerSettings": [
+    "process.env.CI ? 4 : Math.round(cpus().length * 0.75)"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/test.yml"
+   ]
+  },
+  {
+   "name": "formbricks/formbricks",
+   "configs": 2,
+   "specFiles": 49,
+   "tests": 137,
+   "workerSettings": [
+    "process.env.CI ? 4 : undefined"
+   ],
+   "ciWorkflows": 4,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/api-v3-contract-tests.yml",
+    ".github/workflows/e2e.yml",
+    ".github/workflows/pr-size-check.yml",
+    ".github/workflows/pr.yml"
+   ]
+  },
+  {
+   "name": "DIGI-UW/OpenELIS-Global-2",
+   "configs": 1,
+   "specFiles": 43,
+   "tests": 122,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 7,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 25,
+   "ciWorkers": [
+    "1\")"
+   ],
+   "ciFiles": [
+    ".github/workflows/e2e-authoritative-reusable.yml",
+    ".github/workflows/e2e-cypress-deprecated.yml",
+    ".github/workflows/e2e-playwright-reusable.yml",
+    ".github/workflows/e2e-tests.yml",
+    ".github/workflows/frontend.yml"
+   ]
+  },
+  {
+   "name": "andrii-kryvoviaz/slink",
+   "configs": 1,
+   "specFiles": 22,
+   "tests": 122,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml"
+   ]
+  },
+  {
+   "name": "libredb/libredb-studio",
+   "configs": 4,
+   "specFiles": 23,
+   "tests": 122,
+   "workerSettings": [
+    "1",
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/docker-build-push.yml",
+    ".github/workflows/release-artifacts.yml"
+   ]
+  },
+  {
+   "name": "inventree/InvenTree",
+   "configs": 1,
+   "specFiles": 11,
+   "tests": 120,
+   "workerSettings": [
+    "MAX_WORKERS"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/frontend.yaml"
+   ]
+  },
+  {
+   "name": "coder/coder",
+   "configs": 1,
+   "specFiles": 41,
+   "tests": 96,
+   "workerSettings": [],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [
+    "1"
+   ],
+   "ciFiles": [
+    ".github/workflows/ci.yaml"
+   ]
+  },
+  {
+   "name": "cin12211/orca-q",
+   "configs": 1,
+   "specFiles": 16,
+   "tests": 94,
+   "workerSettings": [],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "bigbluebutton/bigbluebutton",
+   "configs": 1,
+   "specFiles": 9,
+   "tests": 91,
+   "workerSettings": [
+    "CI ? 1 : 2"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 8,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/automated-tests-publish-results.yml",
+    ".github/workflows/automated-tests.yml",
+    ".github/workflows/playwright-reports-cleanup.yml"
+   ]
+  },
+  {
+   "name": "posthog/posthog",
+   "configs": 6,
+   "specFiles": 23,
+   "tests": 89,
+   "workerSettings": [
+    "process.env.CI ? 3 : 6",
+    "1"
+   ],
+   "ciWorkflows": 17,
+   "ciMaxShards": 3,
+   "ciMaxTimeoutMin": 90,
+   "ciWorkers": [
+    "2",
+    "4"
+   ],
+   "ciFiles": [
+    ".github/workflows/ci-alerts-devex.yml",
+    ".github/workflows/ci-backend.yml",
+    ".github/workflows/ci-dagster.yml",
+    ".github/workflows/ci-e2e-playwright-audit.yml",
+    ".github/workflows/ci-e2e-playwright.yml"
+   ]
+  },
+  {
+   "name": "openremote/openremote",
+   "configs": 12,
+   "specFiles": 11,
+   "tests": 88,
+   "workerSettings": [],
+   "ciWorkflows": 4,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci_cd.yml",
+    ".github/workflows/install-browsers.yml",
+    ".github/workflows/ui-app-tests.yml",
+    ".github/workflows/ui-component-tests.yml"
+   ]
+  },
+  {
+   "name": "meme-search/meme-search",
+   "configs": 1,
+   "specFiles": 15,
+   "tests": 83,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/pro-app-test.yml"
+   ]
+  },
+  {
+   "name": "featbit/featbit",
+   "configs": 2,
+   "specFiles": 17,
+   "tests": 66,
+   "workerSettings": [],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [
+    "2"
+   ],
+   "ciFiles": [
+    ".github/workflows/build-and-test-frontend.yml"
+   ]
+  },
+  {
+   "name": "kanbn/kan",
+   "configs": 1,
+   "specFiles": 53,
+   "tests": 66,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "craftcms/cms",
+   "configs": 2,
+   "specFiles": 19,
+   "tests": 62,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "HiEventsDev/hi.events",
+   "configs": 1,
+   "specFiles": 11,
+   "tests": 61,
+   "workerSettings": [
+    "isCI ? 2 : 4"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 2,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "apache/superset",
+   "configs": 2,
+   "specFiles": 15,
+   "tests": 54,
+   "workerSettings": [
+    "1",
+    "process.env.CI ? 2 : 1"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 8,
+   "ciMaxTimeoutMin": 40,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/superset-e2e.yml",
+    ".github/workflows/superset-frontend.yml"
+   ]
+  },
+  {
+   "name": "SamTV12345/PodFetch",
+   "configs": 1,
+   "specFiles": 6,
+   "tests": 51,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "sbpp/sourcebans-pp",
+   "configs": 1,
+   "specFiles": 12,
+   "tests": 51,
+   "workerSettings": [
+    "1 in CI because the suite shares one MySQL DB"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/docs-screenshots-build.yml",
+    ".github/workflows/docs-screenshots-capture.yml",
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "chrisvel/tududi",
+   "configs": 1,
+   "specFiles": 8,
+   "tests": 48,
+   "workerSettings": [
+    "process.env.CI ? 1 : 4"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "baptisteArno/typebot.io",
+   "configs": 3,
+   "specFiles": 25,
+   "tests": 39,
+   "workerSettings": [
+    "6",
+    "1"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "dani-garcia/vaultwarden",
+   "configs": 1,
+   "specFiles": 12,
+   "tests": 39,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "umami-software/umami",
+   "configs": 2,
+   "specFiles": 8,
+   "tests": 38,
+   "workerSettings": [
+    "1",
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "laurent22/joplin",
+   "configs": 1,
+   "specFiles": 4,
+   "tests": 35,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ui-tests.yml"
+   ]
+  },
+  {
+   "name": "b310-digital/teammapper",
+   "configs": 1,
+   "specFiles": 16,
+   "tests": 33,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "mudler/LocalAI",
+   "configs": 1,
+   "specFiles": 6,
+   "tests": 33,
+   "workerSettings": [
+    "process.env.PW_WORKERS ? Number(process.env.PW_WORKERS) : 8"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/tests-ui-e2e.yml"
+   ]
+  },
+  {
+   "name": "paperless-ngx/paperless-ngx",
+   "configs": 1,
+   "specFiles": 5,
+   "tests": 31,
+   "workerSettings": [
+    "2"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci-frontend.yml"
+   ]
+  },
+  {
+   "name": "sqlpage/SQLPage",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 30,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 15,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml"
+   ]
+  },
+  {
+   "name": "kestra-io/kestra",
+   "configs": 1,
+   "specFiles": 5,
+   "tests": 27,
+   "workerSettings": [
+    "process.env.CI ? 2 : \"50%\""
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/publish-design-system.yml"
+   ]
+  },
+  {
+   "name": "novuhq/novu",
+   "configs": 1,
+   "specFiles": 3,
+   "tests": 26,
+   "workerSettings": [
+    "process.env.CI ? 1 : '25%'"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 80,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/reusable-dashboard-e2e.yml",
+    ".github/workflows/reusable-web-e2e.yml"
+   ]
+  },
+  {
+   "name": "HemmeligOrg/Hemmelig.app",
+   "configs": 1,
+   "specFiles": 6,
+   "tests": 23,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "OpnForm/OpnForm",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 21,
+   "workerSettings": [
+    "Number.isFinite(workerCount) && workerCount > 0 ? workerCount : 1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci-cd.yml"
+   ]
+  },
+  {
+   "name": "Donkie/Spoolman",
+   "configs": 3,
+   "specFiles": 3,
+   "tests": 18,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 15,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci.yml"
+   ]
+  },
+  {
+   "name": "rommapp/romm",
+   "configs": 1,
+   "specFiles": 4,
+   "tests": 16,
+   "workerSettings": [
+    "Number(process.env.E2E_WORKERS ?? 2)"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 20,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "reactive-resume/reactive-resume",
+   "configs": 1,
+   "specFiles": 8,
+   "tests": 15,
+   "workerSettings": [
+    "isCI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "richardr1126/openreader",
+   "configs": 1,
+   "specFiles": 15,
+   "tests": 15,
+   "workerSettings": [
+    "'50%'"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "agenta-ai/agenta",
+   "configs": 1,
+   "specFiles": 5,
+   "tests": 14,
+   "workerSettings": [
+    "1 to keep those polls stable. PLAYWRIGHT_WORKERS"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/12-check-unit-tests.yml",
+    ".github/workflows/44-railway-tests.yml"
+   ]
+  },
+  {
+   "name": "drytrix/TimeTracker",
+   "configs": 1,
+   "specFiles": 4,
+   "tests": 14,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci-comprehensive.yml"
+   ]
+  },
+  {
+   "name": "runtipi/runtipi",
+   "configs": 1,
+   "specFiles": 6,
+   "tests": 14,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "shellhub-io/shellhub",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 14,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 90,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ui-e2e.yml"
+   ]
+  },
+  {
+   "name": "langfuse/langfuse",
+   "configs": 1,
+   "specFiles": 3,
+   "tests": 13,
+   "workerSettings": [],
+   "ciWorkflows": 3,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 90,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci-runtime-analyst.lock.yml",
+    ".github/workflows/dependabot-security-maintainer.lock.yml",
+    ".github/workflows/pipeline.yml"
+   ]
+  },
+  {
+   "name": "twentyhq/twenty",
+   "configs": 3,
+   "specFiles": 6,
+   "tests": 13,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 4,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ci-e2e-main.yaml",
+    ".github/workflows/ci-front-component-renderer.yaml",
+    ".github/workflows/ci-front.yaml",
+    ".github/workflows/ci-ui.yaml"
+   ]
+  },
+  {
+   "name": "Squidex/squidex",
+   "configs": 1,
+   "specFiles": 3,
+   "tests": 12,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/dev.yml",
+    ".github/workflows/make-screenshots.yml",
+    ".github/workflows/release.yml"
+   ]
+  },
+  {
+   "name": "aliasvault/aliasvault",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 10,
+   "workerSettings": [
+    "process.env.CI ? 1 : 4"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 5,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-tests-browser-extension.yml",
+    ".github/workflows/e2e-tests-server.yml"
+   ]
+  },
+  {
+   "name": "apache/airflow",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 10,
+   "workerSettings": [
+    "process.env.CI !== undefined && process.env.CI !== \"\" ? 2 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 90,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/ui-e2e-tests.yml"
+   ]
+  },
+  {
+   "name": "mealie-recipes/mealie",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 10,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "LibrePhotos/librephotos",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 7,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e.yml"
+   ]
+  },
+  {
+   "name": "windmill-labs/windmill",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 7,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "Infisical/infisical",
+   "configs": 1,
+   "specFiles": 3,
+   "tests": 6,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "medplum/medplum",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 6,
+   "workerSettings": [
+    "3"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 45,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/build.yml"
+   ]
+  },
+  {
+   "name": "chatwoot/chatwoot",
+   "configs": 1,
+   "specFiles": 3,
+   "tests": 5,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "cmintey/wishlist",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 5,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/build_test.yml"
+   ]
+  },
+  {
+   "name": "seatsurfing/seatsurfing",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 3,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "shurco/mycart",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 3,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/deploy-docs.yml"
+   ]
+  },
+  {
+   "name": "teableio/teable",
+   "configs": 1,
+   "specFiles": 3,
+   "tests": 3,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "usekaneo/kaneo",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 3,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/browser-tests.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/ui-review-run.yml"
+   ]
+  },
+  {
+   "name": "RARgames/4gaBoards",
+   "configs": 1,
+   "specFiles": 2,
+   "tests": 2,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-tests.yml"
+   ]
+  },
+  {
+   "name": "stumpapp/stump",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 2,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "triggerdotdev/trigger.dev",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 2,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/e2e-webapp.yml"
+   ]
+  },
+  {
+   "name": "activepieces/activepieces",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 1,
+   "workerSettings": [
+    "process.env.CI ? '100%' : undefined"
+   ],
+   "ciWorkflows": 3,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/sync-betterstack-playwright.yml",
+    ".github/workflows/tests-e2e-ce.yml",
+    ".github/workflows/tests-e2e-ee.yml"
+   ]
+  },
+  {
+   "name": "ever-co/ever-gauzy",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 1,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 4,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 360,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/build.yml",
+    ".github/workflows/cache-janitor.yml",
+    ".github/workflows/test-unit.yml",
+    ".github/workflows/test_playwright.yml"
+   ]
+  },
+  {
+   "name": "Budibase/budibase",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "Freika/dawarich",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "LycheeOrg/Lychee",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "Shelf-nu/shelf.nu",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "process.env.CI ? 1 : undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/test.yml"
+   ]
+  },
+  {
+   "name": "automatisch/automatisch",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 60,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright.yml"
+   ]
+  },
+  {
+   "name": "directus/directus",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "flagsmith/flagsmith",
+   "configs": 2,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "process.env.E2E_CONCURRENCY"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 20,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/.reusable-docker-e2e-tests.yml"
+   ]
+  },
+  {
+   "name": "getredash/redash",
+   "configs": 1,
+   "specFiles": 1,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "hatchet-dev/hatchet",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "hoppscotch/hoppscotch",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "johanohly/AirTrail",
+   "configs": 2,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "process.env.CI ? '100%' : undefined",
+    "2"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 30,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/tests.yml"
+   ]
+  },
+  {
+   "name": "keystonejs/keystone",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 1,
+   "ciMaxShards": 4,
+   "ciMaxTimeoutMin": 10,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/tests_ci.yml"
+   ]
+  },
+  {
+   "name": "linkwarden/linkwarden",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "process.env.CI ? 1 : Number(process.env.MAX_WORKERS) || undefined"
+   ],
+   "ciWorkflows": 1,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 20,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/playwright-tests.yml"
+   ]
+  },
+  {
+   "name": "logto-io/logto",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 2,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 0,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/main.yml",
+    ".github/workflows/master-codecov-report.yml"
+   ]
+  },
+  {
+   "name": "makeplane/plane",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "medusajs/medusa",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "mfts/papermark",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "middlewarehq/middleware",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "misskey-dev/misskey",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 2,
+   "ciMaxShards": 1,
+   "ciMaxTimeoutMin": 90,
+   "ciWorkers": [],
+   "ciFiles": [
+    ".github/workflows/frontend-diagnostics.inspect.yml",
+    ".github/workflows/test-frontend.yml"
+   ]
+  },
+  {
+   "name": "nocodb/nocodb",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "openstatusHQ/openstatus",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "outline/outline",
+   "configs": 0,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "saltcorn/saltcorn",
+   "configs": 2,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "theonedev/onedev",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "1"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  },
+  {
+   "name": "wekan/wekan",
+   "configs": 1,
+   "specFiles": 0,
+   "tests": 0,
+   "workerSettings": [
+    "Math.max(1"
+   ],
+   "ciWorkflows": 0,
+   "ciMaxShards": 0,
+   "ciMaxTimeoutMin": null,
+   "ciWorkers": [],
+   "ciFiles": []
+  }
+ ]
+}
