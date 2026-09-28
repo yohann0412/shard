@@ -18,3 +18,9 @@ Subagent report: a proxy process on the build-time origin routes each request to
 ## What was assumed
 
 - That a single origin is enough: apps with several public origins (an API on another port) need one proxy per origin, which is not implemented.
+
+## Lead's run on the main tree (13:28-13:32 UTC)
+
+- Integrated as cb8fd77 (clean cherry-pick onto the main branch; typecheck clean).
+- `just e2e-one f8-shared-origin`: pass (22.8 s), after the subagent's last edit to it. `f4-run` (115.9 s), `f6-report` (39.2 s), `f7-trace` (20.6 s): pass.
+- Verdict: accepted. Its value on a real app is measured on rallly next (LOG.md).
