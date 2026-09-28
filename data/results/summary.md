@@ -10,6 +10,7 @@ timed runs; each repo's JSON has the definitions, the raw runs and every exclude
 | fixture-app | 6.4 s | 1 | 4.5 s (N=4) | 1.48× | 0 | 28% | 0.98 | full protocol; 0 timed run(s) excluded; 0 started at load ≥ 1.0 |
 | rallly | 134.8 s | 1 | 91.0 s (N=2) | n/a | 5 | 25% | 0.97 | reduced protocol; 6 timed run(s) excluded; 0 started at load ≥ 1.0; skipped isolated@8 |
 | umami | 129.9 s | 1 | 100.3 s (N=4) | 1.30× | 0 | 10% | 1.01 | full protocol; 0 timed run(s) excluded; 0 started at load ≥ 1.0; skipped isolated@8 |
+| umami-passing | 8.5 s | 1 | 7.4 s (N=2) | 1.11× | 0 | 103% | 0.95 | reduced protocol; 0 timed run(s) excluded; 0 started at load ≥ 1.0; skipped isolated@8 |
 
 ## Experiment B: impact map
 

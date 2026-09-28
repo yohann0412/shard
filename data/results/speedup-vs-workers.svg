@@ -41,11 +41,17 @@
 <circle cx="129.41176470588235" cy="380" r="5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>umami: N=1, 1.00×</title></circle>
 <circle cx="194.8235294117647" cy="372.652" r="5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>umami: N=2, 1.17×</title></circle>
 <circle cx="325.6470588235294" cy="366.712" r="5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>umami: N=4, 1.30×</title></circle>
+<path d="M129.4 380.0 L194.8 373.3 L325.6 375.3" fill="none" stroke="#eda100" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="129.41176470588235" cy="380" r="5" fill="#eda100" stroke="#fcfcfb" stroke-width="2"><title>umami-passing (reduced protocol): N=1, 1.00×</title></circle>
+<circle cx="194.8235294117647" cy="373.312" r="5" fill="#eda100" stroke="#fcfcfb" stroke-width="2"><title>umami-passing (reduced protocol): N=2, 1.15×</title></circle>
+<circle cx="325.6470588235294" cy="375.336" r="5" fill="#eda100" stroke="#fcfcfb" stroke-width="2"><title>umami-passing (reduced protocol): N=4, 1.11×</title></circle>
 <text x="203.8235294117647" y="360.416" font-size="12" fill="#0b0b0b">1.54×</text>
+<text x="334.6470588235294" y="379.336" font-size="12" fill="#0b0b0b">1.11×</text>
 <g transform="translate(644 80)"><line x1="0" x2="20" y1="0" y2="0" stroke="#2a78d6" stroke-width="2"/><circle cx="10" cy="0" r="4" fill="#2a78d6"/><text x="28" y="4" font-size="12" fill="#0b0b0b">fixture-app</text></g>
 <g transform="translate(644 102)"><line x1="0" x2="20" y1="0" y2="0" stroke="#eb6834" stroke-width="2"/><circle cx="10" cy="0" r="4" fill="#eb6834"/><text x="28" y="4" font-size="12" fill="#0b0b0b">rallly (reduced protocol)</text></g>
 <g transform="translate(644 124)"><line x1="0" x2="20" y1="0" y2="0" stroke="#1baf7a" stroke-width="2"/><circle cx="10" cy="0" r="4" fill="#1baf7a"/><text x="28" y="4" font-size="12" fill="#0b0b0b">umami</text></g>
-<g transform="translate(644 146)"><line x1="0" x2="20" y1="0" y2="0" stroke="#898781" stroke-width="1.5" stroke-dasharray="6 5"/><text x="28" y="4" font-size="12" fill="#52514e">ideal (speedup = N)</text></g>
-<g transform="translate(644 168)"><line x1="10" x2="10" y1="-7" y2="7" stroke="#52514e" stroke-width="1"/><text x="28" y="4" font-size="12" fill="#52514e">core count</text></g>
-<g transform="translate(644 190)"><circle cx="10" cy="0" r="4" fill="#fcfcfb" stroke="#52514e" stroke-width="2"/><text x="28" y="4" font-size="12" fill="#52514e">N &gt; cores (oversubscribed)</text></g>
+<g transform="translate(644 146)"><line x1="0" x2="20" y1="0" y2="0" stroke="#eda100" stroke-width="2"/><circle cx="10" cy="0" r="4" fill="#eda100"/><text x="28" y="4" font-size="12" fill="#0b0b0b">umami-passing (reduced protocol)</text></g>
+<g transform="translate(644 168)"><line x1="0" x2="20" y1="0" y2="0" stroke="#898781" stroke-width="1.5" stroke-dasharray="6 5"/><text x="28" y="4" font-size="12" fill="#52514e">ideal (speedup = N)</text></g>
+<g transform="translate(644 190)"><line x1="10" x2="10" y1="-7" y2="7" stroke="#52514e" stroke-width="1"/><text x="28" y="4" font-size="12" fill="#52514e">core count</text></g>
+<g transform="translate(644 212)"><circle cx="10" cy="0" r="4" fill="#fcfcfb" stroke="#52514e" stroke-width="2"/><text x="28" y="4" font-size="12" fill="#52514e">N &gt; cores (oversubscribed)</text></g>
 </svg>

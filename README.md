@@ -6,7 +6,7 @@ Most end-to-end suites run with `workers: 1` because every worker would share on
 
 It also has a tracing mode that records which server and client files each test executed, and an `affected` command that turns a diff into the list of tests to run.
 
-This repository also holds a research sprint that measured whether either idea works on real repositories. **Short version:** isolation works with no test edits (zero new failures on the fixture and on umami; rallly also needed two extras, listed in RESULTS.md), but on a 4-core machine the test phase got 1.3-1.6x faster, not close to N×. The limits were file-level scheduling and about 2 cores per worker slot. The impact map missed no tests in the small samples we could score, but it selected almost every test for the typical changed file. Details, and every repo that could not run, are in [RESULTS.md](RESULTS.md).
+This repository also holds a research sprint that measured whether either idea works on real repositories. **Short version:** isolation works with no test edits (zero new failures on the fixture and on umami; rallly also needed two extras, listed in RESULTS.md), but on a 4-core machine the test phase got 1.1-1.6x faster, not close to N×. The limits were file-level scheduling and about 2 cores per worker slot. The impact map missed no tests in the small samples we could score, but it selected almost every test for the typical changed file. Details, and every repo that could not run, are in [RESULTS.md](RESULTS.md).
 
 ## 30-second quickstart
 

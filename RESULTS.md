@@ -9,7 +9,7 @@ Every number cites a committed file under `data/results/` or `experiments/recipe
   - rallly's runs share one mailpit.
   - umami's run reports also carry the "isolation incomplete" label. The tool's scan found ClickHouse, Kafka and Redis clients in its dependencies. umami uses them only when their URLs are set, and none were.
   - So, literally, no real repo qualifies.
-- **Most important number:** counting umami anyway (a post-hoc reading, logged in LOG.md at 17:04 UTC), its test-phase speedup at N=4 is **1.30x on the full browser suite**. _Its re-timing on the common passing subset, which the protocol requires because 7 stale tests wait out 30 s timeouts, is below._
+- **Most important number:** counting umami anyway (a post-hoc reading, logged in LOG.md at 17:04 UTC), its test-phase speedup at N=4 on the common passing subset, the re-timing the protocol requires, is **1.11x** (`data/results/umami-passing/`). On the full browser suite it is 1.30x, but 90 of that suite's 111 s of serial test time are three stale tests waiting out 30 s timeouts.
 - **Context, not verdict evidence:**
   - The fixture (never pooled): 1.48x at N=4.
   - rallly: 1.54x at N=2, which is 0.77 of the 2x possible at N=2.
@@ -104,10 +104,24 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 | **isolated@4** | **100.3 s [100.2-101.3]** | **1.30** | 1.23 | 4.00 | 113.3 s |
 
 - **Zero isolation failures.** The same 7 stale tests (tests CI does not run and that no longer match the app) fail in every arm, the baseline included, and pass in none. Every other test passes in every run.
-- **The ceiling is file granularity, not CPU.** `tests/e2e/website.spec.ts` holds 3 serial tests that take 90 of the 111 s summed test time, so no worker count can beat about 1.23x without splitting that file. The measured 1.30x is slightly above that ceiling because the long file ran a little faster at N=4 than at N=1. One worker slot uses only 0.59 cores.
+- **The full-suite number mostly measures stale tests timing out.** `tests/e2e/website.spec.ts` holds 3 of the 7 stale tests; each waits out Playwright's 30 s timeout, so the file takes 90 of the 111 s summed test time in every arm, and the 7 stale failures take about 104 s (93%). The measured 1.30x is above the 1.23x file ceiling because the N=1 test phase (130.6 s) includes about 20 s outside test durations, not because the file ran faster: it took 90.2 s at both N=1 and N=4. This is why the protocol's re-timing on the passing subset (below) is the number that counts. One worker slot uses only 0.59 cores.
 - **Harness effect 1.006.** Against the repo's own serial run: 1.31x in the test phase and 1.26x end to end.
-- **Setup is small.** Hooks and fixtures are 10% of test time; the pre-test phase is 3-6% of Playwright's wall time.
+- **Setup share.** Hooks and fixtures are 10% of summed test time, but only because stale-test timeouts fill the denominator. The pre-test phase is 3-6% of Playwright's wall time.
 - **Memory at N=4:** 2.2 GB peak. Each Next.js server takes 420-490 MB; Postgres takes 435 MB as an upper bound.
+
+**umami, re-timed on the common passing subset** (PLAN §5 step 5; recipe `umami-passing`). This covers the 4 spec files whose 23 tests passed in every baseline@1 round: 20 request-level API tests and 3 UI tests in `session-modal-dismiss.spec.ts`. Source: `data/results/umami-passing/experiment-a.json` (21 runs, all valid).
+
+| Arm | Median test phase [min-max] | Speedup vs isolated@1 | Scheduling ceiling | Resource ceiling | Median end-to-end |
+|---|---:|---:|---:|---:|---:|
+| baseline@1 | 8.08 s [7.95-8.19] | — | | | 18.0 s |
+| isolated@1 | 8.54 s [8.48-9.09] | 1.00 | 1.00 | 1.00 | 18.4 s |
+| isolated@2 | 7.41 s [7.26-7.56] | 1.15 | 1.15 | 1.52 | 17.1 s |
+| **isolated@4** | **7.72 s [7.55-8.07]** | **1.11** | 1.15 | 1.52 | 19.0 s |
+
+- Zero isolation failures. The ceiling is again file layout: the 3 UI tests in one file take 5.8 of the 6.7 s serial sum.
+- **End to end, N=4 is slower than the repo's own serial run** (0.94x): booting four Next.js servers costs more than the test phase saves.
+- Hooks and fixtures take as long as test bodies here (setup share 1.03).
+- Harness effect 0.95.
 
 **umami API suite** (271 request-level tests; no browser; onboarding runs, not the timed protocol). Source: `data/results/umami-api/onboarding/`.
 - With a plain config it passes 271/271 at N=1, but 75 tests differ from baseline at N=2 and 139 at N=4. The cause is **shared setup state outside the database**: the suite's `globalSetup` runs once in Playwright's main process, seeds only worker 0's app over HTTP, and writes `seed.json`/`openapi.json` under a host-keyed directory. The other workers fail with ENOENT.

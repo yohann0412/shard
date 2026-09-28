@@ -32,7 +32,7 @@ Three independent hostile reviewers read RESULTS.md against the raw data (`data/
 
 ## The weakest number
 
-**umami's 1.30x on the full browser suite**, the only real-repo N=4 number that passed the validity checks. It is dominated by stale tests timing out. Its replacement, the passing-subset re-timing, rests on 23 tests in 4 files: 21 are request-level API tests and 3 are UI tests in one file. It is therefore a weak test of browser-heavy isolation too. Claim A's evidence on real repos is thin, and the report says so.
+**umami's 1.30x on the full browser suite**, the only real-repo N=4 number that passed the validity checks. It is dominated by stale tests timing out. Its replacement, the passing-subset re-timing (1.11x), rests on 23 tests in 4 files: 20 are request-level API tests and 3 are UI tests in one file. It is therefore a weak test of browser-heavy isolation too. Claim A's evidence on real repos is thin, and the report says so.
 
 ## What the report still does not do
 
