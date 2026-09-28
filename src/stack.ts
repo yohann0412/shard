@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { startApps, type AppExit, type AppGroup, type RunningApp } from './app/apps.js';
 import type { IsolateConfig } from './config/schema.js';
+import { runnableBinaries } from './db/access.js';
 import { findPostgresBinaries, type PostgresBinaries } from './db/binaries.js';
 import { cloneDatabases, prepareSeed, seedDatabaseUrl, type WorkerDatabase } from './db/databases.js';
 import { initCluster, makeCluster, startPostgres, type Cluster, type PostgresServer } from './db/server.js';
@@ -178,7 +179,7 @@ export async function startStack(options: StackOptions): Promise<Stack> {
       proxy = await startProxy(options.sharedOrigin, reaper, paths.proxyLog);
       log.info(`shared-origin proxy listening for ${proxy.origin.href} (log: ${paths.proxyLog})`);
     }
-    const binaries = await timed('postgresStart', () => findPostgresBinaries(config));
+    const binaries = await timed('postgresStart', async () => runnableBinaries(await findPostgresBinaries(config)));
     log.info(`postgres binaries: ${binaries.source} (${binaries.version})`);
     const build = (options.build ?? options.apps) ? config.build : undefined;
     const plan = await planCache({ repoDir, config, postgresVersion: binaries.version, build, refresh: options.cache === 'refresh' });
