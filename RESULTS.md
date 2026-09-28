@@ -7,15 +7,17 @@ Every number cites a committed file under `data/results/` or `experiments/recipe
 **Claim A (isolation gives close to N× on the test phase with zero test edits and no new failures): not supported on this 4-core machine.**
 - **Most important number:** the median test-phase speedup at N=4 across real repos with a valid N=4 arm is **1.30x**, from umami alone (n = 1).
 - **By the pre-registered rule the formal verdict is "inconclusive".** Fewer than 3 real repos produced a valid N=4 measurement, and rallly's runs used a shared, unmanaged mail service, so they are labelled "isolation incomplete" and kept out of the median.
-- **Every measurement points the same way.** Fixture 1.48x at N=4; umami 1.30x; rallly 1.54x at N=2, and 1.57x at N=4 in a control with one mail catcher per worker. All are below the 2x falsification line.
+- **Every measurement points the same way.** Fixture 1.48x at N=4; umami 1.30x; rallly 1.54x at N=2 (and 1.58x at N=4 in a 3-round control with one mail catcher per worker, only one round of which was clean). All are below the 2x falsification line.
 - **Isolation itself did hold.** Zero new deterministic failures on the fixture and umami, with no test edits. rallly needed two things V1 does not do by default: a shared-origin proxy, and one SMTP catcher per worker.
 - **The speedup was lost to two things the thesis did not model.** (1) File-level scheduling: umami's one 90 s serial file caps it at about 1.23x. (2) CPU per worker slot: 1.9-2.2 cores each on the fixture and rallly, so 4 cores fit about 2 slots.
 - **Setup does not dominate.** It is 10-28% of test time.
 
-**Claim B (a per-test file map lets a PR run only the tests that executed the changed files, with the map close to complete): not supported.**
-- **Completeness looked fine, but on too little data.** No scored mutant was missed: 11/11 on the fixture and 1/1 on umami. But the fixture's 95% interval (0.715-1) is below the pre-registered bar of 0.9.
+**Claim B (a per-test file map lets a PR run only the tests that executed the changed files, with the map close to complete): falsified by the pre-registered rule.**
+- **Every trigger in the rule fires.** The CI lower bound is below 0.8 on both apps (fixture 0.715, umami 0.025). umami's map stability is below 0.9 (0.875). The fixture's median time-weighted selection ratio is at least 0.8 (0.97). None of these triggers fired because a scored mutant was missed.
+- **Completeness looked fine, but on too little data.** No scored mutant was missed: 11/11 on the fixture and 1/1 on umami. But n is too small for the interval to clear the 0.8 line, let alone the 0.9 bar.
 - **The maps were not useful.**
-  - **Most important number:** the median time-weighted selection ratio, **0.97 on the fixture and 0.96 on umami**. For the median changed file, pruning skips 3-4% of test time.
+  - **Most important number:** the median time-weighted selection ratio on the fixture, **0.97**. For the median changed file, pruning skips 3% of test time, because every test signs in through the same files.
+  - On umami the median is 0.21 by count but 0.96 by time. The median file's mutant was not even live (it broke the build), and its selected tests include stale tests that each wait out a 30 s timeout. Without them, umami's time-weighted median is about 0.71.
   - umami's map was also **unstable** across worker counts: per-file Jaccard median 0.875, below the pre-registered 0.9.
   - On a Next.js production build, 227 route files are global (preloaded at boot), and client code maps to nothing.
 - Tracing produced a map on 1 real repo, not 3.
@@ -33,11 +35,11 @@ Pool: the 23-repo seed list plus awesome-selfhosted-data (daily star counts; sna
 | Repos in the pool | 998 |
 | Qualified (Playwright config + DB evidence + ≥ 200 stars + pushed in the last 12 months) | **96** (target 100; pool exhausted) |
 | Static class A / B / C | 1 / 36 / 59 |
-| Tried for real by the scout (top candidates by expected feasibility) | 12 (3 more not examined) |
+| Examined by the scout, from a 12-repo shortlist ordered by expected feasibility | 9 (3 green, 6 blocked, cal.com among them without a run); 3 not examined |
 | Repo's own suite green at baseline in this sandbox | 3 (rallly, umami, documenso partially) |
-| Runs under isolate with no repo edits | 3 (fixture aside): umami (browser suite as-is; API suite with a config-only seeding step), rallly (with the shared-origin mode and, at N=4, one mailpit per worker) |
+| Runs under isolate with no repo edits | 2 (fixture aside): umami (browser suite as-is; API suite with a config-only seeding step), rallly (with the shared-origin mode and, at N=4, one mailpit per worker) |
 
-Why the 902 others did not qualify: 828 have no Playwright config, 74 have no database evidence (`data/harvest-summary.md`). Among the 96, the most common blockers are Redis (55), SMTP (50), S3/MinIO (41), Stripe (24), OpenAI (22), Anthropic (19), a Python backend (16) and BullMQ (14).
+Why the 902 others did not qualify: 828 have no Playwright config, 74 have no database evidence (`data/harvest-summary.md`). Among the 96, the most common blockers are Redis (55), SMTP (50), S3/MinIO (41), Stripe (24), OpenAI (22), Anthropic (19), a Python backend (16), AWS (15) and BullMQ (14).
 
 Static classes over-detect. The three repos that actually ran are all static class B, because optional integrations look like dependencies in `package.json` and `.env` examples.
 
@@ -119,11 +121,11 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
 | isolated@2 | 4/5 | 91.0 s [87.9-95.3] | **1.54** (scheduling ceiling 2.00, resource ceiling 1.83) |
 | isolated@4 | **0/5** | (98.3 s over all 5 runs, none valid) | n/a |
 
-- **At N=4 every round had 2-16 failures, all timeouts, each passing when rerun alone.** Five tests count as isolation failures by the protocol's rule. All are in specs that call `deleteAllMessages()` in `beforeEach` or wait for an email login code in a mailpit shared by the four workers.
+- **At N=4 every round had 1-4 failing tests (median 3), all timeouts, each passing when rerun alone.** Up to 15 serial siblings were skipped after a failure, so 2-16 outcomes differed from baseline@1 per round. Five tests failed in at least 2 of the 5 rounds (one in 3, four in 2). The harness kept the rule's absolute threshold of 2 when it added rounds, so they count as isolation failures. All are in specs that call `deleteAllMessages()` in `beforeEach` or wait for an email login code in a mailpit shared by the four workers.
 - **Control: one mailpit per worker**, a config-only change: `SMTP_PORT: '323{i}'` for apps, `MAILPIT_API_URL: 'http://127.0.0.1:324{i}/api'` for tests. Source: `data/results/rallly/control-per-worker-mailpit/`, 3 rounds, each started below load 1.0.
-  - Failures per round dropped to 2, 1 and 0. The email-login tests all passed.
+  - Failing tests per round went from 1-4 (median 3) with the shared mailpit to 2, 1 and 0. The email-login tests all passed.
   - The remaining failures (`login verify page`, a 5 s wait; `create a new poll`, a 30 s timeout) happened at 89-95% CPU: timeouts under load.
-  - Median test phase 88.7 s, 1.57x against isolated@1. Only one round was fully clean.
+  - Median test phase 88.7 s, **1.58x** against isolated@1, over 3 rounds. Under the protocol's outcome rule only the clean round would be valid, and alone it gives 1.65x. This is a control with n = 3, not a protocol measurement.
 - **The wider picture.** Harness effect 0.97; hooks and fixtures are 25% of test time. One worker slot uses 2.18 cores, so this machine cannot fit more than about 1.8 slots of rallly. Peak memory at N=4 was 3.9 GB.
 
 **documenso** was not measured: its `api` project alone takes 939 s at workers 1, over the protocol's 5-minute limit, and CI's rate-limit bypass variable was refused in this sandbox. See HANDOFF.md.
@@ -136,14 +138,14 @@ Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-b-protocol.md` befor
 
 Source: `data/results/fixture-app/experiment-b.json`: N=4, seed 20260928, three mutant kinds (throw, top-level literal, wrong-value return), two unmutated reference runs (no failures to exclude).
 
-- **Targets.** All 15 source files, of which 8 are in some test's set, 6 are global and 1 is absent (`src/locals.ts`, types only, so no control mutant is possible). The sample has 10 files and 19 mutants.
+- **Targets.** All 15 source files, of which 8 are in some test's set, 6 are global and 1 is absent (`src/locals.ts`, types only, so no control mutant is possible). 12 files were sampled; 10 of them could be mutated, giving 19 mutants.
 - **Outcomes.**
   - 2 were not live: the `db.ts` mutants do not compile, because a leading `throw` makes TypeScript flag the next line.
   - 5 hit global files; 4 of those kept the app from starting at all, which counts as every test failing.
   - 2 top-level mutants broke nothing: a renamed session cookie, and a dead selector in `settings.js`.
   - 11 live, non-global mutants had failing tests, and all 11 were scored.
 - **Recall.** With the default (function-level) global policy, **11 of 11 scored mutants had zero missed tests**, 95% Clopper-Pearson interval 0.715-1. Worst recall 1.0. No control could be made.
-- **Selection.** Median over mutated files: 0.96 of tests by count and 0.97 by time. Only four files let `affected` skip tests: `routes/items.ts` and `js/items.js` select 4/12, `routes/settings.ts` and `js/settings.js` select 3/12, and `routes/home.ts` selects 11/12. Every test signs in through `auth.ts` and renders through `views.ts`, so those select everything.
+- **Selection.** Median over mutated files: 0.96 of tests by count and 0.97 by time. Only five files let `affected` skip tests: `routes/items.ts` and `js/items.js` select 4/12, `routes/settings.ts` and `js/settings.js` select 3/12, and `routes/home.ts` selects 11/12. Every test signs in through `auth.ts` and renders through `views.ts`, so those select everything.
 - **Stability.** The N=4 and N=2 maps are identical, as expected for a deterministic app.
 - **Strict policy.** Every bootLoaded file selects all tests, so 10 of the 11 scored mutants answer `all`.
 - **Non-JS edits.** A migration SQL edit gives `all` (a seed/migration input); a `tsconfig.json` edit gives `all` (a test-support/config rule).
@@ -157,7 +159,7 @@ By the pre-registered rule, the claim holds only if the interval's lower bound i
 - **The map is lopsided.**
   - Server code source-maps back to `src/`. But 227 source files are global, because Next.js's `preloadEntriesOnStart` runs every route module at boot, so any edit to one of them selects every test.
   - 156 source files (pages and components rendered per request) have per-test sets.
-  - Client code resolves to no source file: production builds ship no browser source maps, and 49 chunk URLs stay unresolved.
+  - Client code resolves to no source file: production builds ship no browser source maps, and 49-72 chunk URLs stay unresolved (49 in the N=2 map, 72 in the N=4 map).
 - **The map is not stable.** Across the N=4 and N=2 builds, the per-file Jaccard of selecting tests has median 0.875 and minimum 0.5, over 215 files. That is below the pre-registered 0.9, so, per the spec, the rest of this experiment is weaker. Per-test file sets are identical for most tests (median 1.0) but not all (minimum 0.157). This is consistent with async requests (prefetches, polling) crossing test boundaries: 3 between-test takes found code.
 - **The mutation study says more about the suite than about the map.**
   - 9 mutants, 1 not live (a React hook mutant broke the build).
