@@ -62,6 +62,7 @@
     "globalSetup creates a throw-away admin user in the database and saves its session cookie to .auth/admin.json. Under isolate it runs once against w0, and w0 is then copied to every worker (DECISIONS D-015), so the cookie is valid on every worker's app.",
     "The app builds absolute links as http://localhost:<port>, so app.urlHost is localhost: with 127.0.0.1 the admin cookie was not sent to those links and saves failed.",
     "The cloud file-storage specs (15 tests) skip themselves without S3/Azure/GCS credentials, in both arms.",
-    "CYPRESS_INSTALL_BINARY=0: the root devDependencies include Cypress, which the Playwright suite does not use."
+    "CYPRESS_INSTALL_BINARY=0: the root devDependencies include Cypress, which the Playwright suite does not use.",
+    "Flaky in both arms (sandbox, 2026-09-28): drag-drop page-builder specs fail in some runs of either arm; page-builder specs can hit EverShop's own rate limiter (120 /api requests per minute per IP, in memory per app) and fail with 429. See data/results/evershop/compare-sandbox-2026-09-28.txt."
   ]
 }

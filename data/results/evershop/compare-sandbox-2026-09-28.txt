@@ -1,0 +1,17 @@
+evershop @ 18e02022631c: 1 round(s); Intel(R) Xeon(R) Processor @ 2.80GHz, 4 cores, 15.7 GB, Ubuntu 24.04.4 LTS
+theirs = the repo's own Playwright config (its worker count, one app, one database, app started by isolate --baseline --app); isolate@N = one app and database per worker
+wall = the whole isolate command (database, apps, tests, teardown); tests = Playwright's own test phase
+
+arm        workers  runs  median wall  median tests  passed  failed  wall speedup  tests speedup
+theirs           1     1     5m 41.6s      5m 29.8s     132      15         1.00x          1.00x
+isolate@4        4     1     2m 43.8s      2m 17.0s     137      12         2.09x          2.41x
+
+Caveats (written by hand after the run):
+- One round only, on the 4-vCPU cloud sandbox; documenso's install and build ran on the same machine during the warm-up
+  and part of the "theirs" run, so the "theirs" time may be inflated. Re-run on a quiet machine with 3 rounds.
+- The failures differ between arms and between runs: the suite is flaky in both setups.
+  * 7 tests failed only in "theirs" (drag-drop page-builder specs, publish, cart shelf); all passed under isolate in this round.
+  * 4 tests failed only under isolate, each with HTTP 429 from EverShop's own rate limiter (express-rate-limit, in-memory
+    per app process, 120 /api requests per minute per IP). Each worker's app counts only its own worker's requests,
+    so this is not state leaking between workers, but a worker's burst of page-builder operations crossed the limit.
+  * In the untimed warm-up, isolate@4 had 7 failures, all drag-drop specs.
