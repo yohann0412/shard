@@ -1,0 +1,81 @@
+{
+  "name": "rallly",
+  "url": "https://github.com/lukevella/rallly",
+  "commit": "fa6bfd478b061d6c732f83884e5c4daa9dd7310d",
+  "status": "works",
+  "blocker": null,
+  "timeSpentMin": 25,
+  "packageManager": "pnpm@10.28.0 (packageManager field, via corepack)",
+  "workdir": "apps/web",
+  "nodeVersionNeeded": "24 (package.json engines.node \"24\" + .npmrc engine-strict=true; system Node 22 is refused). Used v24.21.0 from nodejs.org, unpacked at /home/user/shard/work/node24",
+  "playwrightVersion": "1.58.1",
+  "browserRevisionExpected": "chromium 1208 / chromium_headless_shell 1208 / ffmpeg 1011 (ran on installed 1194 via shim dir)",
+  "install": [
+    "git clone --depth 1 https://github.com/lukevella/rallly && cd rallly  # at the commit above",
+    "export PATH=/home/user/shard/work/node24/bin:$PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0",
+    "corepack enable",
+    "pnpm install --frozen-lockfile",
+    "experiments/recipes/make-pw-shim.sh 1208   # creates /home/user/shard/work/pw-browsers/r1208 (see notes)",
+    "GOPATH=/home/user/shard/work/gopath GOBIN=/home/user/shard/work/bin go install github.com/axllent/mailpit@latest   # once; mailpit is the CI mail service"
+  ],
+  "build": [
+    "pnpm db:generate",
+    "NEXT_PUBLIC_BASE_URL=http://localhost:$PORT pnpm turbo build:test --filter=@rallly/web   # from repo root, with the env below exported; 2m29s here"
+  ],
+  "env": {
+    "DATABASE_URL": "postgresql://postgres@127.0.0.1:{port}/{db}",
+    "DIRECT_DATABASE_URL": "postgresql://postgres@127.0.0.1:{port}/{db}",
+    "CI": "true",
+    "PORT": "3101",
+    "NEXT_PUBLIC_BASE_URL": "http://localhost:3101   (BUILD-TIME: inlined into .next; must match PORT)",
+    "SMTP_HOST": "127.0.0.1",
+    "SMTP_PORT": "11025",
+    "MAILPIT_API_URL": "http://127.0.0.1:18025/api",
+    "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1208",
+    "PATH": "/home/user/shard/work/node24/bin:$PATH",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "TURBO_TELEMETRY_DISABLED": "1"
+  },
+  "services": [
+    "mailpit --smtp 127.0.0.1:11025 --listen 127.0.0.1:18025 --disable-version-check   (binary: /home/user/shard/work/bin/mailpit)"
+  ],
+  "migrate": "pnpm db:deploy   (repo root; = prisma migrate deploy in packages/database; reads DATABASE_URL)",
+  "seed": null,
+  "appStart": "next start --port $PORT   (webServer.command when CI=true; cwd apps/web; webServer.env adds __NEXT_PROCESSED_ENV=true)",
+  "appPortEnv": "PORT",
+  "healthPath": "/api/status   (returns {database:\"connected\"}); webServer.url is baseURL = http://localhost:$PORT",
+  "playwrightConfig": "playwright.config.ts",
+  "baselineCommand": "cd apps/web && pnpm exec playwright test --workers=1 --reporter=list",
+  "baseline": {
+    "wallSec": 495,
+    "passed": 140,
+    "failed": 0,
+    "skipped": 0,
+    "flakyNotes": "One clean run (Playwright summary: 140 passed (8.2m)); wallSec includes next start boot. The machine was shared: load average 6-8 on 4 vCPU (other agents' builds/tests) and this scout's documenso `npm ci` ran during the last ~6 min. The server logs 'Failed to load pay wall pricing Error: STRIPE_SECRET_KEY must be set when billing is enabled' 150 times; harmless. `--reporter=list` replaces the CI reporters (github + html) only for readable counts."
+  },
+  "configuredWorkers": "1 (literal `workers: 1`)",
+  "unmanagedServices": [
+    "mailpit (SMTP for the app + HTTP API read by the tests via MAILPIT_API_URL; OTP login codes, invite and RSVP mails)"
+  ],
+  "hardcodedUrlsInTests": [
+    "tests/webhooks-settings.spec.ts:219 fills the literal http://localhost:3000/hook into a form field (typed text, never fetched)",
+    "none that navigate: baseURL = http://localhost:${PORT || 3002} in playwright.config.ts:8-10; webhook receivers bind 127.0.0.1:0 (tests/webhooks.spec.ts:50, webhooks-settings.spec.ts:119)"
+  ],
+  "authSetup": "none global: no globalSetup, no setup project, no storageState. Each test logs in through the UI (packages/test-helpers/src/login.ts: email OTP read from mailpit, or password) or creates users directly with prisma (tests/test-utils.ts). Sessions are DB-backed (better-auth session rows).",
+  "modified": false,
+  "diff": null,
+  "notes": [
+    "BUILD-TIME URL: NEXT_PUBLIC_BASE_URL is inlined into the build (the build-time value appears in 72 files under apps/web/.next, both server chunks and client static chunks). It drives better-auth baseURL and trustedOrigins (apps/web/src/lib/auth.ts:59,667-668) and absoluteUrl() links. N instances started from ONE build on different ports will all generate URLs and trust origins for the build-time port, so auth from any other port is expected to fail and redirects/links point at worker 0's app. Either build once per port or give every instance the same origin.",
+    "At build time `NODE_ENV=test next build` reads apps/web/.env.test (NEXT_PUBLIC_BASE_URL=http://localhost:3002, PORT=3002) unless the env already sets them; exported env wins.",
+    "The Playwright config loads apps/web/.env.test with dotenv (does not override existing env; 15 of 20 keys were injected here). At runtime webServer.env sets __NEXT_PROCESSED_ENV=true, so Next reads no .env file; DATABASE_URL, SMTP_* and SECRET_PASSWORD are read from process env at runtime (not inlined; checked).",
+    "CI=true is required: without it the webServer command is `rm -rf .next && next dev`, which deletes the production build and runs a dev server (and reuseExistingServer becomes true).",
+    "SHARED MAILPIT: 10 specs call deleteAllMessages() (e.g. authentication.spec.ts:26, otp-sign-up.spec.ts:24, email-invites.spec.ts:97) and captureOne() picks the newest unread mail for a recipient and marks it read. With N workers on one mailpit, one worker wipes or consumes another's OTP mail. Give each worker its own mailpit (distinct --smtp/--listen ports; SMTP_PORT goes to that worker's app, MAILPIT_API_URL to that worker's test process). Both are plain env vars.",
+    "Test processes import the prisma client from @rallly/database (tests/test-utils.ts and many specs) and write to the DB directly, using DATABASE_URL from the worker's env. The per-worker DATABASE_URL must be set in the worker before spec files load.",
+    "tests/house-keeping.spec.ts calls /api/house-keeping/* with CRON_SECRET: these delete inactive or deleted polls DB-wide. That is safe with one DB per worker but not with a shared one.",
+    "Two specs run in serial mode (email-invites.spec.ts:26, list-unsubscribe.spec.ts:22).",
+    "BROWSER SHIM: Playwright >= 1.57 expects chrome-linux64/chrome and chrome-headless-shell-linux64/chrome-headless-shell; revision 1194 ships chrome-linux/{chrome,headless_shell}. Plain directory symlinks (chromium_headless_shell-1208 -> /opt/pw-browsers/chromium_headless_shell-1194) fail with 'Executable doesn't exist'. experiments/recipes/make-pw-shim.sh <rev> builds real dirs of per-file symlinks and adds the renamed executable link. Chrome 141 (1194) passed the 1.58.1 suite.",
+    "Postgres 16.13 used; CI uses postgres:18-alpine. All migrations applied cleanly on 16.",
+    "pnpm 10 skips dependency build scripts (@prisma/engines, esbuild, sharp, ...); CI does the same, and nothing needed them.",
+    "Mailpit was built from source with the Go toolchain at /usr/local/go (go install fetched go1.26.8 and modules via proxy.golang.org); GitHub release downloads were not tried."
+  ]
+}
