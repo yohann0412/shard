@@ -27,6 +27,11 @@ export interface SeedOptions {
   reaper: Reaper;
 }
 
+/** URL of the `seed` database on a server. */
+export function seedDatabaseUrl(postgres: PostgresServer): string {
+  return postgres.url(SEED_DATABASE);
+}
+
 /** `db.urlEnv` and every `db.extraUrlEnvs` variable, each set to `url`. */
 export function databaseUrlVars(config: IsolateConfig, url: string): Record<string, string> {
   return Object.fromEntries([config.db.urlEnv, ...config.db.extraUrlEnvs].map((name) => [name, url]));
@@ -51,7 +56,7 @@ export async function prepareSeed(options: SeedOptions): Promise<string> {
   const logFile = isolatePaths(repoDir).migrateSeedLog;
   writeFileSync(logFile, '');
   await execute(postgres.url('postgres'), `CREATE DATABASE "${SEED_DATABASE}"`);
-  const seedUrl = postgres.url(SEED_DATABASE);
+  const seedUrl = seedDatabaseUrl(postgres);
   const steps: [string, string | undefined][] = [
     ['migrate', config.db.migrate],
     ['seed', config.db.seed],
