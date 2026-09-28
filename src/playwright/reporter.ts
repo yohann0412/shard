@@ -63,18 +63,25 @@ export default class IsolateReporter implements Reporter {
     this.resolvedWorkers = config.workers;
   }
 
+  /**
+   * Tests skipped without running (a static `test.skip()`, say) are reported by the main process with worker index -1,
+   * often before any worker has started: they are recorded but do not start or end the test phase.
+   */
   onTestBegin(_test: TestCase, result: TestResult): void {
     const now = this.now();
-    this.firstTestBeginMs ??= now;
     this.startTimes.set(result, now);
+    if (result.workerIndex < 0) return;
+    this.firstTestBeginMs ??= now;
     this.running++;
     this.maxConcurrent = Math.max(this.maxConcurrent, this.running);
   }
 
   onTestEnd(test: TestCase, result: TestResult): void {
     const now = this.now();
-    this.lastTestEndMs = now;
-    this.running = Math.max(0, this.running - 1);
+    if (result.workerIndex >= 0) {
+      this.lastTestEndMs = now;
+      this.running = Math.max(0, this.running - 1);
+    }
     const outcome = test.outcome();
     const project = test.parent.project()?.name ?? '';
     this.records.push({

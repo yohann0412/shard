@@ -1,6 +1,6 @@
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { closeSync, openSync } from 'node:fs';
+import { closeSync, openSync, readdirSync, readFileSync } from 'node:fs';
 import type { Reaper } from './reaper.js';
 import { readTail } from './tail.js';
 import { waitUntil } from './wait.js';
@@ -87,9 +87,43 @@ export function sendSignal(pid: number, signal: NodeJS.Signals | 0): boolean {
   }
 }
 
-/** True while any process in the group still exists (an unreaped zombie counts). */
+/**
+ * Process states of the group's members: from /proc on Linux, from `ps` elsewhere. Null if they cannot be listed.
+ * On /proc the state follows the last ')' of `stat`, because the command name in parentheses may contain anything.
+ */
+function memberStates(pgid: number): string[] | null {
+  try {
+    if (process.platform === 'linux') {
+      const states: string[] = [];
+      for (const entry of readdirSync('/proc')) {
+        if (!/^\d+$/.test(entry)) continue;
+        let stat: string;
+        try {
+          stat = readFileSync(`/proc/${entry}/stat`, 'utf8');
+        } catch {
+          continue; // exited while listing
+        }
+        const [state, , group] = stat.slice(stat.lastIndexOf(')') + 2).split(' ');
+        if (Number(group) === pgid && state !== undefined) states.push(state);
+      }
+      return states;
+    }
+    const lines = execFileSync('ps', ['-A', '-o', 'pgid=,stat='], { encoding: 'utf8' }).split('\n');
+    return lines.map((line) => line.trim().split(/\s+/)).filter(([group]) => Number(group) === pgid).map(([, state]) => state ?? '');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * True while a process of the group is still running. A zombie does not count: it has already exited and holds no
+ * memory, port or file, it only waits for its parent to collect it, and an orphan's new parent (init, or a container's
+ * PID 1) may take a second or, without a reaping init, forever to do so.
+ */
 function groupAlive(pgid: number): boolean {
-  return sendSignal(-pgid, 0);
+  if (!sendSignal(-pgid, 0)) return false;
+  const states = memberStates(pgid);
+  return states === null || states.some((state) => !state.startsWith('Z'));
 }
 
 /** Kills a whole process group: SIGTERM, then SIGKILL if anything is left after `graceMs`. */

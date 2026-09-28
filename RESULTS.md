@@ -168,6 +168,13 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
   - its globalSetup creates an admin session in the database, which now runs once and is copied to every worker;
   - its suite expects a running server, which `--baseline --app` provides for the comparison.
 - **documenso's** `api` project already runs 10 workers against one app, so the headroom is small. Their one failure was a connection reset under that load.
+- **documenso on an Apple M5 Pro (18 cores), same subset, run by the user** (`data/results/documenso/compare-mac-2026-09-28-api-v1.txt`): theirs@10 13.0 s; isolate@2 22.2 s, @4 16.3 s, @8 18.6 s. All arms passed 44/44. isolate lost on wall time, for four reasons (LOG.md 21:22):
+  - The suite is parallel already, and nothing shared holds it back.
+  - compare's default arms (2, 4, 8) all ran fewer workers than theirs.
+  - The test phase is 5 s, so fixed cost decides: isolate@8 spent 13.5 s outside it against 8.0 s for theirs.
+  - The reporter counted skipped tests as the start of the test phase. Corrected, isolate@8's test phase (5.07 s) ties theirs@10 (5.01 s) with 20% fewer workers.
+  
+  DECISIONS D-017 cuts isolate's fixed cost: database copies about 12x faster, teardown about 5x faster. compare now picks its arms from their worker count and says when a suite is already parallel. A 5-second suite that is already parallel is still not one isolate can win.
 
 ## Experiment B: impact map
 

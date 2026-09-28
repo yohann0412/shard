@@ -177,11 +177,19 @@ export async function startStack(options: StackOptions): Promise<Stack> {
   let postgres: PostgresServer | undefined;
   let appGroup: AppGroup | undefined;
   const stopAll = async () => {
-    const peakRssMb = await rss.stop();
-    await proxy?.stop();
-    await appGroup?.stop();
-    await postgres?.stop();
-    const escaped = await reaper.close();
+    const steps: Record<string, number> = {};
+    const step = async <T>(name: string, run: () => Promise<T>): Promise<T> => {
+      const start = performance.now();
+      const result = await run();
+      steps[name] = elapsedMs(start);
+      return result;
+    };
+    const peakRssMb = await step('rss', () => rss.stop());
+    await step('proxy', async () => proxy?.stop());
+    await step('apps', async () => appGroup?.stop());
+    await step('postgres', async () => postgres?.stop());
+    const escaped = await step('reaper', () => reaper.close());
+    log.debug(steps, 'teardown steps in ms:');
     if (escaped.length > 0) log.warn(`killed ${escaped.length} process(es) that had escaped their process group: ${escaped.join(', ')}`);
     return { peakRssMb };
   };

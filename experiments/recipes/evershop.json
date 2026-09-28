@@ -4,7 +4,7 @@
   "commit": "18e02022631c1c9dba1b6e5ac734ae27b54632cb",
   "status": "works",
   "blocker": null,
-  "compareNote": "164 tests, Postgres. Their config: workers 1 by default, fullyParallel false ('Shared DB'); tests assume a server already running",
+  "compareNote": "164 tests, Postgres. Their config: 1 worker, fullyParallel false ('Shared DB'); the kind of suite isolate is for",
   "workdir": "tests/e2e",
   "install": [
     "npm ci --no-audit --no-fund",

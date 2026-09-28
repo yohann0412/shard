@@ -4,7 +4,7 @@
   "commit": "a1d4bec1430a937395db9a4aae28979cd71c2831",
   "status": "works",
   "blocker": null,
-  "compareNote": "~1,200 tests, Postgres (Prisma). Their CI: 8-core runner, 60 min limit, api project at 10 workers. Long: try a subset first, e.g. `just compare documenso --rounds 1 -- e2e/api/v1`",
+  "compareNote": "~1,200 tests, Postgres (Prisma). Already parallel: the api project runs 10 workers against one app, so isolate has little to unlock (see RESULTS.md). Long: use a subset, e.g. `just compare documenso --rounds 1 -- e2e/api/v1`",
   "workdir": "packages/app-tests",
   "toolchain": {
     "node": "24",

@@ -21,7 +21,8 @@ Times a repo's own Playwright setup ("theirs": its config, worker count and one 
 against isolate run at each worker count, R rounds in rotating order, and prints the medians.
 
   --rounds R      timed rounds per arm (default: the recipe's rounds, else 3)
-  --workers LIST  isolate worker counts (default: 2, 4 and the number of cores, up to 8)
+  --workers LIST  isolate worker counts. Default: 2, 4 and 8 when their setup runs one worker; when it already runs
+                  W workers, W (same parallelism, so only the isolation differs) and 2W; never more than the cores
   --fresh         clone, install and build again even if work/repos/<recipe> was prepared before
   -- ARGS         extra arguments for every playwright test command, e.g. a directory to run a subset
 `;
@@ -48,16 +49,20 @@ interface Sample {
   log: string;
 }
 
-/** Default isolate worker counts: 2, 4 and the core count (at most 8), never above the core count. */
-function defaultWorkers(cores: number): number[] {
-  return [...new Set([2, 4, Math.min(cores, 8)])].filter((workers) => workers <= cores).sort((a, b) => a - b);
+/**
+ * isolate worker counts to try when none are given. A setup held to one worker (the case isolate is for) gets 2, 4 and
+ * 8. A setup that already runs W workers gets W, where only the isolation differs, and 2W. Never above the cores.
+ */
+function defaultWorkers(cores: number, theirWorkers: number | null): number[] {
+  const wanted = theirWorkers === null || theirWorkers <= 1 ? [2, 4, 8] : [theirWorkers, theirWorkers * 2];
+  return [...new Set(wanted.map((workers) => Math.min(workers, cores)))].sort((a, b) => a - b);
 }
 
 /** Parses `--workers 2,4`. */
 function parseWorkerList(value: string): number[] {
   const list = value.split(',').map((part) => Number(part.trim()));
   if (list.length === 0 || list.some((workers) => !Number.isInteger(workers) || workers < 1)) throw new Error(`--workers needs a comma-separated list of positive integers (got ${value})`);
-  return list;
+  return [...new Set(list)].sort((a, b) => a - b);
 }
 
 /** Formats milliseconds as "1m 23.4s" or "12.3s". */
@@ -96,20 +101,57 @@ function range(values: (number | null)[]): string {
   return low === high ? String(low) : `${low}-${high}`;
 }
 
+/** Everything but Playwright's test phase: database, apps, Playwright start-up and exit, teardown. */
+function overheadMs(entry: Sample): number | null {
+  return entry.wallMs === null || entry.testPhaseMs === null ? null : entry.wallMs - entry.testPhaseMs;
+}
+
+/** The median of the known values of `pick` over `list`, or null. */
+function medianBy(list: Sample[], pick: (entry: Sample) => number | null): number | null {
+  const values = list.map(pick).filter((value): value is number => value !== null);
+  return values.length === 0 ? null : median(values);
+}
+
+/**
+ * What the reader needs to know to read the table: whether their setup was already parallel, and whether the suite is
+ * short enough for isolate's fixed cost to dominate.
+ */
+function notes(arms: Arm[], samples: Sample[], cores: number): string[] {
+  const theirs = samples.filter((entry) => entry.arm === 'theirs');
+  const theirWorkers = medianBy(theirs, (entry) => entry.workers);
+  const theirTests = medianBy(theirs, (entry) => entry.testPhaseMs);
+  const theirOverhead = medianBy(theirs, overheadMs);
+  const found: string[] = [];
+  if (theirWorkers !== null && theirWorkers > 1) {
+    const same = arms.some((arm) => arm.name === `isolate@${theirWorkers}`);
+    found.push(
+      `Their setup already runs ${theirWorkers} workers against one app and one database, so shared state is not what holds it back, and isolate has little to win: it speeds a suite up by letting it run more workers than shared state allows. ${
+        same
+          ? `isolate@${theirWorkers} runs the same parallelism, so it shows what the isolation alone costs or saves.`
+          : `This machine has ${cores} cores, so no isolate arm matches their ${theirWorkers} workers.`
+      }`,
+    );
+  }
+  const largest = arms.length > 1 ? arms.at(-1)!.name : undefined;
+  const largestOverhead = largest === undefined ? null : medianBy(samples.filter((entry) => entry.arm === largest), overheadMs);
+  if (theirTests !== null && theirTests < 60_000 && largestOverhead !== null && theirOverhead !== null) {
+    found.push(
+      `Their test phase is only ${duration(theirTests)}. Outside the test phase, ${largest} spends ${duration(largestOverhead)} (starting Postgres, copying the database, booting one app per worker, Playwright start-up, teardown) against ${duration(theirOverhead)} for theirs; on a run this short that difference decides the wall time, so the test-phase column is the fairer one, and a longer suite the better test.`,
+    );
+  }
+  return found;
+}
+
 /** The summary table: medians per arm and the speedup of each isolate arm over theirs. */
 function summarize(arms: Arm[], samples: Sample[]): string {
-  const rows = [['arm', 'workers', 'runs', 'median wall', 'median tests', 'passed', 'failed', 'wall speedup', 'tests speedup']];
+  const rows = [['arm', 'workers', 'runs', 'median wall', 'median tests', 'overhead', 'passed', 'failed', 'wall speedup', 'tests speedup']];
   const theirs = samples.filter((entry) => entry.arm === 'theirs');
-  const medianOf = (list: Sample[], pick: (entry: Sample) => number | null) => {
-    const values = list.map(pick).filter((value): value is number => value !== null);
-    return values.length === 0 ? null : median(values);
-  };
-  const theirWall = medianOf(theirs, (entry) => entry.wallMs);
-  const theirTests = medianOf(theirs, (entry) => entry.testPhaseMs);
+  const theirWall = medianBy(theirs, (entry) => entry.wallMs);
+  const theirTests = medianBy(theirs, (entry) => entry.testPhaseMs);
   for (const arm of arms) {
     const runs = samples.filter((entry) => entry.arm === arm.name);
-    const wall = medianOf(runs, (entry) => entry.wallMs);
-    const tests = medianOf(runs, (entry) => entry.testPhaseMs);
+    const wall = medianBy(runs, (entry) => entry.wallMs);
+    const tests = medianBy(runs, (entry) => entry.testPhaseMs);
     const speedup = (base: number | null, value: number | null) => (base === null || value === null ? 'n/a' : `${(base / value).toFixed(2)}x`);
     rows.push([
       arm.name,
@@ -117,6 +159,7 @@ function summarize(arms: Arm[], samples: Sample[]): string {
       String(runs.length),
       duration(wall),
       duration(tests),
+      duration(medianBy(runs, overheadMs)),
       range(runs.map((entry) => entry.passed)),
       range(runs.map((entry) => entry.failed)),
       arm.name === 'theirs' ? '1.00x' : speedup(theirWall, wall),
@@ -145,7 +188,7 @@ async function main(argv: string[]): Promise<number> {
   const rounds = values.rounds === undefined ? (recipe.rounds ?? 3) : Number(values.rounds);
   if (!Number.isInteger(rounds) || rounds < 1) throw new Error(`--rounds needs a positive integer (got ${values.rounds})`);
   const cores = os.availableParallelism();
-  const workerCounts = values.workers === undefined ? defaultWorkers(cores) : parseWorkerList(values.workers);
+  const requested = values.workers === undefined ? null : parseWorkerList(values.workers);
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const outDir = path.join(workDir, 'compare', name, stamp);
@@ -159,13 +202,12 @@ async function main(argv: string[]): Promise<number> {
   const invocation: Invocation = { cwd: checkout.appDir, env: armEnv(recipe, browsers.path), capMs: (recipe.runCapMin ?? 45) * 60_000 };
 
   const playwright = [...recipe.playwrightCommand, '--retries=0', ...recipe.playwrightArgs, ...extra];
-  const arms: Arm[] = [
-    { name: 'theirs', args: ['run', '--baseline', ...(recipe.baselineApp ? ['--app'] : []), '--', ...playwright] },
-    ...workerCounts.map((workers) => ({ name: `isolate@${workers}`, args: ['run', '--workers', String(workers), '--no-rerun', '--', ...playwright] })),
-  ];
+  const theirArm: Arm = { name: 'theirs', args: ['run', '--baseline', ...(recipe.baselineApp ? ['--app'] : []), '--', ...playwright] };
+  const isolateArm = (workers: number): Arm => ({ name: `isolate@${workers}`, args: ['run', '--workers', String(workers), '--no-rerun', '--', ...playwright] });
 
   const services = await startServices(recipe);
   const samples: Sample[] = [];
+  let arms: Arm[] = [theirArm];
   try {
     const run = async (arm: Arm, round: number) => {
       if (arm.name === 'theirs' && recipe.baselinePorts.length > 0) await waitForFreePorts(recipe.baselinePorts, 15 * 60_000);
@@ -173,10 +215,15 @@ async function main(argv: string[]): Promise<number> {
       const loaded = await runSuite(label, arm.args, invocation, outDir);
       const entry = sample(arm, round, loaded);
       const outcome = entry.passed === null ? `no report (${entry.error ?? `exit ${entry.exitCode}`})` : `${entry.passed} passed, ${entry.failed} failed`;
-      say(`${label}: wall ${duration(entry.wallMs)}, tests ${duration(entry.testPhaseMs)}, ${outcome}${entry.exceededCap ? ', STOPPED at the time cap' : ''}`);
+      say(`${label}: wall ${duration(entry.wallMs)}, tests ${duration(entry.testPhaseMs)}, ${entry.workers ?? '?'} worker(s), ${outcome}${entry.exceededCap ? ', STOPPED at the time cap' : ''}`);
       return entry;
     };
-    say(`warm-up (not counted): fills isolate's snapshot cache and warms the disk cache`);
+    say('warm-up (not counted): their setup first, to learn its worker count; it also fills the snapshot cache');
+    const theirWorkers = (await run(theirArm, 0)).workers;
+    const workerCounts = requested ?? defaultWorkers(cores, theirWorkers);
+    arms = [theirArm, ...workerCounts.map(isolateArm)];
+    say(`their setup runs ${theirWorkers ?? 'an unknown number of'} worker(s); isolate arms: ${workerCounts.join(', ')}`);
+    say('warm-up (not counted): the largest isolate arm, so its build cache and the disk cache are warm too');
     await run(arms.at(-1)!, 0);
     for (let round = 1; round <= rounds; round++) {
       const shift = (round - 1) % arms.length;
@@ -187,14 +234,16 @@ async function main(argv: string[]): Promise<number> {
   }
 
   const table = summarize(arms, samples);
+  const found = notes(arms, samples, cores);
+  const footer = found.length === 0 ? '' : `\n\nNotes:\n${found.map((note) => `- ${note}`).join('\n')}`;
   const header = [
     `${name} @ ${checkout.commit.slice(0, 12)}: ${rounds} round(s); ${machine.cpuModel}, ${machine.cores} cores, ${machine.ramGb} GB, ${machine.os}`,
     `theirs = the repo's own Playwright config (its worker count, one app, one database${recipe.baselineApp ? ', app started by isolate --baseline --app' : ''}); isolate@N = one app and database per worker`,
-    `wall = the whole isolate command (database, apps, tests, teardown); tests = Playwright's own test phase`,
+    `wall = the whole isolate command; tests = Playwright's test phase (first test start to last test end); overhead = wall minus tests`,
   ].join('\n');
-  writeFileSync(path.join(outDir, 'summary.txt'), `${header}\n\n${table}\n`);
+  writeFileSync(path.join(outDir, 'summary.txt'), `${header}\n\n${table}${footer}\n`);
   writeFileSync(path.join(outDir, 'samples.json'), `${JSON.stringify({ recipe: name, commit: checkout.commit, machine, browsers, arms, samples }, null, 2)}\n`);
-  process.stdout.write(`\n${header}\n\n${table}\n\nraw logs and reports: ${path.relative(harnessRoot, outDir)}\n`);
+  process.stdout.write(`\n${header}\n\n${table}${footer}\n\nraw logs and reports: ${path.relative(harnessRoot, outDir)}\n`);
   return 0;
 }
 

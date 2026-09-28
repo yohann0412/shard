@@ -87,38 +87,115 @@ export async function prepareSeed(options: SeedOptions): Promise<string> {
   return seedUrl;
 }
 
-/** Opens a connection to the `postgres` database, terminates every connection to `template` (a template must have none), then runs `copy`. */
-async function withTemplateReleased<T>(postgres: PostgresServer, template: string, copy: (client: pg.Client) => Promise<T>): Promise<T> {
+/** At most this many CREATE DATABASE statements run at once, each on its own connection. */
+const COPY_CONCURRENCY = 8;
+
+/**
+ * How this server copies a template. `fileCopy`: `STRATEGY = FILE_COPY` (Postgres 15+), which copies the template's
+ * files instead of writing every page through shared buffers and WAL (the default, WAL_LOG): no dirty buffers for the
+ * shutdown to write, and several times faster for a seeded database of any size. `clone`: `file_copy_method = clone`
+ * (Postgres 18+), copy-on-write clones where the file system has them (APFS, Btrfs, XFS); turned off for the rest of
+ * the run if a clone fails.
+ */
+interface CopyMethod {
+  fileCopy: boolean;
+  clone: boolean;
+}
+
+const copyMethods = new WeakMap<PostgresServer, Promise<CopyMethod>>();
+
+/** Asks the server once which copy method it supports. */
+function copyMethod(postgres: PostgresServer): Promise<CopyMethod> {
+  let method = copyMethods.get(postgres);
+  if (method === undefined) {
+    method = (async () => {
+      const client = new pg.Client({ connectionString: postgres.url('postgres') });
+      await client.connect();
+      try {
+        const version = Number((await client.query<{ server_version_num: string }>('SHOW server_version_num')).rows[0]?.server_version_num);
+        let clone = false;
+        if (version >= 180000) {
+          clone = await client.query('SET file_copy_method = clone').then(
+            () => true,
+            () => false,
+          );
+        }
+        return { fileCopy: version >= 150000, clone };
+      } finally {
+        await client.end();
+      }
+    })();
+    copyMethods.set(postgres, method);
+  }
+  return method;
+}
+
+/** Terminates every connection to `template`: a template must have none. */
+async function releaseTemplate(postgres: PostgresServer, template: string): Promise<void> {
   const client = new pg.Client({ connectionString: postgres.url('postgres') });
   await client.connect();
   try {
     await client.query('SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()', [template]);
-    return await copy(client);
   } finally {
     await client.end();
   }
 }
 
-/** Copies `template` into a new database `name` with `CREATE DATABASE ... TEMPLATE`, dropping an existing `name` first if `replace`, timing the copy. */
-async function copyDatabase(client: pg.Client, postgres: PostgresServer, template: string, name: string, replace = false): Promise<WorkerDatabase> {
-  const start = performance.now();
-  if (replace) await client.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
-  await client.query(`CREATE DATABASE "${name}" TEMPLATE "${template}"`);
-  const copyMs = elapsedMs(start);
-  log.info(`copied ${name} from ${template} in ${copyMs}ms`);
-  return { name, url: postgres.url(name), copyMs };
+/**
+ * Copies `template` into a new database `name` on its own connection, dropping an existing `name` first if `replace`,
+ * timing the copy. With `clone`, a failed copy-on-write clone is retried as a plain file copy.
+ */
+async function copyDatabase(postgres: PostgresServer, template: string, name: string, replace: boolean): Promise<WorkerDatabase> {
+  const method = await copyMethod(postgres);
+  const client = new pg.Client({ connectionString: postgres.url('postgres') });
+  await client.connect();
+  try {
+    if (replace) await client.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+    const start = performance.now();
+    const create = `CREATE DATABASE "${name}" TEMPLATE "${template}"${method.fileCopy ? ' STRATEGY = FILE_COPY' : ''}`;
+    if (method.clone) {
+      try {
+        await client.query('SET file_copy_method = clone');
+        await client.query(create);
+      } catch (error) {
+        method.clone = false;
+        log.warn(`copy-on-write clone of ${template} failed (${error instanceof Error ? error.message : String(error)}); copying files instead`);
+        await client.query('RESET file_copy_method');
+        await client.query(create);
+      }
+    } else {
+      await client.query(create);
+    }
+    const copyMs = elapsedMs(start);
+    log.info(`copied ${name} from ${template} in ${copyMs}ms`);
+    return { name, url: postgres.url(name), copyMs };
+  } finally {
+    await client.end();
+  }
+}
+
+/** Copies `template` into every database in `names`, COPY_CONCURRENCY at a time; returns them in the order of `names`. */
+async function copyAll(postgres: PostgresServer, template: string, names: string[], replace: boolean): Promise<WorkerDatabase[]> {
+  const copies: WorkerDatabase[] = [];
+  for (let first = 0; first < names.length; first += COPY_CONCURRENCY) {
+    const batch = names.slice(first, first + COPY_CONCURRENCY);
+    copies.push(...(await Promise.all(batch.map((name) => copyDatabase(postgres, template, name, replace)))));
+  }
+  return copies;
 }
 
 /**
  * Terminates every connection to `seed`, then copies it into w0..w<count-1> with `CREATE DATABASE "w<i>" TEMPLATE seed`,
- * one at a time, timing each copy.
+ * several at a time, timing each copy.
  */
 export async function cloneDatabases(postgres: PostgresServer, count: number): Promise<WorkerDatabase[]> {
-  return withTemplateReleased(postgres, SEED_DATABASE, async (client) => {
-    const databases: WorkerDatabase[] = [];
-    for (let index = 0; index < count; index++) databases.push(await copyDatabase(client, postgres, SEED_DATABASE, `w${index}`));
-    return databases;
-  });
+  await releaseTemplate(postgres, SEED_DATABASE);
+  return copyAll(
+    postgres,
+    SEED_DATABASE,
+    Array.from({ length: count }, (_, index) => `w${index}`),
+    false,
+  );
 }
 
 /**
@@ -126,7 +203,8 @@ export async function cloneDatabases(postgres: PostgresServer, count: number): P
  * rerun), timing the copy.
  */
 export async function cloneDatabase(postgres: PostgresServer, name: string, template = SEED_DATABASE): Promise<WorkerDatabase> {
-  return withTemplateReleased(postgres, template, (client) => copyDatabase(client, postgres, template, name));
+  await releaseTemplate(postgres, template);
+  return copyDatabase(postgres, template, name, false);
 }
 
 /** Name of the database that keeps what the repo's globalSetup wrote into w0, for the other workers and for reruns. */
@@ -139,10 +217,14 @@ export const SETUP_DATABASE = 'setup';
 export async function fanOutDatabases(postgres: PostgresServer, databases: WorkerDatabase[]): Promise<WorkerDatabase[]> {
   const first = databases[0];
   if (first === undefined) return databases;
-  await withTemplateReleased(postgres, first.name, (client) => copyDatabase(client, postgres, first.name, SETUP_DATABASE, true));
-  return withTemplateReleased(postgres, SETUP_DATABASE, async (client) => {
-    const copies = [first];
-    for (const database of databases.slice(1)) copies.push(await copyDatabase(client, postgres, SETUP_DATABASE, database.name, true));
-    return copies;
-  });
+  await releaseTemplate(postgres, first.name);
+  await copyDatabase(postgres, first.name, SETUP_DATABASE, true);
+  await releaseTemplate(postgres, SETUP_DATABASE);
+  const copies = await copyAll(
+    postgres,
+    SETUP_DATABASE,
+    databases.slice(1).map((database) => database.name),
+    true,
+  );
+  return [first, ...copies];
 }

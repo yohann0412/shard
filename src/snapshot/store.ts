@@ -1,4 +1,4 @@
-import { chmodSync, cpSync, existsSync, lchownSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, statSync, utimesSync } from 'node:fs';
+import { chmodSync, constants, cpSync, existsSync, lchownSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, statSync, utimesSync } from 'node:fs';
 import path from 'node:path';
 import type { PostgresUser } from '../db/user.js';
 import { log } from '../log.js';
@@ -19,10 +19,11 @@ function entryDir(repoDir: string, kind: EntryKind, key: string): string {
  * Copies a file or directory tree, keeping modes, timestamps and symlink targets as they are. Synchronous on purpose:
  * on Node 22 `fs.cpSync` copies a 47 MB, 1300-file Postgres data directory about 12 times faster than `fs.promises.cp`,
  * but creates directories with the default mode, so each copied directory then gets its source's mode back (Postgres
- * refuses a data directory that is not 0700 or 0750).
+ * refuses a data directory that is not 0700 or 0750). Files are copy-on-write clones where the file system supports
+ * them (APFS, Btrfs, XFS), and plain copies elsewhere.
  */
 function copyTree(from: string, to: string): void {
-  cpSync(from, to, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true });
+  cpSync(from, to, { recursive: true, preserveTimestamps: true, verbatimSymlinks: true, mode: constants.COPYFILE_FICLONE });
   if (!lstatSync(from).isDirectory()) return;
   for (const entry of ['.', ...readdirSync(from, { recursive: true, encoding: 'utf8' })]) {
     const stats = lstatSync(path.join(from, entry));

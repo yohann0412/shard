@@ -9,6 +9,7 @@ import { killGroup, runGroup, sendSignal, spawnGroup, type GroupOptions, type Gr
 import { freePorts } from '../proc/ports.js';
 import { waitForReady } from '../proc/ready.js';
 import type { Reaper } from '../proc/reaper.js';
+import { elapsedMs } from '../proc/timing.js';
 import { settlesWithin } from '../proc/wait.js';
 import type { PostgresBinaries } from './binaries.js';
 import { asUser, postgresUser, type PostgresUser } from './user.js';
@@ -44,7 +45,7 @@ export interface PostgresServer {
    * port. Throws, leaving the server stopped, if the shutdown was not clean or `task` fails.
    */
   whileStopped<T>(task: (pgdata: string) => T | Promise<T>): Promise<T>;
-  /** Fast shutdown (SIGINT to the postmaster), SIGKILL of the group after a timeout, then deletion of `dir`. */
+  /** Immediate shutdown (SIGQUIT to the postmaster, no checkpoint), SIGKILL of the group after a timeout, then deletion of `dir`. */
   stop(): Promise<void>;
 }
 
@@ -94,9 +95,13 @@ async function acceptsConnections(url: string): Promise<boolean> {
   }
 }
 
-/** Sends SIGINT (fast shutdown) and waits; kills the group if it hangs. Returns whether the postmaster exited in time. */
-async function shutDown(server: GroupProcess): Promise<boolean> {
-  sendSignal(server.pid, 'SIGINT');
+/**
+ * Sends SIGINT (fast shutdown: a final checkpoint writes every dirty buffer) or SIGQUIT (immediate shutdown: no
+ * checkpoint, the next start would replay WAL, which is fine for a data directory about to be deleted) and waits; kills
+ * the group if it hangs. Returns whether the postmaster exited in time.
+ */
+async function shutDown(server: GroupProcess, mode: 'fast' | 'immediate' = 'fast'): Promise<boolean> {
+  sendSignal(server.pid, mode === 'fast' ? 'SIGINT' : 'SIGQUIT');
   const clean = await settlesWithin(server.exited, SHUTDOWN_TIMEOUT_MS);
   if (!clean) log.warn(`postgres did not shut down within ${SHUTDOWN_TIMEOUT_MS} ms; killing its process group`);
   await killGroup(server.pid, 1_000);
@@ -163,9 +168,12 @@ export async function startPostgres(options: PostgresOptions): Promise<PostgresS
   };
   let stopping: Promise<void> | undefined;
   const stop = async () => {
-    await shutDown(current);
+    const start = performance.now();
+    await shutDown(current, 'immediate');
+    const shutdownMs = elapsedMs(start);
     rmSync(cluster.dir, { recursive: true, force: true });
     reaper.untrackDir(cluster.dir);
+    log.debug({ shutdownMs, removeMs: elapsedMs(start) - shutdownMs }, 'postgres stop in ms:');
   };
   return {
     get pid() {

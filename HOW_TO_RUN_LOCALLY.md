@@ -53,10 +53,19 @@ What it does, all unattended:
 1. Clones the repo at the commit the recipe pins into `work/repos/<name>`, installs it and builds it (first time only; `--fresh` redoes it). If the recipe pins a Node, npm or pnpm version, that version is installed into `work/toolchain/` from npm and used for this repo only.
 2. Downloads the Chromium the repo's Playwright version expects (`playwright install chromium`).
 3. Starts any service the recipe needs (documenso: a local SMTP sink that accepts and discards mail).
-4. Runs one untimed warm-up, then R rounds in rotating order of:
+4. Runs two untimed warm-ups: their setup first, which tells it their worker count W, then the largest isolate arm. Then it runs R rounds in rotating order of:
    - **theirs**: the repo's own Playwright config as their CI runs it (`CI=true`, its worker count, one app, one database), through `isolate run --baseline` (and `--app` when their config expects an already-running server);
-   - **isolate@N**: `isolate run --workers N`, one app and database copy per worker.
-5. Prints median wall time and Playwright test-phase time per arm, pass and fail counts, and the speedup over theirs. Raw logs and reports go to `work/compare/<name>/<timestamp>/`.
+   - **isolate@N**: `isolate run --workers N`, one app and database copy per worker. By default N is 2, 4 and 8 when W is 1, the case isolate is for. When their setup already runs W workers, N is W (same parallelism, so only the isolation differs) and 2W. N never exceeds your cores.
+5. Prints per arm:
+   - median wall time;
+   - Playwright's test phase;
+   - the overhead outside it;
+   - pass and fail counts;
+   - the speedup over theirs.
+
+   Notes follow the table when their setup is already parallel or the suite is too short for a fair wall-clock comparison. Raw logs and reports go to `work/compare/<name>/<timestamp>/`.
+
+**Which repos are worth it:** suites whose own config holds them to one or a few workers because tests share a database (evershop: `workers: 1`, "Shared DB"). A suite that already runs many workers against one app (documenso's API tests: 10) has nothing for isolate to unlock. There, the best case is a tie on the test phase, plus isolate's start-up cost.
 
 Both arms run with `--retries=0` and the same database snapshot, so they do the same work. Compare the pass/fail columns too: a faster arm that fails more tests is not a win.
 
