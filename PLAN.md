@@ -1,12 +1,14 @@
 # PLAN
 
-Status: v1. Items marked **[rev]** changed while drafting, after the F4 throwaway experiment; `PLAN_REVIEW.md` re-examines all of it.
+Status: v2, revised after `PLAN_REVIEW.md`. **[rev]** marks changes made while drafting (after the F4 throwaway) and after the review.
 
 ## 1. The claims, and what would falsify them
 
-**Claim A (isolation).** Most Playwright suites run with `workers: 1` because every worker would share one app process and one database. If each worker gets its own app process and its own copy of a seeded Postgres database, with no edits to the tests, then raising `workers` from 1 to N makes the test phase close to N times faster, bounded by cores, and adds no failures. It is falsified if (a) the median speedup at N = 4 across runnable repos is well below 4x (we call < 2x a failure of the claim and 2-3x "partial"), or (b) most repos show new deterministic failures under isolation, or (c) the per-worker plumbing cannot be done without test edits in most repos.
+**Claim A (isolation).** Most Playwright suites run with `workers: 1` because every worker would share one app process and one database. If each worker gets its own app process and its own copy of a seeded Postgres database, with no edits to the tests, then raising `workers` from 1 to N makes the test phase close to N times faster, bounded by cores, and adds no failures. **[rev]** The verdict number is the median across runnable repos of test-phase(isolated N=1) / test-phase(isolated N=4), where the test phase is first test begin to last test end. The claim holds if that median is ≥ 3x with zero new deterministic failures in most repos. It is "partial" at 2-3x, and falsified below 2x, or if most repos show new deterministic failures under isolation, or if the per-worker plumbing needs test edits in most repos. Speedup against the repo's own baseline is reported as context, next to the harness effect (baseline@1 / isolated N=1).
 
-**Claim B (impact map).** If we record which server and client files each test executes, a change to file F only needs the tests that executed F, plus everything if F is boot-time code. It is falsified if mutating a file that the map ties to some tests breaks tests the map does not name (recall well below 1), or if the map is not stable across two identical runs (median per-test Jaccard < 0.9), or if the map selects nearly all tests for most files (then it is safe but useless).
+**Claim B (impact map).** If we record which server and client files each test executes, a change to file F only needs the tests that executed F, plus everything if F is boot-time code. **[rev]** The headline is the fraction of live, non-global mutants whose failing tests were all predicted, with n and a 95% Clopper-Pearson interval. The claim holds if the interval's lower bound is ≥ 0.9. It is falsified if the lower bound is < 0.8, or if the map is unstable (median per-file Jaccard of selecting tests < 0.9 across two builds at different N), or if the median mutated file's time-weighted selection ratio is ≥ 0.8. In that last case the map is safe but useless.
+
+**Scope [rev].** V1 manages Postgres and the app processes only. Redis, S3, queues, search engines and third-party APIs are out of scope. `isolate init` must detect them and refuse to proceed without `--allow-unmanaged`, and every report lists them. Per-test isolation (a fresh database per test) is also out of scope: a worker's tests share that worker's database, exactly as the serial baseline shares one.
 
 ## 2. Architecture
 
@@ -117,24 +119,29 @@ examples/fixture-app/      Phase 1
 
 ## 5. Experiment protocols
 
-### Experiment A (isolation), as run
+### Experiment A (isolation), as run [rev]
 
-Per repo, in a fresh checkout, same machine, all runs recorded with CPU model, cores, RAM, OS, Node, Postgres, Playwright versions and "cloud sandbox: yes".
+Per repo, in a fresh checkout, same machine, recording CPU model, cores, threads per core, RAM, OS, Node, Postgres and Playwright versions, and "cloud sandbox: yes".
 
-1. **Baseline**: the repo's own e2e command and config at its configured workers. Dependency install and browser setup excluded from timing. Cap 45 min ("exceeded cap").
-2. **Setup fraction [rev]**: Playwright's JSON reporter drops hook and fixture steps (it keeps only `test.step`), so the `isolate` reporter (injected through the wrapper config) records per-test time in hooks and fixtures (`category` `hook` or `fixture`) vs the rest of the test. It runs in the isolated N = 1 run, which executes the same tests serially; the baseline is left uninstrumented so its wall time is untouched. We also report app boot time and runner overhead (wall time minus summed test time).
-3. **Isolated runs**: N = 1, 2, 4, 8, skipping N > cores (this machine: 4 vCPU, so N = 8 is skipped for repos; on the fixture only, N = 8 is also run and labelled "oversubscribed" to show the curve past the core count). Each N twice, median reported, both runs listed. Warm vs cold: the first `isolate run` of a repo is cold (no snapshot); all measured runs are warm and say so; the cold run is reported separately.
-4. **Failure classification**: any test failing under isolation that passed at baseline is re-run twice alone on a fresh copy of `seed`; deterministic failures are categorized (hardcoded URL, cross-test dependency, global state outside the DB, unmanaged service, shared auth state from setup projects/globalSetup **[rev]**, other).
-5. **Memory**: peak RSS of all app process trees plus the Postgres tree at the largest N run.
+1. **Build once, untimed.** Install, build, and browser setup happen before any timed run and are excluded from every arm.
+2. **Baseline**: the repo's own config through a pass-through wrapper that only appends the timing reporter. `webServer`, `workers` and env stay as the repo has them. It runs against a fresh copy of `seed` on the same isolate-managed Postgres (same binary, same RAM directory, same settings). Two arms: baseline@configured (context) and baseline@1 (harness check). Cap 45 min ("exceeded cap").
+3. **Setup fraction**: from the timing reporter in every arm: pre-test time (config load to first test: webServer, globalSetup, worker and browser start), test phase (first test begin to last test end), teardown, and per test the time in `hook`/`fixture` steps vs the rest.
+4. **Isolated runs**: N = 1, 2, 4, 8, skipping N > cores (4 vCPU here, so no N = 8 on real repos). On the fixture, N = 8 is also run, labelled "oversubscribed". One discarded warm-up run per arm, then 3 rounds with the arm order rotated each round. Median and min-max reported; a 4th round is added when max/min > 1.10. All arms use `--retries=0`, `PLAYWRIGHT_HTML_OPEN=never` and the same `CI` value. Observed concurrency (distinct parallel indexes, max tests running at once) is recorded, and runs are labelled with it.
+5. **Validity**: a timed run counts only if its per-test outcomes match the reference baseline's. Otherwise all arms are re-timed on the common passing subset. Routing is checked from outside the test process (per-worker database activity and per-app request counts); a run where a used worker's app saw no traffic is invalid.
+6. **Failure classification**: a test is an isolation failure if it fails in ≥ 2 of 3 isolated N=4 rounds and passes in ≥ 2 of 3 baseline@1 rounds, whether or not it passes alone. Deterministic failures are categorized: hardcoded URL, cross-test dependency, global state outside the DB, unmanaged service, shared auth state (globalSetup / setup projects), timeout under load, other.
+7. **Memory**: peak RSS of all app process trees plus the Postgres tree at the largest N.
+8. **Reported speedups**: test-phase(N=1)/test-phase(N) per N (the verdict uses N = 4), the scheduling ceiling from the N = 1 run, per-test inflation, end-to-end time including app boot, and vs-baseline speedups next to the harness effect. The F5 cache effect (cold vs warm) is reported on its own and is never part of a speedup.
 
-Speedup is computed two ways and both reported **[rev]**: test phase only (Playwright's own wall time) and end-to-end (including app boot and restore), each against the baseline and against isolated N = 1.
+Real-repo Experiment A is limited to repos whose baseline@1 takes ≤ 5 min in this sandbox. Longer ones go to `HANDOFF.md` with exact commands.
 
-### Experiment B (impact map), as run
+### Experiment B (impact map), as run [rev]
 
-1. Build the map twice on the same commit; per-test Jaccard of file sets; report median and min. Below 0.9 median → state that the map is unstable.
-2. Mutations: up to 20 files present in at least one test's set, and up to 5 controls in no test's set and not global. **[rev]** Files are sampled uniformly at random with a fixed, reported seed from all eligible files (not hand-picked), stratified so that server and client files are both represented when both exist. Mutation: `throw new Error("isolate-mutant")` as the first statement of the first exported function; files without one are skipped and the skip is recorded. Suite run under isolation at the best N from Experiment A.
-3. Score: P = tests whose set contains the file ("all" if global); recall = |F ∩ P| / |F| for non-empty F; selection ratio = |P| / total. **[rev]** Mutations where F is empty are counted and reported (they say the mutant was not detected by the suite at all, which is a property of the suite, not the map). Control failures are counted separately.
-4. Every miss is investigated and categorized (lazy import, error path, coverage granularity, source-map failure, other).
+1. **Stability**: build the map twice, at two different N (4 and 2). Per file, compute the Jaccard of the set of tests that select it, over files selected by < 50% of tests. Report median and min. Per-test Jaccard is reported too, for comparison with the spec.
+2. **Targets**: sample from the full source set (`git ls-files` minus tests and generated files), with a fixed, reported seed, stratified by map status: in ≥ 1 test set / bootLoaded only / global / absent. Aim for 20 in-map files and 5 absent-file controls.
+3. **Mutants**: (a) throw: `throw new Error("isolate-mutant")` as the first statement of the first exported function (the spec's). On the fixture only, plus real repos if time allows, also (b) top-level: change a module-scope literal, and (c) wrong-value: an early return of a plausible wrong value. Liveness check: the mutant marker or changed literal must appear in the build output that is served. Non-live mutants are reported, not scored.
+4. **Runs**: two unmutated reference runs at the best N from Experiment A; any test failing there is excluded from every F. Each mutant runs the full suite under isolation at that N.
+5. **Score**: P = tests whose map contains the file (or all, if global). Recall = |F ∩ P| / |F| when F is non-empty. The count and time-weighted selection ratios are |P| / total and Σ duration(P) / Σ duration(all). Scored under both global policies (function-level default and `--strict`). Headline: the fraction of live, non-global mutants with zero misses, with a Clopper-Pearson 95% interval. Empty-F mutants are split into "mutated function never executed" and "executed, no test failed". Live controls that fail are misses of a different kind.
+6. **Every miss is investigated** and categorized: lazy import, error path, coverage granularity, source-map failure, cross-test state through the DB, top-level code, other.
 
 ## 6. Time budget and cut line
 
@@ -145,7 +152,7 @@ This sprint runs in one working session on a 4 vCPU cloud sandbox, not two weeks
 | 0: plan, review, F4 verification | 45 min |
 | 1: fixture app + baseline/collide | 45 min (parallel with F1/F3) |
 | 2: F1-F7 | 3 h |
-| 3: harvest | 45 min (parallel with Phase 2) |
+| 3: harvest | 45 min, started in parallel with Phase 1 so real-repo feasibility is known early [rev] |
 | 4: Experiment A | 2 h |
 | 5: Experiment B | 1 h |
 | 6: results, docs, fresh-clone check | 1 h |
@@ -163,4 +170,5 @@ Cut order if time runs out: Experiment B on fewer repos → Experiment B on the 
 7. `page.coverage` (Chromium only) plus source maps resolves client code to source files.
 8. The pre-installed Chromium (revision 1194, Playwright 1.56) works for repos pinned to nearby Playwright versions when exposed under their expected revision directory.
 9. GitHub repository search is unavailable in this sandbox (verified: the API is scoped to this repository); awesome-selfhosted-data plus the seed list is a representative-enough candidate source (it is not: it is biased toward self-hosted apps; stated in the results).
-10. A 4 vCPU cloud VM gives stable enough timings for medians of two runs (checked by reporting both runs).
+10. **[rev]** A 4 vCPU cloud VM gives stable enough timings: checked per arm by max/min over ≥ 3 rounds (≤ 1.10, else another round) and by recording CPU steal per run.
+11. **[rev]** Real apps' auth survives isolation: sessions created by `globalSetup` or setup projects live in one worker's database. Expected to fail for database-backed sessions; measured, not assumed.

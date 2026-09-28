@@ -47,7 +47,7 @@ Short architecture decision records. Newest at the bottom.
 
 ## D-008: Setup fraction comes from an `isolate` reporter, not the JSON reporter
 
-- Playwright 1.56's JSON reporter keeps only `test.step` steps, so hook and fixture durations are not in it. The wrapper config appends `isolate`'s own reporter, which sums `hook` and `fixture` step durations per test, and writes `.isolate/pw-results.json` (per-test status, duration, parallel index, setup ms, location). The baseline run is left uninstrumented so its wall time is exactly the repo's.
+- Playwright 1.56's JSON reporter keeps only `test.step` steps, so hook and fixture durations are not in it. The wrapper config appends `isolate`'s own reporter, which sums `hook` and `fixture` step durations per test, and writes `.isolate/pw-results.json` (per-test status, duration, parallel index, setup ms, location). **Revised after the plan review:** the baseline is instrumented too, through a pass-through wrapper that keeps the repo's `webServer`, `workers` and env and only appends the reporter, because an uninstrumented baseline has no comparable test-phase span (its Playwright wall time includes webServer boot, the isolated arms' does not). The reporter also records the first-test-begin and last-test-end times and the maximum number of concurrently running tests.
 
 ## D-009: Snapshot keys are split into a database key and a build key
 
