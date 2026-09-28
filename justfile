@@ -25,3 +25,7 @@ fixture-baseline:
 # Fixture suite at workers 4 against one shared app (collides and fails).
 fixture-collide:
     pnpm --dir examples/fixture-app run test:collide
+
+# Find candidate repositories and classify them into data/repos.json.
+harvest: build
+    node dist/scripts/harvest.js --target 100
