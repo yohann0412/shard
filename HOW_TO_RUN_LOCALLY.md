@@ -57,7 +57,12 @@ just report
 
 Duration is about 12 × (the suite's time at 1 worker) plus install and build. Protocol and validity rules are in PLAN.md §5. Results go to `data/results/<repo>/experiment-a.json`, with every raw run under `runs/`.
 
-Repos that work today with the committed recipes: `umami` (Node 24 not required; pnpm 12) and `rallly` (needs Node 24 and an SMTP catcher such as mailpit; see `experiments/recipes/SCOUT_LOG.md`).
+Repos that work with the committed recipes:
+
+- `umami`: the browser suite. It needs pnpm 12. The recipe's `pathPrefix` points at the sandbox's copy under `work/pnpm12`, so change it to wherever pnpm 12 lives on your machine, or drop it if `pnpm --version` already prints 12.x.
+- `rallly`: subset L (16 files, 70 tests), with the shared-origin mode. It needs Node 24: change `pathPrefix` (the sandbox's is `work/node24/bin`). It also needs an SMTP catcher running before the experiment, e.g. `mailpit --smtp 127.0.0.1:3225 --listen 127.0.0.1:3226`, because the harness does not start it (see `experiments/recipes/SCOUT_LOG.md`).
+
+Both recipes pin the commit that was measured.
 
 ## (c) The harvest and both experiments, unattended: about 4-6 hours on 4 cores
 
