@@ -1,0 +1,67 @@
+{
+  "name": "evershop",
+  "url": "https://github.com/evershopcommerce/evershop",
+  "commit": "18e02022631c1c9dba1b6e5ac734ae27b54632cb",
+  "status": "works",
+  "blocker": null,
+  "compareNote": "164 tests, Postgres. Their config: workers 1 by default, fullyParallel false ('Shared DB'); tests assume a server already running",
+  "workdir": "tests/e2e",
+  "install": [
+    "npm ci --no-audit --no-fund",
+    "cd tests/e2e && npm ci --no-audit --no-fund"
+  ],
+  "build": [
+    "npm run compile",
+    "npm run compile:db",
+    "npm run build"
+  ],
+  "env": {
+    "CYPRESS_INSTALL_BINARY": "0",
+    "HUSKY": "0",
+    "SUPPRESS_NO_CONFIG_WARNING": "1"
+  },
+  "baselineApp": true,
+  "rounds": 3,
+  "isolateConfig": {
+    "packageManager": "npm",
+    "db": {
+      "migrate": "cd ../.. && (PORT=39217 node packages/evershop/dist/bin/start/index.js & pid=$!; ok=1; for i in $(seq 1 180); do if curl -sf -o /dev/null http://127.0.0.1:39217/; then ok=0; break; fi; sleep 1; done; kill $pid; wait $pid; exit $ok)",
+      "urlEnv": "DATABASE_URL",
+      "env": {
+        "DB_HOST": "{dbHost}",
+        "DB_PORT": "{dbPort}",
+        "DB_NAME": "{dbName}",
+        "DB_USER": "{dbUser}",
+        "DB_PASSWORD": "unused",
+        "DB_SSLMODE": "disable"
+      }
+    },
+    "app": {
+      "start": "cd ../.. && node packages/evershop/dist/bin/start/index.js",
+      "portEnv": "PORT",
+      "healthPath": "/",
+      "urlHost": "localhost",
+      "bootTimeoutMs": 120000
+    },
+    "playwright": {
+      "config": "playwright.config.ts",
+      "baseUrlEnvs": [
+        "BASE_URL"
+      ]
+    },
+    "cache": {
+      "inputs": [
+        "../../packages/evershop/src",
+        "../../package-lock.json"
+      ]
+    }
+  },
+  "notes": [
+    "Their setup (tests/e2e/README.md): `npm run dev` in the repo root against a local Postgres, then `npm test` in tests/e2e with BASE_URL, DATABASE_URL and PLAYWRIGHT_WORKERS=1 (.env.example: 'e2e tests share the same DB, so parallelism is limited'). The recipe runs the production build (`npm run build` + start) instead of the dev server, in both arms; the baseline arm is `isolate run --baseline --app`: one app, one database, their config's worker count.",
+    "Migration: EverShop migrates on startup (the Docker install path; `evershop install` refuses to run when DB_HOST is set), so the migrate step boots the app once on port 39217 and stops it.",
+    "globalSetup creates a throw-away admin user in the database and saves its session cookie to .auth/admin.json. Under isolate it runs once against w0, and w0 is then copied to every worker (DECISIONS D-015), so the cookie is valid on every worker's app.",
+    "The app builds absolute links as http://localhost:<port>, so app.urlHost is localhost: with 127.0.0.1 the admin cookie was not sent to those links and saves failed.",
+    "The cloud file-storage specs (15 tests) skip themselves without S3/Azure/GCS credentials, in both arms.",
+    "CYPRESS_INSTALL_BINARY=0: the root devDependencies include Cypress, which the Playwright suite does not use."
+  ]
+}

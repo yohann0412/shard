@@ -4,77 +4,98 @@
   "commit": "a1d4bec1430a937395db9a4aae28979cd71c2831",
   "status": "works",
   "blocker": null,
-  "timeSpentMin": 55,
-  "packageManager": "npm@11.19.1 (packageManager field; used the npm 11.19.0 bundled with Node 24.21.0, which satisfies engines.npm >=11.17.0; CI runs `corepack enable npm`)",
+  "compareNote": "~1,200 tests, Postgres (Prisma). Their CI: 8-core runner, 60 min limit, api project at 10 workers. Long: try a subset first, e.g. `just compare documenso --rounds 1 -- e2e/api/v1`",
   "workdir": "packages/app-tests",
-  "nodeVersionNeeded": ">=24.0.0 (engines; CI v24.x). Used /home/user/shard/work/node24 (v24.21.0)",
-  "playwrightVersion": "1.56.1 (exact pin)",
-  "browserRevisionExpected": "chromium 1194: matches the installed browsers, so PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers with no shim",
+  "toolchain": {
+    "node": "24",
+    "npm": "11.19.1"
+  },
   "install": [
-    "git clone --depth 1 https://github.com/documenso/documenso && cd documenso  # at the commit above",
-    "export PATH=/home/user/shard/work/node24/bin:$PATH HUSKY=0",
-    "cp .env.example .env   # as CI does; values are overridden by the env below (dotenv and dotenv-cli do not override existing env)",
-    "npm ci --no-audit   # 181 s; postinstall runs patch-package",
+    "cp .env.example .env",
+    "npm ci --no-audit --no-fund",
     "npm run prisma:generate"
   ],
   "build": [
-    "npx turbo run build --filter=@documenso/remix   # first half of `npm run ci`; 514 s here (8m34). It runs lingui extract, which rewrites 11 tracked packages/lib/translations/*/web.po files (a build side effect, not a manual edit)"
+    "npx turbo run build --filter=@documenso/remix"
   ],
   "env": {
-    "NEXT_PRIVATE_DATABASE_URL": "postgresql://postgres@127.0.0.1:{port}/{db}",
-    "NEXT_PRIVATE_DIRECT_DATABASE_URL": "postgresql://postgres@127.0.0.1:{port}/{db}",
-    "PORT": "3103",
-    "NEXT_PUBLIC_WEBAPP_URL": "http://localhost:3103   (runtime, read via env(); also the Playwright baseURL; not inlined into the build, checked)",
-    "NEXT_PRIVATE_INTERNAL_WEBAPP_URL": "http://localhost:3103",
-    "NEXT_PRIVATE_SMTP_HOST": "127.0.0.1",
-    "NEXT_PRIVATE_SMTP_PORT": "11025 (mailpit with --smtp-auth-accept-any --smtp-auth-allow-insecure; .env.example uses smtp-auth transport with user/password; CI used inbucket)",
-    "NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH": "./example/cert.p12 (from CI)",
-    "NEXT_PRIVATE_LOGGER_FILE_PATH": "./logs.json (from the test:e2e script)",
+    "HUSKY": "0",
+    "TURBO_TELEMETRY_DISABLED": "1",
     "DOCUMENSO_DISABLE_TELEMETRY": "true",
-    "PLAYWRIGHT_BROWSERS_PATH": "/opt/pw-browsers",
-    "CI": "true (config: retries 4, maxFailures 1, forbidOnly; overridden on the CLI with --retries=0 --max-failures=0)",
-    "NODE_OPTIONS": "--import tsx (test process only, from the test:e2e script)",
-    "NODE_ENV": "test (test process only)",
-    "DANGEROUS_BYPASS_RATE_LIMITS": "NOT SET in these runs. CI sets it to 'true' for both server and tests; this scout's tool permission check refused to set it, so the runs used real rate limiting (see notes)"
+    "NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH": "./example/cert.p12",
+    "DANGEROUS_BYPASS_RATE_LIMITS": "true",
+    "NEXT_PRIVATE_SMTP_HOST": "127.0.0.1",
+    "NEXT_PRIVATE_SMTP_PORT": "2525",
+    "NEXT_PRIVATE_LOGGER_FILE_PATH": "./logs.json"
   },
-  "migrate": "npm run prisma:migrate-dev   (repo root; dotenv -e .env -e .env.local -- prisma migrate dev --skip-seed; reads NEXT_PRIVATE_DATABASE_URL / NEXT_PRIVATE_DIRECT_DATABASE_URL)",
-  "seed": "npm run prisma:seed   (seeds example@documenso.com and others plus a 'medium account' with 1000 documents; migrate+seed took 46 s)",
-  "appStart": "npm run start -w @documenso/remix   (from repo root; = dotenv ... cross-env NODE_ENV=production node build/server/main.js in apps/remix; honours PORT). The repo's test:e2e wraps it in start-server-and-test waiting on the literal http://localhost:3000, so here the app was started separately and playwright was run directly",
-  "appPortEnv": "PORT",
-  "healthPath": "/ (302 to /signin; no dedicated health route)",
-  "playwrightConfig": "playwright.config.ts",
-  "baselineCommand": "cd packages/app-tests && NODE_OPTIONS='--import tsx' NODE_ENV=test npx playwright test --project=api --workers=1 --retries=0 --max-failures=0 --reporter=list",
-  "baseline": {
-    "wallSec": 939,
-    "passed": 458,
-    "failed": 15,
-    "skipped": 34,
-    "flakyNotes": "PARTIAL: `api` project only (507 of the suite's 1200 tests; ui = 681, license = 12 were NOT run in full). One run: 458 passed, 15 failed, 10 skipped, 24 did not run (15.6m). `skipped` = 10 skipped + 24 did-not-run serial followers. Load average 9-12 during the run. Assertion values in the 15 failures: 6x 'Received: null' (search-templates/search-documents lookups), 4x 'Received: 401' where 200 was expected (analytics-access 'allowed' control cases), 1x 'Received: 429' where 401 was expected (find-inbox.spec.ts:417), 1x false (find-inbox.spec.ts:61), 1x toContain miss (api/v2/find-documents.spec.ts:806), and 2 org rate-limit specs that only run when the bypass is off (api/v1/organisation-rate-limits.spec.ts:428, api/v2/organisation-rate-limits.spec.ts:630: 'Quota rejection should not add an org X-RateLimit-Limit, got \"1000\"'). The 429 and the rate-limit specs point at running without CI's DANGEROUS_BYPASS_RATE_LIMITS=true, with every request coming from 127.0.0.1. The null/401 cases may be rate-limited sign-ins or reads, but that is NOT verified: no rerun was done with the flag. UI sample: `--project=ui e2e/user` (18 tests): 15 passed, 3 failed, 2.4m, wall 148 s. All 3 failures are password.spec.ts:9,113,171 doing page.goto('http://localhost:3000/...') -> ERR_CONNECTION_REFUSED (hardcoded port)."
+  "services": [
+    {
+      "kind": "smtp-sink",
+      "port": 2525
+    }
+  ],
+  "baselineApp": true,
+  "playwrightCommand": [
+    "env",
+    "NODE_OPTIONS=--import tsx",
+    "NODE_ENV=test",
+    "npx",
+    "playwright",
+    "test"
+  ],
+  "playwrightArgs": [
+    "--max-failures=0"
+  ],
+  "rounds": 1,
+  "runCapMin": 120,
+  "protocol": "reduced",
+  "isolateConfig": {
+    "packageManager": "npm",
+    "db": {
+      "migrate": "cd ../.. && npm run prisma:migrate-deploy",
+      "seed": "cd ../.. && npm run prisma:seed",
+      "urlEnv": "NEXT_PRIVATE_DATABASE_URL",
+      "extraUrlEnvs": [
+        "NEXT_PRIVATE_DIRECT_DATABASE_URL"
+      ]
+    },
+    "app": {
+      "start": "cd ../.. && npm run start -w @documenso/remix",
+      "portEnv": "PORT",
+      "healthPath": "/",
+      "env": {
+        "NEXT_PUBLIC_WEBAPP_URL": "{origin}",
+        "NEXT_PRIVATE_INTERNAL_WEBAPP_URL": "{url}"
+      },
+      "bootTimeoutMs": 180000
+    },
+    "playwright": {
+      "config": "playwright.config.ts",
+      "baseUrlEnvs": [
+        "NEXT_PUBLIC_WEBAPP_URL"
+      ],
+      "env": {
+        "NEXT_PRIVATE_INTERNAL_WEBAPP_URL": "{url}"
+      }
+    },
+    "postgres": {
+      "maxConnections": 400
+    },
+    "cache": {
+      "inputs": [
+        "../../packages/prisma/schema.prisma",
+        "../../packages/prisma/migrations",
+        "../../packages/prisma/seed"
+      ]
+    }
   },
-  "configuredWorkers": "workers: 10 globally; per-project: api 10, license 1, ui calculateWorkers() = min(6, max(1, floor(max(cpus-2,1)/2))) = 1 on this 4-vCPU box",
-  "unmanagedServices": [
-    "SMTP sink (inbucket in CI; mailpit here). Tests do not read mail",
-    "gotenberg (document conversion) and minio (S3) in the dev compose: unused with NEXT_PUBLIC_UPLOAD_TRANSPORT=database and no conversion URL",
-    "redis: only needed for the BullMQ jobs provider; the default local jobs provider does not use it",
-    "apps/remix/.documenso-license.json (a file, not a service): written by the license specs"
-  ],
-  "hardcodedUrlsInTests": [
-    "e2e/user/password.spec.ts:17,19,40,134,136,147,155,156,200,211,212,217,218 (http://localhost:3000/...)",
-    "package.json test:e2e: start-server-and-test waits on literal http://localhost:3000",
-    "playwright.config.ts:44 baseURL fallback http://localhost:3000 (overridden by NEXT_PUBLIC_WEBAPP_URL)"
-  ],
-  "authSetup": "per-test: apiSignin() (e2e/fixtures/authentication.ts) fetches /api/auth/csrf and POSTs /api/auth/email-password/authorize into the page's request context. Sessions are DB-backed. Users and documents are created per test with the prisma seed helpers in the test process (@documenso/prisma/seed/*). The config-level storageState only carries a __disable_animations cookie for domain 'localhost'. No globalSetup, no setup project.",
-  "modified": false,
-  "diff": null,
   "notes": [
-    "FULL SUITE IS LONG: 1200 tests in 135 files. At workers=1 here the api project alone took 15.6 min; ui (681 browser tests at ~2-11 s each) was not run in full and would likely take over an hour. That is far above Experiment A's 5-min baseline@1 limit: HANDOFF material, or use a directory subset.",
-    "CI's DANGEROUS_BYPASS_RATE_LIMITS=true was not applied (permission refusal in this session). Without it the IP rate limiter is live and every worker shares 127.0.0.1. Under N parallel workers against separate apps each app has its own in-DB rate-limit counters, but the org rate-limit specs assume one server. Decide explicitly whether to set it (CI does, and the rate-limit specs then skip themselves).",
-    "The test process imports @documenso/prisma and @documenso/lib and reads NEXT_PRIVATE_DATABASE_URL from its own env (the config also loads ../../.env, .env.local and .env.<NODE_ENV> without override). Per-worker DB routing must set NEXT_PRIVATE_DATABASE_URL (and NEXT_PUBLIC_WEBAPP_URL for the fixtures' absolute URLs) in each worker before spec files load.",
-    "The test process registers the local jobs provider's cron jobs on import ('[JOBS]: Registered cron job internal.seal-document-sweep ...' in the Playwright output), so each worker also runs job sweeps against its DB.",
-    "Shared file state: the license project writes apps/remix/.documenso-license.json in the checkout. It is read by every app instance started from that checkout. The config pins that project to workers: 1 for this reason.",
-    "Port 3000 appears as a literal in password.spec.ts and in the test:e2e start-server-and-test URL. Running on any other port fails those 3 tests. Running N apps means at most one can be on 3000, and this sandbox's other agents use 3000.",
-    "The seed creates a 1000-document 'medium account'. It is part of the template DB, so CREATE DATABASE ... TEMPLATE copies it for every worker.",
-    "Postgres 16.13 used (compose uses postgres:15); migrate dev and seed were fine. max_connections was raised to 300 (the config comment says the api project at 10 workers is 'limited by DB connections').",
-    "The server is a process tree (npm -> sh -> dotenv -> cross-env -> node build/server/main.js); started under setsid and stopped with kill -- -<pgid>."
+    "Their setup (CI, .github/workflows/e2e-tests.yml): cp .env.example .env; prisma migrate + seed; `npm run ci` = turbo build of @documenso/remix, then packages/app-tests `test:e2e` = NODE_OPTIONS='--import tsx' NODE_ENV=test start-server-and-test 'npm run start -w @documenso/remix' http://localhost:3000 'playwright test', with DANGEROUS_BYPASS_RATE_LIMITS=true and NEXT_PRIVATE_SIGNING_LOCAL_FILE_PATH=./example/cert.p12. The recipe reproduces that: the baseline arm is `isolate run --baseline --app` (one app, one database, their config's workers).",
+    "Their config: workers 10 overall; project api 10 ('Limited by DB connections before it gets flakey'), license 1 ('share a license file'), ui min(6, floor((cores-2)/2)).",
+    "CI sets maxFailures 1 under CI; the recipe passes --max-failures=0 and --retries=0 to both arms so every test runs once.",
+    "e2e/user/password.spec.ts hard-codes http://localhost:3000: 3 tests fail in both arms because no app runs on port 3000 here.",
+    "Mail goes to the harness's SMTP sink on 127.0.0.1:2525 (CI uses inbucket); no test reads mail.",
+    "The license project writes apps/remix/.documenso-license.json, which every app in the checkout reads (both arms).",
+    "Earlier sandbox scouting (2026-09-28): npm ci ~3 min, turbo build ~8.5 min on 4 vCPU; api project alone 15.6 min at 1 worker."
   ]
 }

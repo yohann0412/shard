@@ -10,7 +10,7 @@ import { machineFacts, waitForLowLoad } from './machine.js';
 import { harnessRoot, resultPaths } from './paths.js';
 import { waitForFreePorts } from './ports.js';
 import { provenance, say } from './provenance.js';
-import { armEnv, loadRecipe } from './recipe.js';
+import { armEnv, loadRecipe, recipeEnv } from './recipe.js';
 import { round } from './stats.js';
 import { runSuite, type Invocation } from './suite-run.js';
 
@@ -66,7 +66,7 @@ async function main(argv: string[]): Promise<number> {
 
   say(`${name}: preparing a fresh checkout (untimed)`);
   const checkout = await prepareCheckout(recipe, path.join(out.runs, 'checkout.log'));
-  const browsers = browsersFor(checkout.appDir);
+  const browsers = await browsersFor(checkout.appDir, recipeEnv(recipe));
   const machine = machineFacts(checkout.appDir);
   const invocation: Invocation = {
     cwd: checkout.appDir,

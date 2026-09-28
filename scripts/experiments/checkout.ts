@@ -1,4 +1,4 @@
-import { appendFileSync, cpSync, existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
 import { CONFIG_FILE } from '../../src/config/load.js';
@@ -72,23 +72,38 @@ async function cloneAtCommit(recipe: RunnableRecipe, dir: string): Promise<void>
 }
 
 /** Writes the recipe's isolate config as the checkout's isolate.config.ts. */
-function writeConfig(recipe: RunnableRecipe, appDir: string): void {
+export function writeConfig(recipe: RunnableRecipe, appDir: string): void {
   writeFileSync(path.join(appDir, CONFIG_FILE), `// Written by the experiment harness from experiments/recipes/${recipe.name}.json.\nexport default ${JSON.stringify(recipe.isolateConfig, null, 2)};\n`);
+}
+
+/** Written at the checkout root once install and build succeeded: what they were run with. */
+const READY_FILE = '.harness-ready.json';
+
+/** What a prepared checkout depends on; a reusable checkout must match it exactly. */
+function fingerprint(recipe: RunnableRecipe): string {
+  const { source, url, commit, workdir, install, build, env, toolchain, pathPrefix } = recipe;
+  return JSON.stringify({ source, url, commit, workdir, install, build, env, toolchain, pathPrefix });
 }
 
 /**
  * Prepares a fresh checkout in work/repos/<name> (untimed): a git recipe is fetched at its pinned commit, a local one
  * is copied and committed into a scratch repository of its own. Then install and build run at the checkout root and
  * isolate.config.ts is written into the workdir. The generated config and isolate's .isolate/ directory are excluded
- * from git, so `git status` and `isolate affected` see only real edits.
+ * from git, so `git status` and `isolate affected` see only real edits. With `reuse`, a checkout that an earlier call
+ * prepared from the same recipe fields is kept as it is (only isolate.config.ts is rewritten).
  */
-export async function prepareCheckout(recipe: RunnableRecipe, logFile: string): Promise<Checkout> {
+export async function prepareCheckout(recipe: RunnableRecipe, logFile: string, options: { reuse?: boolean } = {}): Promise<Checkout> {
   const root = path.join(reposDir, recipe.name);
+  const appDir = recipe.source === 'local' ? root : path.join(root, recipe.workdir);
+  const ready = path.join(root, READY_FILE);
+  if (options.reuse && existsSync(ready) && readFileSync(ready, 'utf8') === fingerprint(recipe)) {
+    writeConfig(recipe, appDir);
+    return { root, appDir, commit: await git(root, ['rev-parse', 'HEAD']) };
+  }
   rmSync(root, { recursive: true, force: true });
   mkdirSync(root, { recursive: true });
   writeFileSync(logFile, '');
 
-  const appDir = recipe.source === 'local' ? root : path.join(root, recipe.workdir);
   if (recipe.source === 'local') {
     await copyLocal(recipe, root);
   } else {
@@ -97,9 +112,10 @@ export async function prepareCheckout(recipe: RunnableRecipe, logFile: string): 
   }
   const workdir = path.relative(root, appDir).split(path.sep).join('/');
   const prefix = workdir === '' ? '' : `/${workdir}`;
-  appendFileSync(path.join(root, '.git', 'info', 'exclude'), `${prefix}/${CONFIG_FILE}\n${prefix}/.isolate/\n`);
+  appendFileSync(path.join(root, '.git', 'info', 'exclude'), `${prefix}/${CONFIG_FILE}\n${prefix}/.isolate/\n/${READY_FILE}\n`);
 
   await runSteps(recipe.install, root, recipe, logFile, 'install');
   await runSteps(recipe.build, root, recipe, logFile, 'build');
+  writeFileSync(ready, fingerprint(recipe));
   return { root, appDir, commit: await git(root, ['rev-parse', 'HEAD']) };
 }

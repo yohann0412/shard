@@ -77,7 +77,8 @@
     "Browser specs create fixed-name entities ('playwright1', 'Playwright Website', 'Test-user') and pick rows with .first() (website.spec.ts:34,62). Fine with one DB per worker; cross-worker collisions on a shared DB.",
     "Five browser specs use test.describe.configure({ mode: 'serial' }) (api-board, api-team, api-user, api-website, user).",
     "Chrome 141 (1194) under Playwright 1.63.0 ran fine; the failures above are assertion/UI drift, not protocol errors.",
-    "Postgres 16.13 used; docker-compose.test.yml uses postgres:15. `pnpm build` also migrates, so the build needs a reachable DB unless SKIP_DB_CHECK=1 (CI uses SKIP_DB_CHECK=1 with a dummy URL)."
+    "Postgres 16.13 used; docker-compose.test.yml uses postgres:15. `pnpm build` also migrates, so the build needs a reachable DB unless SKIP_DB_CHECK=1 (CI uses SKIP_DB_CHECK=1 with a dummy URL).",
+    "2026-09-28: pathPrefix ['/home/user/shard/work/pnpm12/node_modules/.bin'] (the sandbox's copies) replaced by toolchain {'pnpm': '12.3.4'}, which the harness installs from npm on any machine."
   ],
   "isolateConfig": {
     "packageManager": "pnpm",
@@ -198,9 +199,6 @@
     "PLAYWRIGHT_BROWSERS_PATH": "/home/user/shard/work/pw-browsers/r1243"
   },
   "source": "git",
-  "pathPrefix": [
-    "/home/user/shard/work/pnpm12/node_modules/.bin"
-  ],
   "baselinePorts": [
     3102
   ],
@@ -221,5 +219,9 @@
     "tests/e2e/api-website.spec.ts",
     "tests/e2e/session-modal-dismiss.spec.ts"
   ],
-  "protocol": "reduced"
+  "protocol": "reduced",
+  "toolchain": {
+    "pnpm": "12.3.4"
+  },
+  "compareNote": "23 tests that pass at baseline (umami's browser suite is partly stale); pnpm 12 is fetched"
 }

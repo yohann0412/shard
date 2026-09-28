@@ -10,7 +10,7 @@ import type { MutantKind } from './mutants.js';
 import { mutationStudy } from './mutation-study.js';
 import { harnessRoot, resultPaths } from './paths.js';
 import { provenance, say } from './provenance.js';
-import { armEnv, loadRecipe, type RunnableRecipe } from './recipe.js';
+import { armEnv, loadRecipe, recipeEnv, type RunnableRecipe } from './recipe.js';
 import { controlMisses, headline, recallSummary, scoreMutant, selectionSummary } from './score-b.js';
 import { runSuite, type Invocation, type SuiteRun } from './suite-run.js';
 
@@ -97,7 +97,7 @@ async function main(argv: string[]): Promise<number> {
 
   say(`${name}: preparing a fresh checkout (untimed)`);
   const checkout = await prepareCheckout(recipe, path.join(out.mutants, 'checkout.log'));
-  const browsers = browsersFor(checkout.appDir);
+  const browsers = await browsersFor(checkout.appDir, recipeEnv(recipe));
   const invocation: Invocation = { cwd: checkout.appDir, env: armEnv(recipe, browsers.path) };
   const traces = await traceMaps(recipe, invocation, out.mutants);
   const map = readImpactMap(out.map(TRACE_WORKERS[0]));

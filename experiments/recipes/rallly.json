@@ -28,9 +28,6 @@
     "NEXT_TELEMETRY_DISABLED": "1",
     "TURBO_TELEMETRY_DISABLED": "1"
   },
-  "services": [
-    "mailpit --smtp 127.0.0.1:11025 --listen 127.0.0.1:18025 --disable-version-check   (binary: /home/user/shard/work/bin/mailpit)"
-  ],
   "migrate": "pnpm db:deploy   (repo root; = prisma migrate deploy in packages/database; reads DATABASE_URL)",
   "seed": null,
   "appStart": "next start --port $PORT   (webServer.command when CI=true; cwd apps/web; webServer.env adds __NEXT_PROCESSED_ENV=true)",
@@ -68,7 +65,8 @@
     "BROWSER SHIM: Playwright >= 1.57 expects chrome-linux64/chrome and chrome-headless-shell-linux64/chrome-headless-shell; revision 1194 ships chrome-linux/{chrome,headless_shell}. Plain directory symlinks (chromium_headless_shell-1208 -> /opt/pw-browsers/chromium_headless_shell-1194) fail with 'Executable doesn't exist'. experiments/recipes/make-pw-shim.sh <rev> builds real dirs of per-file symlinks and adds the renamed executable link. Chrome 141 (1194) passed the 1.58.1 suite.",
     "Postgres 16.13 used; CI uses postgres:18-alpine. All migrations applied cleanly on 16.",
     "pnpm 10 skips dependency build scripts (@prisma/engines, esbuild, sharp, ...); CI does the same, and nothing needed them.",
-    "Mailpit was built from source with the Go toolchain at /usr/local/go (go install fetched go1.26.8 and modules via proxy.golang.org); GitHub release downloads were not tried."
+    "Mailpit was built from source with the Go toolchain at /usr/local/go (go install fetched go1.26.8 and modules via proxy.golang.org); GitHub release downloads were not tried.",
+    "2026-09-28: pathPrefix ['/home/user/shard/work/node24/bin'] (the sandbox's copies) replaced by toolchain {'node': '24'}, which the harness installs from npm on any machine."
   ],
   "isolateConfig": {
     "packageManager": "pnpm",
@@ -163,9 +161,6 @@
     "TURBO_TELEMETRY_DISABLED": "1"
   },
   "source": "git",
-  "pathPrefix": [
-    "/home/user/shard/work/node24/bin"
-  ],
   "playwrightArgs": [
     "tests/accessibility.spec.ts",
     "tests/house-keeping.spec.ts",
@@ -244,5 +239,12 @@
   },
   "harnessNotes": [
     "Adapted by the lead for the harness after the shared-origin mode (D-014) landed: the app env sets NEXT_PUBLIC_BASE_URL to {origin} and playwright.sharedOrigin is the build-time origin http://localhost:3201. No rallly file is changed. Scout and onboarding originals kept under scout*/isolateConfigOnboarding."
-  ]
+  ],
+  "toolchain": {
+    "node": "24"
+  },
+  "servicesToStartFirst": [
+    "mailpit --smtp 127.0.0.1:11025 --listen 127.0.0.1:18025 --disable-version-check   (binary: /home/user/shard/work/bin/mailpit)"
+  ],
+  "compareNote": "70-test subset, Postgres; tests read mail: start mailpit first (brew install mailpit; mailpit --smtp 127.0.0.1:11025 --listen 127.0.0.1:18025)"
 }

@@ -1,6 +1,8 @@
-import { mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
+import { execa } from 'execa';
 import { workDir } from './paths.js';
 
 /** Where the sandbox's pre-installed browsers are. */
@@ -19,6 +21,8 @@ export interface Browsers {
   installed: { chromium: string; headlessShell: string; ffmpeg: string };
   /** True when `path` is a shim exposing the installed Chromium under the expected revision. */
   shim: boolean;
+  /** True when the harness downloaded the expected browsers with `playwright install` (any machine but the sandbox). */
+  downloaded: boolean;
 }
 
 /** Resolves `name/package.json` from `fromFile`'s location, the way Node would from inside that package. */
@@ -66,16 +70,35 @@ function shimBrowser(dir: string, name: string, expected: string, installed: str
   for (const marker of MARKERS) writeFileSync(path.join(target, marker), '');
 }
 
+/** True on the cloud sandbox: Chromium comes pre-installed under /opt/pw-browsers and cannot be downloaded. */
+function preinstalled(): boolean {
+  return process.platform === 'linux' && existsSync(INSTALLED_DIR) && readdirSync(INSTALLED_DIR).some((entry) => /^chromium-\d+$/.test(entry));
+}
+
+/** Playwright's default browser directory on this OS. */
+function defaultBrowsersDir(): string {
+  if (process.platform === 'darwin') return path.join(os.homedir(), 'Library', 'Caches', 'ms-playwright');
+  if (process.platform === 'win32') return path.join(process.env.LOCALAPPDATA ?? os.homedir(), 'ms-playwright');
+  return path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), '.cache'), 'ms-playwright');
+}
+
 /**
- * The PLAYWRIGHT_BROWSERS_PATH for a checkout: the installed directory when its Playwright expects the installed
+ * The PLAYWRIGHT_BROWSERS_PATH for a checkout. On a laptop: Playwright's usual directory (or PLAYWRIGHT_BROWSERS_PATH
+ * if set), after `playwright install chromium` with the checkout's own Playwright, so every arm gets exactly the browser
+ * that Playwright version expects. On the sandbox: the installed directory when its Playwright expects the installed
  * Chromium revision, otherwise a freshly built shim in work/pw-browsers/r<revision> that exposes the installed
  * Chromium, headless shell and ffmpeg under the revisions the checkout expects. Every arm of the repo uses it.
  */
-export function browsersFor(appDir: string): Browsers {
+export async function browsersFor(appDir: string, env: Record<string, string> = {}): Promise<Browsers> {
   const expected = expectedRevisions(appDir);
+  if (!preinstalled()) {
+    const dir = process.env.PLAYWRIGHT_BROWSERS_PATH ?? defaultBrowsersDir();
+    await execa('npx', ['playwright', 'install', 'chromium'], { cwd: appDir, env: { ...env, PLAYWRIGHT_BROWSERS_PATH: dir }, stdio: 'inherit' });
+    return { path: dir, expected, installed: expected, shim: false, downloaded: true };
+  }
   const installed = installedRevisions();
   if (expected.chromium === installed.chromium && expected.headlessShell === installed.headlessShell) {
-    return { path: INSTALLED_DIR, expected, installed, shim: false };
+    return { path: INSTALLED_DIR, expected, installed, shim: false, downloaded: false };
   }
   const dir = path.join(workDir, 'pw-browsers', `r${expected.chromium}`);
   rmSync(dir, { recursive: true, force: true });
@@ -83,5 +106,5 @@ export function browsersFor(appDir: string): Browsers {
   shimBrowser(dir, 'chromium', expected.chromium, installed.chromium, 'chrome-linux64', null);
   shimBrowser(dir, 'chromium_headless_shell', expected.headlessShell, installed.headlessShell, 'chrome-headless-shell-linux64', ['headless_shell', 'chrome-headless-shell']);
   symlinkSync(path.join(INSTALLED_DIR, `ffmpeg-${installed.ffmpeg}`), path.join(dir, `ffmpeg-${expected.ffmpeg}`));
-  return { path: dir, expected, installed, shim: true };
+  return { path: dir, expected, installed, shim: true, downloaded: false };
 }

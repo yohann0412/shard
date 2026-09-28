@@ -21,6 +21,8 @@ export interface Invocation {
   cwd: string;
   /** Variables added to the harness's own environment. */
   env: Record<string, string>;
+  /** Stop a run after this long (default 45 minutes, PLAN §5). */
+  capMs?: number;
 }
 
 /** One isolate CLI command as it ran. Paths are relative to the harness root. */
@@ -81,7 +83,7 @@ function runCli(args: string[], invocation: Invocation, logFile: string): Promis
     exceededCap = true;
     sendSignal(-child.pid!, 'SIGINT');
     setTimeout(() => sendSignal(-child.pid!, 'SIGKILL'), GRACE_MS).unref();
-  }, RUN_CAP_MS);
+  }, invocation.capMs ?? RUN_CAP_MS);
   return new Promise((resolve, reject) => {
     child.once('error', reject);
     child.once('exit', (code, signal) => {

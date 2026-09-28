@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
 import { configSchema, type IsolateConfig } from '../../src/config/schema.js';
-import { harnessRoot, recipesDir } from './paths.js';
+import { harnessRoot, recipesDir, workDir } from './paths.js';
 
 /** Directories Experiment B draws mutation targets from when a recipe names none. */
 const DEFAULT_SOURCE_DIRS = ['src', 'app', 'lib', 'server', 'public'];
@@ -34,8 +34,21 @@ export const recipeSchema = z.looseObject({
   build: z.array(z.string()).default([]),
   /** Exported to install, build and every isolate command; `$NAME` and `${NAME}` expand from the harness's environment. */
   env: z.record(z.string(), z.string()).default({}),
-  /** Directories prepended to PATH for every command of this repo, including the apps and Playwright isolate starts. */
+  /** Directories prepended to PATH for every command of this repo, including the apps and Playwright isolate starts; missing ones are skipped. */
   pathPrefix: z.array(z.string()).default([]),
+  /**
+   * npm packages that provide the tools this repo needs, by version, e.g. { "node": "24", "pnpm": "12.3.4" }. They are
+   * installed once into work/toolchain/ (the `node` package ships the Node binary) and put first on PATH.
+   */
+  toolchain: z.record(z.string(), z.string()).default({}),
+  /** Services the harness starts before the runs and stops after: `smtp-sink` accepts and discards mail on `port`. */
+  services: z.array(z.object({ kind: z.literal('smtp-sink'), port: z.number().int().positive() })).default([]),
+  /** Their setup starts no server of its own (no webServer): the baseline arm runs `isolate run --baseline --app`. */
+  baselineApp: z.boolean().default(false),
+  /** Stop a run that takes longer than this many minutes (default 45). */
+  runCapMin: z.number().positive().optional(),
+  /** How `playwright test` is launched, e.g. with `env NODE_OPTIONS=...` in front when the repo's test script sets variables. */
+  playwrightCommand: z.array(z.string()).default(['npx', 'playwright', 'test']),
   /** Appended to every `playwright test` command, e.g. `--project=api` for a subset. */
   playwrightArgs: z.array(z.string()).default([]),
   /** Ports the repo's own webServer binds in the baseline arms; each baseline run waits until they are free. */
@@ -101,10 +114,20 @@ export function armEnv(recipe: Recipe, browsersPath: string): Record<string, str
   return { ...recipeEnv(recipe), CI: 'true', PLAYWRIGHT_HTML_OPEN: 'never', PLAYWRIGHT_BROWSERS_PATH: browsersPath };
 }
 
-/** The variables a recipe adds for every command it runs: its env (expanded) and its PATH prefix. */
+/** Where a recipe's toolchain is installed: one npm prefix per distinct set of packages. */
+export function toolchainDir(recipe: Recipe): string | null {
+  const entries = Object.entries(recipe.toolchain).sort(([a], [b]) => a.localeCompare(b));
+  if (entries.length === 0) return null;
+  const key = entries.map(([name, version]) => `${name}@${version}`).join('+').replace(/[^\w.@+-]/g, '_');
+  return path.join(workDir, 'toolchain', key);
+}
+
+/** The variables a recipe adds for every command it runs: its env (expanded), then its toolchain and existing PATH prefixes first on PATH. */
 export function recipeEnv(recipe: Recipe): Record<string, string> {
   const env = Object.fromEntries(Object.entries(recipe.env).map(([name, value]) => [name, expand(value)]));
-  if (recipe.pathPrefix.length === 0) return env;
+  const toolchain = toolchainDir(recipe);
+  const prefixes = [...(toolchain === null ? [] : [path.join(toolchain, 'node_modules', '.bin')]), ...recipe.pathPrefix.filter((dir) => existsSync(dir))];
+  if (prefixes.length === 0) return env;
   const inheritedPath = env.PATH ?? process.env.PATH ?? '';
-  return { ...env, PATH: [...recipe.pathPrefix, inheritedPath].join(path.delimiter) };
+  return { ...env, PATH: [...prefixes, inheritedPath].join(path.delimiter) };
 }

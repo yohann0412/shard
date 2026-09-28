@@ -30,6 +30,14 @@ fixture-collide:
 harvest: build
     node dist/scripts/harvest.js --target 100
 
+# Time a repo's own Playwright setup against `isolate run` at 2, 4, ... workers: `just compare evershop [--rounds R] [--workers 4,8]`.
+compare name *args: build
+    node dist/scripts/experiments/compare.js {{name}} {{args}}
+
+# List the repos `just compare` can run.
+compare-list:
+    @node -e 'const fs=require("fs");for(const f of fs.readdirSync("experiments/recipes").filter(f=>f.endsWith(".json")).sort()){const r=JSON.parse(fs.readFileSync("experiments/recipes/"+f));if(r.status==="works"&&r.isolateConfig)console.log(r.name.padEnd(16)+" "+(r.compareNote??r.subsetNote??""))}'
+
 # Experiment A (isolation speedup) on one recipe; flags: --rounds R, --oversubscribe (fixture only), --load-wait S.
 experiment-a name='fixture-app' *args: build
     node dist/scripts/experiments/experiment-a.js {{name}} {{args}}
