@@ -4,22 +4,26 @@ Every number cites a committed file under `data/results/` or `experiments/recipe
 
 ## Verdicts
 
-**Claim A (isolation gives close to N× on the test phase with zero test edits and no new failures): not supported on this 4-core machine.**
-- **Most important number:** the median test-phase speedup at N=4 across real repos with a valid N=4 arm is **1.30x**, from umami alone (n = 1).
-- **By the pre-registered rule the formal verdict is "inconclusive".** Fewer than 3 real repos produced a valid N=4 measurement, and rallly's runs used a shared, unmanaged mail service, so they are labelled "isolation incomplete" and kept out of the median.
-- **Every measurement points the same way.** Fixture 1.48x at N=4; umami 1.30x; rallly 1.54x at N=2 (and 1.58x at N=4 in a 3-round control with one mail catcher per worker, only one round of which was clean). All are below the 2x falsification line.
-- **Isolation itself did hold.** Zero new deterministic failures on the fixture and umami, with no test edits. rallly needed two things V1 does not do by default: a shared-origin proxy, and one SMTP catcher per worker.
-- **The speedup was lost to two things the thesis did not model.** (1) File-level scheduling: umami's one 90 s serial file caps it at about 1.23x. (2) CPU per worker slot: 1.9-2.2 cores each on the fixture and rallly, so 4 cores fit about 2 slots.
-- **Setup does not dominate.** It is 10-28% of test time.
+**Claim A (isolation gives close to N× on the test phase, with zero test edits and no new failures): inconclusive under the pre-registered rule. Every measurement is below the 2x falsification line.**
+- **Why inconclusive.** The rule needs at least 3 real repos with a valid N=4 arm, and runs with a stateful unmanaged service ("isolation incomplete") are kept out of the median.
+  - rallly's runs share one mailpit.
+  - umami's run reports also carry the "isolation incomplete" label. The tool's scan found ClickHouse, Kafka and Redis clients in its dependencies. umami uses them only when their URLs are set, and none were.
+  - So, literally, no real repo qualifies.
+- **Most important number:** counting umami anyway (a post-hoc reading, logged in LOG.md at 17:18 UTC), its test-phase speedup at N=4 is **1.30x on the full browser suite**. _Its re-timing on the common passing subset, which the protocol requires because 7 stale tests wait out 30 s timeouts, is below._
+- **Context, not verdict evidence:**
+  - The fixture (never pooled): 1.48x at N=4.
+  - rallly: 1.54x at N=2. At N=4, a 3-round control with one mail catcher per worker gave 1.58x, with only 1 of its 3 rounds clean.
+- **Isolation held only partly.** No new failures on the fixture or umami's browser suite. But umami's API suite lost 75 of 271 tests at N=2 and 139 at N=4 until a hand-written seed step was added. rallly had 5 isolation failures at N=4 with a shared mailpit, and with one mailpit per worker `login verify page` still failed in 2 of 3 rounds (a timeout at ~95% CPU). rallly also needed the shared-origin proxy even to run.
+- **What capped the speedup.** (1) File-level scheduling: one serial file caps umami, and one caps the fixture at 2.29x. (2) CPU per worker slot: 1.9-2.2 cores on the fixture and rallly, so this 4-core machine fits about 2 slots.
+- **Setup fraction.** Hooks and fixtures are 25-28% of test time on the fixture and rallly. On umami the figure is 10%, but only because stale-test timeouts fill the denominator. Over umami's passing tests, hook and fixture time is about equal to body time.
 
 **Claim B (a per-test file map lets a PR run only the tests that executed the changed files, with the map close to complete): falsified by the pre-registered rule.**
-- **Every trigger in the rule fires.** The CI lower bound is below 0.8 on both apps (fixture 0.715, umami 0.025). umami's map stability is below 0.9 (0.875). The fixture's median time-weighted selection ratio is at least 0.8 (0.97). None of these triggers fired because a scored mutant was missed.
-- **Completeness looked fine, but on too little data.** No scored mutant was missed: 11/11 on the fixture and 1/1 on umami. But n is too small for the interval to clear the 0.8 line, let alone the 0.9 bar.
-- **The maps were not useful.**
-  - **Most important number:** the median time-weighted selection ratio on the fixture, **0.97**. For the median changed file, pruning skips 3% of test time, because every test signs in through the same files.
-  - On umami the median is 0.21 by count but 0.96 by time. The median file's mutant was not even live (it broke the build), and its selected tests include stale tests that each wait out a 30 s timeout. Without them, umami's time-weighted median is about 0.71.
-  - umami's map was also **unstable** across worker counts: per-file Jaccard median 0.875, below the pre-registered 0.9.
-  - On a Next.js production build, 227 route files are global (preloaded at boot), and client code maps to nothing.
+- **Every trigger in the rule fires.** The CI lower bound is below 0.8 on both apps (fixture 0.715, umami 0.025). umami's map stability is below 0.9 (per-file Jaccard median 0.875). The median time-weighted selection ratio is at least 0.8 (fixture 0.97).
+- **The recall trigger fires only because n is small.** 11 and 1 scored mutants, and no scored mutant was missed. So completeness is untested, not shown to be good or bad.
+- **Most important number:** the fixture's median time-weighted selection ratio, **0.97**. It is pulled up by global files and by files every test crosses to sign in. Over the fixture's non-global files, the median is 0.39.
+  - On umami: 0.21 by count. By time it is 0.96, but only with the non-live `useNavigation.ts` mutant included; without it, 0.66.
+- **umami's stability number is confounded.** The N=4 trace started at load 3.78 and the N=2 trace at 0.7, so the difference between the two maps cannot be put down to the worker count alone.
+- **On a Next.js production build**, 227 route files are global (preloaded at boot), and client code maps to nothing.
 - Tracing produced a map on 1 real repo, not 3.
 
 ## Machine

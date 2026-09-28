@@ -128,3 +128,9 @@ Experiment B on umami next (throw mutants, 10 targets, a rebuild per mutant), th
 - HOW_TO_RUN_LOCALLY.md now documents the root case.
 
 **17:02 Final acceptance suite green:** `just e2e` 9/9 in 268 s (f1-f8 + p1), on the main branch including the binary-copy fix.
+
+**17:18 Post-hoc decisions after the results review (reviews/results.md), recorded as deviations from the pre-registration.**
+1. umami's run reports carry the tool's "isolation incomplete" label (optional ClickHouse/Kafka/Redis clients in its dependencies, none configured). RESULTS.md counts umami anyway and says so; by the letter of the rule, no real repo qualifies for the Claim A median.
+2. rallly's full suite (495 s at workers 1) is also over the 5-minute limit in PLAN §5. It was measured on subset L, chosen after onboarding and weighted toward the files that failed there. documenso was not subset the same way, because its rate limits stay on in this sandbox.
+3. The protocol's "re-time on the common passing subset" (§5 step 5) was not in the harness. It is now applied to umami by running a recipe restricted to the 4 spec files whose tests passed in every baseline round (`experiments/recipes/umami-passing.json`).
+4. Claim A's bold verdict is changed from "not supported" (not a pre-registered label) to "inconclusive". Claim B's is changed to "falsified by the pre-registered rule", because all three triggers fire.
