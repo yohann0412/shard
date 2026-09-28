@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** Values in `app.env` and `playwright.env` may use {i}, {port}, {url} and {db}; they are filled in per worker. */
+/** Values in `app.env`, `playwright.env` and `app.start` may use {i}, {port}, {url} and {db} (the worker's database URL); they are filled in per worker. */
 const envMap = z.record(z.string(), z.string()).default({});
 
 /** Schema of `isolate.config.ts`. */

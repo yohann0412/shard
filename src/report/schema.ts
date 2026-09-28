@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { unmanagedServiceSchema } from '../init/unmanaged.js';
 
 const ms = z.number().nonnegative();
 const count = z.number().int().nonnegative();
@@ -77,6 +78,8 @@ export const reportSchema = z.strictObject({
   ),
   dbActivity: z.array(z.strictObject({ name: z.string(), xactCommitDelta: z.number().int() })),
   routingValid: z.boolean(),
+  /** Services the app uses that isolate does not manage (DECISIONS D-012). */
+  unmanaged: z.array(unmanagedServiceSchema),
   warnings: z.array(z.string()),
 });
 

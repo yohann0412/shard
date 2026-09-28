@@ -1,6 +1,7 @@
 import type { RunningApp } from '../app/apps.js';
 import type { WorkerDatabase } from '../db/databases.js';
 import type { PwResults } from '../playwright/results.js';
+import type { UnmanagedService } from '../init/unmanaged.js';
 import type { CacheOutcome } from '../snapshot/plan.js';
 import type { CpuUsage } from './cpu.js';
 import type { Machine } from './machine.js';
@@ -25,6 +26,7 @@ export interface ReportInput {
   clones: WorkerDatabase[];
   failures: Failure[];
   routing: RoutingCheck;
+  unmanaged: UnmanagedService[];
   warnings: string[];
 }
 
@@ -51,6 +53,7 @@ export function buildReport(input: ReportInput): Report {
     failures: input.failures,
     dbActivity: input.routing.dbActivity,
     routingValid: input.routing.idle.length === 0,
+    unmanaged: input.unmanaged,
     warnings: input.warnings,
   });
 }

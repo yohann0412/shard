@@ -4,6 +4,7 @@ import path from 'node:path';
 import { loadConfig } from './config/load.js';
 import type { IsolateConfig } from './config/schema.js';
 import { cloneDatabase, databaseUrlVars, type WorkerDatabase } from './db/databases.js';
+import { scanUnmanaged, unmanagedWarning, type UnmanagedService } from './init/unmanaged.js';
 import { log } from './log.js';
 import { isolatePaths } from './paths.js';
 import { commandWithConfig, parsePlaywrightCommand, type PlaywrightCommand } from './playwright/command.js';
@@ -55,7 +56,9 @@ interface TestsOutcome {
 }
 
 /** Loads the config, parses the command and scans the tests before anything starts, so a refused command costs nothing. */
-async function prepare(options: SessionOptions): Promise<{ config: IsolateConfig; command: PlaywrightCommand; warnings: string[] }> {
+async function prepare(
+  options: SessionOptions,
+): Promise<{ config: IsolateConfig; command: PlaywrightCommand; warnings: string[]; unmanaged: UnmanagedService[] }> {
   const config = await loadConfig(options.repoDir);
   const command = parsePlaywrightCommand(options.command, {
     repoDir: options.repoDir,
@@ -63,8 +66,11 @@ async function prepare(options: SessionOptions): Promise<{ config: IsolateConfig
     workers: options.mode === 'run' ? options.workers : null,
   });
   const warnings = options.mode === 'run' ? scanForHazards(command.repoConfig, options.repoDir) : [];
+  const unmanaged = scanUnmanaged(options.repoDir);
+  const unmanagedNote = unmanagedWarning(unmanaged);
+  if (unmanagedNote !== null) warnings.push(unmanagedNote);
   for (const warning of warnings) log.warn(warning);
-  return { config, command, warnings };
+  return { config, command, warnings, unmanaged };
 }
 
 /** In run mode, every worker's variables for its app and database; in baseline mode, a fresh b0 in the database variables. */
@@ -138,7 +144,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
   const stopwatch = new Stopwatch();
   const loadAvg1 = os.loadavg()[0] ?? 0;
   const paths = isolatePaths(options.repoDir);
-  const { config, command, warnings } = await prepare(options);
+  const { config, command, warnings, unmanaged } = await prepare(options);
   stopwatch.lap('setup');
 
   const stack = await startStack({ repoDir: options.repoDir, config, workers: options.mode === 'run' ? options.workers : 0, apps: options.mode === 'run' });
@@ -204,6 +210,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
     clones: targets.databases,
     failures,
     routing: tests.routing,
+    unmanaged,
     warnings,
   });
   writeFileSync(paths.report, `${JSON.stringify(report, null, 2)}\n`);

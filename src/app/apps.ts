@@ -8,7 +8,7 @@ import { freePorts } from '../proc/ports.js';
 import type { Reaper } from '../proc/reaper.js';
 import { readTail } from '../proc/tail.js';
 import { elapsedMs } from '../proc/timing.js';
-import { appEnv } from './env.js';
+import { appEnv, fillPlaceholders } from './env.js';
 import { waitForHealthy } from './health.js';
 
 /** One healthy app process, as printed in the `ready` line. */
@@ -63,7 +63,8 @@ async function startApp(
   const url = `http://127.0.0.1:${port}`;
   const env = appEnv(config, { index, port, url, dbUrl: database.url });
   const start = performance.now();
-  const proc = await spawnGroup('/bin/sh', ['-c', config.app.start], { cwd: repoDir, env, logFile, reaper });
+  const command = fillPlaceholders(config.app.start, { index, port, url, dbUrl: database.url });
+  const proc = await spawnGroup('/bin/sh', ['-c', command], { cwd: repoDir, env, logFile, reaper });
   try {
     await waitForHealthy(port, config.app.healthPath, proc, `w${index}`, config.app.bootTimeoutMs);
   } catch (error) {
