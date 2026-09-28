@@ -24,16 +24,20 @@ import { Stopwatch } from './report/stopwatch.js';
 import { failedTests } from './report/summary.js';
 import { renderTable } from './report/table.js';
 import { startStack, type Stack } from './stack.js';
+import { startTracer, type Tracer } from './trace/tracer.js';
 
-/** `run`: one app and database per worker. `baseline`: the repo's own config against one fresh copy of seed. */
-export type SessionMode = 'run' | 'baseline';
+/**
+ * `run`: one app and database per worker. `trace`: the same, and it also writes the impact map (.isolate/map.json).
+ * `baseline`: the repo's own config against one fresh copy of seed.
+ */
+export type SessionMode = 'run' | 'trace' | 'baseline';
 
 /** What `isolate run` was asked to do. */
 export interface SessionOptions {
   repoDir: string;
   command: string[];
   mode: SessionMode;
-  /** Number of apps and databases in `run` mode; unused in `baseline` mode. */
+  /** Number of apps and databases in `run` and `trace` mode; unused in `baseline` mode. */
   workers: number;
   tagRequests: boolean;
 }
@@ -63,9 +67,9 @@ async function prepare(
   const command = parsePlaywrightCommand(options.command, {
     repoDir: options.repoDir,
     defaultConfig: config.playwright.config,
-    workers: options.mode === 'run' ? options.workers : null,
+    workers: options.mode === 'baseline' ? null : options.workers,
   });
-  const warnings = options.mode === 'run' ? scanForHazards(command.repoConfig, options.repoDir) : [];
+  const warnings = options.mode === 'baseline' ? [] : scanForHazards(command.repoConfig, options.repoDir);
   const unmanaged = scanUnmanaged(options.repoDir);
   const unmanagedNote = unmanagedWarning(unmanaged);
   if (unmanagedNote !== null) warnings.push(unmanagedNote);
@@ -73,8 +77,11 @@ async function prepare(
   return { config, command, warnings, unmanaged };
 }
 
-/** In run mode, every worker's variables for its app and database; in baseline mode, a fresh b0 in the database variables. */
-async function prepareTargets(options: SessionOptions, config: IsolateConfig, stack: Stack): Promise<Targets> {
+/**
+ * In run and trace mode, every worker's variables for its app and database (plus the tracer's, when tracing); in
+ * baseline mode, a fresh b0 in the database variables.
+ */
+async function prepareTargets(options: SessionOptions, config: IsolateConfig, stack: Stack, tracer: Tracer | undefined): Promise<Targets> {
   if (options.mode === 'baseline') {
     const database = await cloneDatabase(stack.postgres, BASELINE_DATABASE);
     return { databases: [database], env: databaseUrlVars(config, database.url) };
@@ -86,6 +93,7 @@ async function prepareTargets(options: SessionOptions, config: IsolateConfig, st
       ISOLATE_WORKER_ENVS: JSON.stringify(envs),
       ISOLATE_WORKERS: String(envs.length),
       ISOLATE_TAG_REQUESTS: options.tagRequests ? '1' : '0',
+      ...tracer?.playwrightEnv,
     },
   };
 }
@@ -136,8 +144,9 @@ function testWarnings(repoDir: string, config: IsolateConfig, tests: TestsOutcom
 }
 
 /**
- * Runs a Playwright suite under isolate: starts the stack, writes the wrapper, runs the command, checks routing, reruns
- * failures (run mode), tears down, writes .isolate/report.json and prints the summary table. Returns the exit code:
+ * Runs a Playwright suite under isolate: starts the stack, writes the wrapper, runs the command, checks routing, writes
+ * the impact map (trace mode), reruns failures (run and trace mode), tears down, writes .isolate/report.json and prints
+ * the summary table. Returns the exit code:
  * Playwright's, 1 if routing was invalid, or 128 + n after a signal.
  */
 export async function runSession(options: SessionOptions): Promise<number> {
@@ -147,7 +156,15 @@ export async function runSession(options: SessionOptions): Promise<number> {
   const { config, command, warnings, unmanaged } = await prepare(options);
   stopwatch.lap('setup');
 
-  const stack = await startStack({ repoDir: options.repoDir, config, workers: options.mode === 'run' ? options.workers : 0, apps: options.mode === 'run' });
+  const isolated = options.mode !== 'baseline';
+  const tracer = options.mode === 'trace' ? await startTracer(options.repoDir, config, options.workers) : undefined;
+  const stack = await startStack({ repoDir: options.repoDir, config: tracer?.appConfig ?? config, workers: isolated ? options.workers : 0, apps: isolated }).catch(
+    async (error: unknown) => {
+      await tracer?.close();
+      throw error;
+    },
+  );
+  if (tracer !== undefined) stack.reaper.trackDir(tracer.dir);
   stopwatch.lapParts({ ...stack.timings }, 'setup');
   void stack.appExited.then((exit) => {
     warnings.push(`app w${exit.index} exited during the run`);
@@ -164,10 +181,10 @@ export async function runSession(options: SessionOptions): Promise<number> {
   let failures: Failure[];
   let peakRssMb: Record<string, number>;
   try {
-    targets = await prepareTargets(options, config, stack);
+    targets = await prepareTargets(options, config, stack, tracer);
     if (options.mode === 'baseline') stopwatch.lap('clone');
     wrapper = writeWrapper({
-      mode: options.mode === 'run' ? 'isolate' : 'passthrough',
+      mode: isolated ? 'isolate' : 'passthrough',
       repoConfig: command.repoConfig,
       outputFile: paths.pwResults,
       rootDir: options.repoDir,
@@ -178,11 +195,15 @@ export async function runSession(options: SessionOptions): Promise<number> {
 
     tests = await runTests(options, stack, targets, commandWithConfig(command, wrapper.configFile), guard);
     warnings.push(...testWarnings(options.repoDir, config, tests));
+    if (tracer !== undefined) {
+      const ran = (tests.results?.tests ?? []).filter((test) => test.status !== 'skipped').map((test) => test.id);
+      warnings.push(...(await tracer.finish(ran)));
+    }
     stopwatch.lap('tests');
 
     const failed = failedTests(tests.results);
     failures = failed.map(notRerun);
-    if (options.mode === 'run' && failed.length > 0 && guard.signal === null) {
+    if (isolated && failed.length > 0 && guard.signal === null) {
       const rerun = await classifyFailures({ repoDir: options.repoDir, config, stack, command, wrapperConfig: wrapper.configFile, tagRequests: options.tagRequests, guard }, failed);
       failures = rerun.failures;
       warnings.push(...rerun.warnings);
@@ -191,6 +212,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
   } finally {
     wrapper?.remove();
     peakRssMb = (await stack.stop()).peakRssMb;
+    await tracer?.close();
     guard.dispose();
     stopwatch.lap('teardown');
   }
@@ -199,7 +221,7 @@ export async function runSession(options: SessionOptions): Promise<number> {
     repoDir: options.repoDir,
     command: options.command,
     mode: options.mode,
-    workerCount: options.mode === 'run' ? options.workers : (tests.results?.resolvedWorkers ?? 0),
+    workerCount: isolated ? options.workers : (tests.results?.resolvedWorkers ?? 0),
     cache: stack.cache,
     stopwatch,
     machine: describeMachine(stack.postgresVersion, path.dirname(command.repoConfig), loadAvg1),
