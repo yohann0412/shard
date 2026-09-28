@@ -36,6 +36,7 @@ function countStrata(targets: Target[]): Record<Stratum, number> {
 
 /** A mutant's outcome for the progress line. */
 function outcomeLine(record: MutantRecord): string {
+  if (record.bootFailure) return 'live, app did not start: every test fails';
   if (record.failing !== null) return `live, ${record.failing.length} failing`;
   if (!record.live) return `not live${record.buildError ? ` (${record.buildError})` : ''}, suite not run`;
   return `live, no results (${record.run?.error ?? `exit code ${record.run?.exitCode}`})`;
@@ -71,7 +72,7 @@ export async function mutationStudy(context: LoopContext, map: ImpactMap, option
   for (const [index, { target, mutant }] of planned.entries()) {
     const id = `m${String(index + 1).padStart(2, '0')}-${mutant.kind}`;
     say(`${id} (${index + 1}/${planned.length}): ${mutant.file} [${target.stratum}], ${mutant.description}`);
-    const record = await runMutant(context, id, target, mutant, cleanCounts[mutant.marker]!);
+    const record = await runMutant(context, id, target, mutant, cleanCounts[mutant.marker]!, reference.allTests);
     mutants.push(record);
     say(`${id}: ${outcomeLine(record)}`);
   }

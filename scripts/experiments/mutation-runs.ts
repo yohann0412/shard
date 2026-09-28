@@ -52,6 +52,8 @@ export interface MutantRecord {
   /** Tests failing in the mutant's run (before the reference exclusions), or null when it did not run. */
   failing: string[] | null;
   notRun: string[] | null;
+  /** The mutant stopped an app from becoming healthy, so no test could run: every test counts as failing. */
+  bootFailure: boolean;
 }
 
 /** A non-JS edit and what `affected` answered for it. */
@@ -71,7 +73,7 @@ const LOCKFILE_JSON = /(^|\/)(package-lock|npm-shrinkwrap)\.json$/;
 
 /** The suite command every reference and mutant run uses: isolated at the best N, no retries. */
 function suiteArgs(context: LoopContext): string[] {
-  return ['run', '--workers', String(context.workers), '--', 'npx', 'playwright', 'test', '--retries=0', ...context.recipe.playwrightArgs];
+  return ['run', '--workers', String(context.workers), '--no-rerun', '--', 'npx', 'playwright', 'test', '--retries=0', ...context.recipe.playwrightArgs];
 }
 
 /** Throws unless the checkout has no uncommitted change (the loop aborts rather than let a mutant leak). */
@@ -84,6 +86,11 @@ export async function assertClean(context: LoopContext): Promise<void> {
 async function revert(context: LoopContext, file: string): Promise<void> {
   await git(context.checkout.appDir, ['checkout', '--', file]);
   await assertClean(context);
+}
+
+/** True when isolate stopped because an app never became healthy, i.e. the mutant broke app startup. */
+function brokeStartup(run: SuiteRun): boolean {
+  return run.error !== null && /\bw\d+ (exited before it was ready|was not ready within)/.test(run.error);
 }
 
 /** `affected` under both policies, reading the chosen map. */
@@ -113,9 +120,17 @@ export async function referenceRuns(context: LoopContext): Promise<Reference> {
 /**
  * One mutant: apply it, run the recipe's build, check liveness (its marker's count in the served output must exceed
  * `cleanCount`), ask `affected` under both policies, run the suite if it is live, then revert and check the tree is
- * clean. A build failure is recorded and the mutant is not live.
+ * clean. A build failure is recorded and the mutant is not live. A mutant that keeps an app from starting fails every
+ * test in `allTests`.
  */
-export async function runMutant(context: LoopContext, id: string, target: Target, mutant: Mutant, cleanCount: number): Promise<MutantRecord> {
+export async function runMutant(
+  context: LoopContext,
+  id: string,
+  target: Target,
+  mutant: Mutant,
+  cleanCount: number,
+  allTests: string[],
+): Promise<MutantRecord> {
   const { checkout, recipe } = context;
   writeFileSync(path.join(checkout.appDir, mutant.file), mutant.source);
   try {
@@ -129,6 +144,7 @@ export async function runMutant(context: LoopContext, id: string, target: Target
     const live = mutantCount !== null && mutantCount > cleanCount;
     const affected = await affectedBoth(context);
     const loaded = live ? await runSuite(id, suiteArgs(context), context.invocation, context.outDir) : null;
+    const bootFailure = loaded !== null && loaded.results === null && brokeStartup(loaded.run);
     return {
       id,
       kind: mutant.kind,
@@ -143,8 +159,9 @@ export async function runMutant(context: LoopContext, id: string, target: Target
       liveness: { marker: mutant.marker, cleanCount, mutantCount },
       affected,
       run: loaded?.run ?? null,
-      failing: loaded?.results ? failingIds(loaded.results) : null,
+      failing: loaded?.results ? failingIds(loaded.results) : bootFailure ? allTests : null,
       notRun: loaded?.results ? notRunIds(loaded.results) : null,
+      bootFailure,
     };
   } finally {
     await revert(context, mutant.file);
