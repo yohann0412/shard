@@ -1,0 +1,37 @@
+Sandbox check of --no-rate-limit (2026-09-29): `node dist/scripts/experiments/compare.js evershop --rounds 1 --workers 4 --no-rate-limit -- pageBuilder/specs/07-gap`,
+the page-builder specs that failed with 429 before. One round on 4 cores, so the speed columns say little; the failures are the point.
+
+evershop @ 18e02022631c: 1 round(s); Intel(R) Xeon(R) Processor @ 2.80GHz, 4 cores, 15.7 GB, Ubuntu 24.04.4 LTS
+theirs = the repo's own Playwright config (its worker count, one app, one database, app started by isolate --baseline --app); shared@N = the same with --workers=N; isolate@N = one app and database per worker
+wall = the whole isolate command; tests = Playwright's test phase (first test start to last test end); overhead = wall minus tests; new fails = tests that passed in every run of theirs and failed in this arm
+--no-rate-limit: EverShop's in-memory rate limiter (per IP, per app process: 120 /api requests a minute, 300 pages a minute, 8 logins or sign-ups per 15 minutes) is off in every arm. It turns itself off only under NODE_ENV=test, which also moves sessions into the app's memory, so the compiled middleware file is patched to skip it when ISOLATE_NO_RATE_LIMIT=1.
+
+arm        workers  runs  median wall  median tests  overhead  passed  failed  new fails  wall speedup  tests speedup
+theirs           1     1        33.1s         24.9s      8.2s      15       0          -         1.00x          1.00x
+shared@4         4     1        32.9s         24.9s      8.0s      10       5          5         1.00x          1.00x
+isolate@4        4     1        40.8s         19.7s     21.1s      15       0          0         0.81x          1.26x
+
+Failures (medians per run; new = passed in every run of theirs):
+- theirs: no failures
+- shared@4: 5 failed (5 other); 5 new (passed in theirs: 5 other), 0 did not run after a failure; failed tests took 43.5s of 1m 05.1s (67%) of the summed test time
+- isolate@4: no failures
+
+Notes:
+- shared@4 failed a median 5 test(s) that pass in theirs (listed in new-failures.txt): 4 workers on one app and one database break this suite. isolate@4 ran the same parallelism with no new failures: that is the parallelism the repo cannot have without isolation. A shared run that fails tests is not a fair speed comparison: failures that wait for a timeout slow it down, and serial groups that stop at a failure speed it up.
+- Their test phase is only 24.9s. Outside the test phase, isolate@4 spends 21.1s (starting Postgres, copying the database, booting one app per worker, Playwright start-up, teardown) against 8.2s for theirs; on a run this short that difference decides the wall time, so the test-phase column is the fairer one, and a longer suite the better test.
+
+Tests that failed although they passed in every run of theirs, per arm:
+
+shared@4: 5 test(s)
+  pageBuilder/specs/07-gap/drawer-settings-form.spec.ts:71 typing in drawer Promo code field posts a widget_instance UPDATE (failed in 1/1 runs; other)
+      Error: expect(received).toBeGreaterThan(expected)
+  pageBuilder/specs/07-gap/inline-edit.spec.ts:67 typing into Editable + blur posts a widget_instance UPDATE op (failed in 1/1 runs; other)
+      Error: expect(received).toBeGreaterThan(expected)
+  pageBuilder/specs/07-gap/page-switcher.spec.ts:49 navigating mid-draft preserves the draft on the original route (failed in 1/1 runs; other)
+      Error: expect(received).not.toBeNull()
+  pageBuilder/specs/07-gap/undo-redo-isolation.spec.ts:66 undo on homepage retreats homepage cursor, leaves cart untouched (failed in 1/1 runs; other)
+      Error: expect(received).toBe(expected) // Object.is equality
+  pageBuilder/specs/07-gap/widget-toolbar.spec.ts:96 Duplicate button creates a "<name> (copy)" widget + placement (failed in 1/1 runs; other)
+      Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+isolate@4: none in 1 run(s)
