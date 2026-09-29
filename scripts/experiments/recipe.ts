@@ -63,6 +63,17 @@ export const recipeSchema = z.looseObject({
   servedOutput: z.array(z.string()).default(DEFAULT_SERVED_OUTPUT),
   /** Experiment B's mutant kinds: `throw` only, or also `toplevel` and `wrongvalue`. */
   mutantKinds: z.enum(['throw', 'all']).default('throw'),
+  /**
+   * How `compare --no-rate-limit` turns the app's own rate limiter off in every arm. `patch` edits files of the prepared
+   * checkout (paths from its root) so that `env` switches the limiter off; without `env` the app behaves as before.
+   */
+  noRateLimit: z
+    .object({
+      patch: z.array(z.object({ file: z.string(), find: z.string(), replace: z.string() })).default([]),
+      env: z.record(z.string(), z.string()),
+      note: z.string(),
+    })
+    .optional(),
   /** The contents of isolate.config.ts, validated by isolate's own config schema. */
   isolateConfig: configSchema.optional(),
 });

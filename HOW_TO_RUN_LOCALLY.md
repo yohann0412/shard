@@ -46,6 +46,7 @@ just compare-list                          # repos with a ready recipe
 just compare evershop                      # 3 rounds: their setup, then shared@N and isolate@N at 2, 4 and 8 workers
 just compare evershop --rounds 1 --workers 4   # quickest useful run: theirs, shared@4, isolate@4
 just compare evershop --no-shared          # skip shared@N, time only theirs against isolate
+just compare evershop --no-rate-limit --rounds 1 --workers 4,8   # evershop's own rate limiter off in every arm
 just compare documenso --rounds 1 -- e2e/api/v1   # anything after -- goes to every `playwright test` command (a subset here)
 just compare-report work/compare/evershop/<timestamp>   # print an earlier run's report again (older runs too)
 ```
@@ -75,6 +76,8 @@ What it does, all unattended:
 - shared@N has new fails and isolate@N has none: N workers on shared state break the suite, and isolate gives that parallelism back. This is isolate's case.
 - Both have new fails: read `new-failures.txt`. The tests may be flaky, or they may share state isolate does not copy, such as the app's memory. evershop's rate limiter is an example: it counts requests per app process.
 - A shared@N run that fails tests is not a fair speed comparison, either way. Failures that wait out a timeout slow it down. Serial groups that stop at a failure speed it up.
+
+**`--no-rate-limit`:** evershop has its own rate limiter. It counts per IP, per app process: 120 API requests and 300 pages a minute, and 8 logins or sign-ups per 15 minutes. It produces 429 failures that are not shared state. With one app it fails the most tests in shared@N (N workers, one counter), fewer in theirs, and fewest in isolate@N (N apps, N counters). So it blurs both the new-fails column and the speedups. `--no-rate-limit` turns it off in every arm. evershop only turns it off itself under `NODE_ENV=test`, which also moves sessions into the app's memory. So the flag patches one line of the compiled middleware in `work/repos/evershop` to skip the limiter when `ISOLATE_NO_RATE_LIMIT=1`, and sets that variable for every arm. Runs without the flag are unchanged. The run stops after the first warm-up if any test still fails with 429, and its folder name ends in `-no-rate-limit`. When a run without the flag sees 429s, a note says to rerun with it.
 
 **Which repos are worth it:** suites whose own config holds them to one or a few workers because tests share a database (evershop: `workers: 1`, "Shared DB"). A suite that already runs many workers against one app (documenso's API tests: 10) has nothing for isolate to unlock. There, the best case is a tie on the test phase, plus isolate's start-up cost.
 

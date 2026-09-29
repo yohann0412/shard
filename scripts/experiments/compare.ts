@@ -5,7 +5,7 @@ import { parseArgs } from 'node:util';
 import { readResults, type PwResults, type TestRecord } from '../../src/playwright/results.js';
 import type { Report } from '../../src/report/schema.js';
 import { browsersFor } from './browsers.js';
-import { prepareCheckout } from './checkout.js';
+import { patchCheckout, prepareCheckout } from './checkout.js';
 import { breakdown, FAILURE_KINDS, failureKind, newFailures, passedEverywhere, type FailureBreakdown, type FailureKind } from './compare-analysis.js';
 import { machineFacts } from './machine.js';
 import { harnessRoot, workDir } from './paths.js';
@@ -17,7 +17,7 @@ import { median } from './stats.js';
 import { runSuite, type Invocation, type LoadedRun } from './suite-run.js';
 import { ensureToolchain } from './toolchain.js';
 
-const USAGE = `Usage: node dist/scripts/experiments/compare.js <recipe> [--rounds R] [--workers 2,4] [--no-shared] [--fresh] [-- <extra playwright args>]
+const USAGE = `Usage: node dist/scripts/experiments/compare.js <recipe> [--rounds R] [--workers 2,4] [--no-shared] [--no-rate-limit] [--fresh] [-- <extra playwright args>]
        node dist/scripts/experiments/compare.js --report work/compare/<recipe>/<timestamp>
 
 Runs a repo's Playwright suite three ways, R rounds in rotating order, and prints the medians:
@@ -32,6 +32,9 @@ Runs a repo's Playwright suite three ways, R rounds in rotating order, and print
                   it already runs W workers, W (same parallelism, so only the isolation differs) and 2W; never more than
                   the cores
   --no-shared     skip the shared@N arms
+  --no-rate-limit turn the app's own rate limiter off in every arm (recipes with a noRateLimit entry: evershop), so
+                  that 429s do not hide which failures come from shared state. The run stops after the first warm-up
+                  if a test still fails with 429
   --fresh         clone, install and build again even if work/repos/<recipe> was prepared before
   --report DIR    print the report of an earlier run again, from its saved results
   -- ARGS         extra arguments for every playwright test command, e.g. a directory to run a subset (give flags in
@@ -242,7 +245,7 @@ function failureLines(arms: Arm[], samples: Sample[], found: NewFailures): strin
  * What the reader needs to know to read the table: what the shared@N arms say about isolate, whether isolate broke
  * tests, whether their setup was already parallel, and whether the suite is short enough for fixed costs to dominate.
  */
-function notes(arms: Arm[], samples: Sample[], found: NewFailures, cores: number): string[] {
+function notes(arms: Arm[], samples: Sample[], found: NewFailures, cores: number, rateLimit: RateLimit): string[] {
   const theirs = samples.filter((entry) => entry.arm === 'theirs');
   const theirWorkers = medianBy(theirs, (entry) => entry.workers);
   const theirTests = medianBy(theirs, (entry) => entry.testPhaseMs);
@@ -253,6 +256,17 @@ function notes(arms: Arm[], samples: Sample[], found: NewFailures, cores: number
       (entry) => entry.testPhaseMs,
     );
   const noted: string[] = [];
+
+  const limitedArms = arms.filter((arm) => samples.some((entry) => entry.arm === arm.name && (entry.failures?.byKind['rate limit (429)'] ?? 0) > 0)).map((arm) => arm.name);
+  if (limitedArms.length > 0 && rateLimit.off) {
+    noted.push(`Tests still failed with 429 in ${limitedArms.join(', ')} although --no-rate-limit was on: something else limits requests. Read those failures in new-failures.txt and the logs.`);
+  } else if (limitedArms.length > 0) {
+    noted.push(
+      `${limitedArms.join(', ')} failed tests with 429 (Too Many Requests): the app's own rate limiter, which counts requests per app process. It fails more tests the more workers share one app, and fewer the more apps there are, so it blurs both what shared state breaks and how fast each arm is. ${
+        rateLimit.rerun === null ? 'This recipe has no noRateLimit entry to turn it off.' : `To take it out of every arm, run \`${rateLimit.rerun}\`.`
+      }`,
+    );
+  }
 
   for (const arm of arms.filter((candidate) => candidate.name.startsWith('shared@'))) {
     const workers = arm.name.slice('shared@'.length);
@@ -331,21 +345,37 @@ function newFailuresText(arms: Arm[], samples: Sample[], found: NewFailures): st
   return `Tests that failed although they passed in every run of theirs, per arm:\n\n${sections.join('\n\n')}\n`;
 }
 
+/** Whether the rate limiter was off, and the command that would turn it off (null if the recipe cannot). */
+interface RateLimit {
+  off: boolean;
+  rerun: string | null;
+}
+
 /** The printable report: the header, the table, the failure lines and the notes. */
-function render(header: string, arms: Arm[], samples: Sample[], found: NewFailures, cores: number): string {
+function render(header: string, arms: Arm[], samples: Sample[], found: NewFailures, cores: number, rateLimit: RateLimit): string {
   const parts = [header, summarize(arms, samples, found), `Failures (medians per run; new = passed in every run of theirs):\n${failureLines(arms, samples, found).map((line) => `- ${line}`).join('\n')}`];
-  const noted = notes(arms, samples, found, cores);
+  const noted = notes(arms, samples, found, cores, rateLimit);
   if (noted.length > 0) parts.push(`Notes:\n${noted.map((line) => `- ${line}`).join('\n')}`);
   return parts.join('\n\n');
 }
 
 /** The first lines of the report: what ran where, and what the arms and columns mean. */
-function headerLines(recipe: string, commit: string, rounds: number | null, machine: { cpuModel: string; cores: number; ramGb: number; os: string }, baselineApp: boolean): string {
+function headerLines(recipe: string, commit: string, rounds: number | null, machine: { cpuModel: string; cores: number; ramGb: number; os: string }, baselineApp: boolean, rateLimitOff: string | null): string {
   return [
     `${recipe} @ ${commit.slice(0, 12)}: ${rounds === null ? '' : `${rounds} round(s); `}${machine.cpuModel}, ${machine.cores} cores, ${machine.ramGb} GB, ${machine.os}`,
     `theirs = the repo's own Playwright config (its worker count, one app, one database${baselineApp ? ', app started by isolate --baseline --app' : ''}); shared@N = the same with --workers=N; isolate@N = one app and database per worker`,
     `wall = the whole isolate command; tests = Playwright's test phase (first test start to last test end); overhead = wall minus tests; new fails = tests that passed in every run of theirs and failed in this arm`,
+    ...(rateLimitOff === null ? [] : [`--no-rate-limit: ${rateLimitOff}`]),
   ].join('\n');
+}
+
+/** The command that reruns a recipe with its rate limiter off, or null if its recipe has no way to. */
+function rerunWithoutLimit(name: string): string | null {
+  try {
+    return loadRecipe(name).noRateLimit === undefined ? null : `just compare ${name} --no-rate-limit`;
+  } catch {
+    return null;
+  }
 }
 
 /** `--report <dir>`: prints the report of an earlier run from its samples.json and reporter results. */
@@ -355,6 +385,7 @@ function report(outDir: string): number {
     commit: string;
     rounds?: number;
     baselineApp?: boolean;
+    rateLimitOff?: string | null;
     machine: { cpuModel: string; cores: number; ramGb: number; os: string };
     arms: Arm[];
     samples: (Omit<Sample, 'label' | 'failures'> & Partial<Pick<Sample, 'label' | 'failures'>>)[];
@@ -365,9 +396,10 @@ function report(outDir: string): number {
     return { ...entry, label, failures: results === null ? null : breakdown(results) };
   });
   const found = findNewFailures(outDir, samples);
-  const header = `${headerLines(saved.recipe, saved.commit, saved.rounds ?? null, saved.machine, saved.baselineApp ?? false)}\n(report of ${outDir})`;
+  const header = `${headerLines(saved.recipe, saved.commit, saved.rounds ?? null, saved.machine, saved.baselineApp ?? false, saved.rateLimitOff ?? null)}\n(report of ${outDir})`;
   writeFileSync(path.join(outDir, 'new-failures.txt'), newFailuresText(saved.arms, samples, found));
-  process.stdout.write(`${render(header, saved.arms, samples, found, saved.machine.cores)}\n\nnew failures by test: ${path.join(outDir, 'new-failures.txt')}\n`);
+  const rateLimit: RateLimit = { off: Boolean(saved.rateLimitOff), rerun: rerunWithoutLimit(saved.recipe) };
+  process.stdout.write(`${render(header, saved.arms, samples, found, saved.machine.cores, rateLimit)}\n\nnew failures by test: ${path.join(outDir, 'new-failures.txt')}\n`);
   return 0;
 }
 
@@ -382,6 +414,7 @@ async function main(argv: string[]): Promise<number> {
       rounds: { type: 'string' },
       workers: { type: 'string' },
       'no-shared': { type: 'boolean', default: false },
+      'no-rate-limit': { type: 'boolean', default: false },
       fresh: { type: 'boolean', default: false },
       report: { type: 'string' },
     },
@@ -397,9 +430,11 @@ async function main(argv: string[]): Promise<number> {
   if (!Number.isInteger(rounds) || rounds < 1) throw new Error(`--rounds needs a positive integer (got ${values.rounds})`);
   const cores = os.availableParallelism();
   const requested = values.workers === undefined ? null : parseWorkerList(values.workers);
+  const noRateLimit = values['no-rate-limit'] ? recipe.noRateLimit : undefined;
+  if (values['no-rate-limit'] && noRateLimit === undefined) throw new Error(`--no-rate-limit: the ${name} recipe has no noRateLimit entry saying how to turn its app's rate limiter off`);
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outDir = path.join(workDir, 'compare', name, stamp);
+  const outDir = path.join(workDir, 'compare', name, noRateLimit === undefined ? stamp : `${stamp}-no-rate-limit`);
   mkdirSync(outDir, { recursive: true });
 
   await ensureToolchain(recipe);
@@ -408,6 +443,12 @@ async function main(argv: string[]): Promise<number> {
   const browsers = await browsersFor(checkout.appDir, recipeEnv(recipe));
   const machine = machineFacts(checkout.appDir);
   const invocation: Invocation = { cwd: checkout.appDir, env: armEnv(recipe, browsers.path), capMs: (recipe.runCapMin ?? 45) * 60_000 };
+  if (noRateLimit !== undefined) {
+    // The patch only makes the limiter switchable; the variable switches it off, for every arm alike.
+    patchCheckout(checkout.root, noRateLimit.patch);
+    invocation.env = { ...invocation.env, ...noRateLimit.env };
+    say(`rate limiter off in every arm: ${noRateLimit.note}`);
+  }
 
   const playwright = [...recipe.playwrightCommand, '--retries=0', ...recipe.playwrightArgs, ...extra];
   const baseline = ['run', '--baseline', ...(recipe.baselineApp ? ['--app'] : []), '--', ...playwright];
@@ -430,7 +471,12 @@ async function main(argv: string[]): Promise<number> {
       return entry;
     };
     say('warm-up (not counted): their setup first, to learn its worker count; it also fills the snapshot cache');
-    const theirWorkers = (await run(theirArm, 0)).workers;
+    const warmup = await run(theirArm, 0);
+    const limited = warmup.failures?.byKind['rate limit (429)'] ?? 0;
+    if (noRateLimit !== undefined && limited > 0) {
+      throw new Error(`--no-rate-limit is on, but ${limited} test(s) of the warm-up still failed with 429, so the limiter is not off; stopping before the timed runs. Log: ${warmup.log}`);
+    }
+    const theirWorkers = warmup.workers;
     const workerCounts = requested ?? defaultWorkers(cores, theirWorkers);
     // shared@W with W their own worker count is theirs again.
     const sharedCounts = values['no-shared'] ? [] : workerCounts.filter((workers) => workers !== theirWorkers);
@@ -447,10 +493,13 @@ async function main(argv: string[]): Promise<number> {
   }
 
   const found = findNewFailures(outDir, samples);
-  const text = render(headerLines(name, checkout.commit, rounds, machine, recipe.baselineApp), arms, samples, found, cores);
+  const text = render(headerLines(name, checkout.commit, rounds, machine, recipe.baselineApp, noRateLimit?.note ?? null), arms, samples, found, cores, {
+    off: noRateLimit !== undefined,
+    rerun: rerunWithoutLimit(name),
+  });
   writeFileSync(path.join(outDir, 'summary.txt'), `${text}\n`);
   writeFileSync(path.join(outDir, 'new-failures.txt'), newFailuresText(arms, samples, found));
-  writeFileSync(path.join(outDir, 'samples.json'), `${JSON.stringify({ recipe: name, commit: checkout.commit, rounds, baselineApp: recipe.baselineApp, machine, browsers, arms, samples }, null, 2)}\n`);
+  writeFileSync(path.join(outDir, 'samples.json'), `${JSON.stringify({ recipe: name, commit: checkout.commit, rounds, baselineApp: recipe.baselineApp, rateLimitOff: noRateLimit?.note ?? null, machine, browsers, arms, samples }, null, 2)}\n`);
   process.stdout.write(`\n${text}\n\nnew failures by test: ${path.relative(harnessRoot, path.join(outDir, 'new-failures.txt'))}\nraw logs and reports: ${path.relative(harnessRoot, outDir)}\n`);
   return 0;
 }

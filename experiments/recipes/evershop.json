@@ -64,5 +64,18 @@
     "The cloud file-storage specs (15 tests) skip themselves without S3/Azure/GCS credentials, in both arms.",
     "CYPRESS_INSTALL_BINARY=0: the root devDependencies include Cypress, which the Playwright suite does not use.",
     "Flaky in both arms (sandbox, 2026-09-28): drag-drop page-builder specs fail in some runs of either arm; page-builder specs can hit EverShop's own rate limiter (120 /api requests per minute per IP, in memory per app) and fail with 429. See data/results/evershop/compare-sandbox-2026-09-28.txt."
-  ]
+  ],
+  "noRateLimit": {
+    "patch": [
+      {
+        "file": "packages/evershop/dist/bin/lib/addDefaultMiddlewareFuncs.js",
+        "find": "if (process.env.NODE_ENV !== 'test') {",
+        "replace": "if (process.env.NODE_ENV !== 'test' && process.env.ISOLATE_NO_RATE_LIMIT !== '1') {"
+      }
+    ],
+    "env": {
+      "ISOLATE_NO_RATE_LIMIT": "1"
+    },
+    "note": "EverShop's in-memory rate limiter (per IP, per app process: 120 /api requests a minute, 300 pages a minute, 8 logins or sign-ups per 15 minutes) is off in every arm. It turns itself off only under NODE_ENV=test, which also moves sessions into the app's memory, so the compiled middleware file is patched to skip it when ISOLATE_NO_RATE_LIMIT=1."
+  }
 }

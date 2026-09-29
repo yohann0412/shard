@@ -119,3 +119,27 @@ export async function prepareCheckout(recipe: RunnableRecipe, logFile: string, o
   writeFileSync(ready, fingerprint(recipe));
   return { root, appDir, commit: await git(root, ['rev-parse', 'HEAD']) };
 }
+
+/** One text edit of a prepared checkout's file. */
+export interface CheckoutPatch {
+  file: string;
+  find: string;
+  replace: string;
+}
+
+/**
+ * Applies edits to a prepared checkout (paths from its root). Each `find` must occur exactly once, unless the file
+ * already holds `replace` (patched by an earlier run), so a rebuilt or changed file fails loudly instead of silently
+ * running unpatched.
+ */
+export function patchCheckout(root: string, patches: CheckoutPatch[]): void {
+  for (const patch of patches) {
+    const file = path.join(root, patch.file);
+    if (!existsSync(file)) throw new Error(`cannot patch ${patch.file}: it does not exist in ${root}`);
+    const text = readFileSync(file, 'utf8');
+    const found = text.split(patch.find).length - 1;
+    if (found === 0 && text.includes(patch.replace)) continue;
+    if (found !== 1) throw new Error(`cannot patch ${patch.file}: expected the text to replace once, found it ${found} times`);
+    writeFileSync(file, text.replace(patch.find, () => patch.replace));
+  }
+}
