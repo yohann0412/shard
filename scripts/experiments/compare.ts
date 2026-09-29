@@ -1,10 +1,12 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
+import { readResults, type PwResults, type TestRecord } from '../../src/playwright/results.js';
 import type { Report } from '../../src/report/schema.js';
 import { browsersFor } from './browsers.js';
 import { prepareCheckout } from './checkout.js';
+import { breakdown, FAILURE_KINDS, failureKind, newFailures, passedEverywhere, type FailureBreakdown, type FailureKind } from './compare-analysis.js';
 import { machineFacts } from './machine.js';
 import { harnessRoot, workDir } from './paths.js';
 import { waitForFreePorts } from './ports.js';
@@ -15,16 +17,25 @@ import { median } from './stats.js';
 import { runSuite, type Invocation, type LoadedRun } from './suite-run.js';
 import { ensureToolchain } from './toolchain.js';
 
-const USAGE = `Usage: node dist/scripts/experiments/compare.js <recipe> [--rounds R] [--workers 2,4] [--fresh] [-- <extra playwright args>]
+const USAGE = `Usage: node dist/scripts/experiments/compare.js <recipe> [--rounds R] [--workers 2,4] [--no-shared] [--fresh] [-- <extra playwright args>]
+       node dist/scripts/experiments/compare.js --report work/compare/<recipe>/<timestamp>
 
-Times a repo's own Playwright setup ("theirs": its config, worker count and one shared app and database, as CI runs it)
-against isolate run at each worker count, R rounds in rotating order, and prints the medians.
+Runs a repo's Playwright suite three ways, R rounds in rotating order, and prints the medians:
+
+  theirs      the repo's own config as its CI runs it: its worker count, one app, one database
+  shared@N    the same with --workers=N: N workers on the one app and database, which is what the repo could do
+              without isolate. Tests that pass in theirs and fail here ("new fails") collide on shared state
+  isolate@N   isolate run: N workers, each with its own app and its own copy of the database
 
   --rounds R      timed rounds per arm (default: the recipe's rounds, else 3)
-  --workers LIST  isolate worker counts. Default: 2, 4 and 8 when their setup runs one worker; when it already runs
-                  W workers, W (same parallelism, so only the isolation differs) and 2W; never more than the cores
+  --workers LIST  worker counts for shared@N and isolate@N. Default: 2, 4 and 8 when their setup runs one worker; when
+                  it already runs W workers, W (same parallelism, so only the isolation differs) and 2W; never more than
+                  the cores
+  --no-shared     skip the shared@N arms
   --fresh         clone, install and build again even if work/repos/<recipe> was prepared before
-  -- ARGS         extra arguments for every playwright test command, e.g. a directory to run a subset
+  --report DIR    print the report of an earlier run again, from its saved results
+  -- ARGS         extra arguments for every playwright test command, e.g. a directory to run a subset (give flags in
+                  --flag=value form)
 `;
 
 /** One way of running the suite. */
@@ -37,6 +48,8 @@ interface Arm {
 interface Sample {
   arm: string;
   round: number;
+  /** Name of the run's files in the output directory: <label>.log, <label>.json, <label>.pw-results.json. */
+  label: string;
   exitCode: number;
   exceededCap: boolean;
   wallMs: number | null;
@@ -47,11 +60,19 @@ interface Sample {
   flaky: number | null;
   error: string | null;
   log: string;
+  /** The failures by kind and the time they took; null without reporter results. */
+  failures: FailureBreakdown | null;
 }
 
 /**
- * isolate worker counts to try when none are given. A setup held to one worker (the case isolate is for) gets 2, 4 and
- * 8. A setup that already runs W workers gets W, where only the isolation differs, and 2W. Never above the cores.
+ * The tests each run failed although they passed in every run of theirs, by sample label; null for a run without
+ * reporter results, and for every run when theirs wrote none (nothing to compare with).
+ */
+type NewFailures = Map<string, TestRecord[] | null>;
+
+/**
+ * Worker counts to try when none are given. A setup held to one worker (the case isolate is for) gets 2, 4 and 8. A
+ * setup that already runs W workers gets W, where only the isolation differs, and 2W. Never above the cores.
  */
 function defaultWorkers(cores: number, theirWorkers: number | null): number[] {
   const wanted = theirWorkers === null || theirWorkers <= 1 ? [2, 4, 8] : [theirWorkers, theirWorkers * 2];
@@ -74,11 +95,12 @@ function duration(ms: number | null): string {
 }
 
 /** The numbers of one run, from isolate's report (null when isolate wrote none). */
-function sample(arm: Arm, round: number, loaded: LoadedRun): Sample {
+function sample(arm: Arm, round: number, label: string, loaded: LoadedRun): Sample {
   const report: Report | null = loaded.report;
   return {
     arm: arm.name,
     round,
+    label,
     exitCode: loaded.run.exitCode,
     exceededCap: loaded.run.exceededCap,
     wallMs: report?.wallMs ?? null,
@@ -89,7 +111,27 @@ function sample(arm: Arm, round: number, loaded: LoadedRun): Sample {
     flaky: report?.tests.flaky ?? null,
     error: loaded.run.error,
     log: loaded.run.files.log,
+    failures: loaded.results === null ? null : breakdown(loaded.results),
   };
+}
+
+/** The reporter results of one sample's run, or null if Playwright wrote none. */
+function resultsOf(outDir: string, entry: Sample): PwResults | null {
+  return readResults(path.join(outDir, `${entry.label}.pw-results.json`));
+}
+
+/** For each run but theirs, the tests it failed that passed in every run of theirs. */
+function findNewFailures(outDir: string, samples: Sample[]): NewFailures {
+  const theirs = samples.filter((entry) => entry.arm === 'theirs').map((entry) => resultsOf(outDir, entry));
+  const known = theirs.filter((results): results is PwResults => results !== null);
+  const passed = known.length === 0 ? null : passedEverywhere(known);
+  const found: NewFailures = new Map();
+  for (const entry of samples) {
+    if (entry.arm === 'theirs') continue;
+    const results = resultsOf(outDir, entry);
+    found.set(entry.label, passed === null || results === null ? null : newFailures(results, passed));
+  }
+  return found;
 }
 
 /** min–max of a list of counts, or "n/a". */
@@ -107,44 +149,39 @@ function overheadMs(entry: Sample): number | null {
 }
 
 /** The median of the known values of `pick` over `list`, or null. */
-function medianBy(list: Sample[], pick: (entry: Sample) => number | null): number | null {
+function medianBy<T>(list: T[], pick: (entry: T) => number | null): number | null {
   const values = list.map(pick).filter((value): value is number => value !== null);
   return values.length === 0 ? null : median(values);
 }
 
-/**
- * What the reader needs to know to read the table: whether their setup was already parallel, and whether the suite is
- * short enough for isolate's fixed cost to dominate.
- */
-function notes(arms: Arm[], samples: Sample[], cores: number): string[] {
-  const theirs = samples.filter((entry) => entry.arm === 'theirs');
-  const theirWorkers = medianBy(theirs, (entry) => entry.workers);
-  const theirTests = medianBy(theirs, (entry) => entry.testPhaseMs);
-  const theirOverhead = medianBy(theirs, overheadMs);
-  const found: string[] = [];
-  if (theirWorkers !== null && theirWorkers > 1) {
-    const same = arms.some((arm) => arm.name === `isolate@${theirWorkers}`);
-    found.push(
-      `Their setup already runs ${theirWorkers} workers against one app and one database, so shared state is not what holds it back, and isolate has little to win: it speeds a suite up by letting it run more workers than shared state allows. ${
-        same
-          ? `isolate@${theirWorkers} runs the same parallelism, so it shows what the isolation alone costs or saves.`
-          : `This machine has ${cores} cores, so no isolate arm matches their ${theirWorkers} workers.`
-      }`,
-    );
-  }
-  const largest = arms.length > 1 ? arms.at(-1)!.name : undefined;
-  const largestOverhead = largest === undefined ? null : medianBy(samples.filter((entry) => entry.arm === largest), overheadMs);
-  if (theirTests !== null && theirTests < 60_000 && largestOverhead !== null && theirOverhead !== null) {
-    found.push(
-      `Their test phase is only ${duration(theirTests)}. Outside the test phase, ${largest} spends ${duration(largestOverhead)} (starting Postgres, copying the database, booting one app per worker, Playwright start-up, teardown) against ${duration(theirOverhead)} for theirs; on a run this short that difference decides the wall time, so the test-phase column is the fairer one, and a longer suite the better test.`,
-    );
-  }
-  return found;
+/** The number of new failures of one run, or null when it could not be told. */
+function newFailureCount(found: NewFailures, entry: Sample): number | null {
+  return found.get(entry.label)?.length ?? null;
 }
 
-/** The summary table: medians per arm and the speedup of each isolate arm over theirs. */
-function summarize(arms: Arm[], samples: Sample[]): string {
-  const rows = [['arm', 'workers', 'runs', 'median wall', 'median tests', 'overhead', 'passed', 'failed', 'wall speedup', 'tests speedup']];
+/** The median new failures of one arm's runs, or null. */
+function medianNewFailures(found: NewFailures, samples: Sample[], arm: string): number | null {
+  return medianBy(
+    samples.filter((entry) => entry.arm === arm),
+    (entry) => newFailureCount(found, entry),
+  );
+}
+
+/** "3 rate limit (429), 1 other" for a count per kind (medians may be fractional). */
+function byKind(counts: Record<FailureKind, number>): string {
+  return FAILURE_KINDS.filter((kind) => counts[kind] > 0)
+    .map((kind) => `${counts[kind]} ${kind}`)
+    .join(', ');
+}
+
+/** "12.3s of 45.6s (27%)". */
+function share(part: number, whole: number): string {
+  return `${duration(part)} of ${duration(whole)} (${whole > 0 ? Math.round((100 * part) / whole) : 0}%)`;
+}
+
+/** The summary table: medians per arm, the new failures, and the speedup of each arm over theirs. */
+function summarize(arms: Arm[], samples: Sample[], found: NewFailures): string {
+  const rows = [['arm', 'workers', 'runs', 'median wall', 'median tests', 'overhead', 'passed', 'failed', 'new fails', 'wall speedup', 'tests speedup']];
   const theirs = samples.filter((entry) => entry.arm === 'theirs');
   const theirWall = medianBy(theirs, (entry) => entry.wallMs);
   const theirTests = medianBy(theirs, (entry) => entry.testPhaseMs);
@@ -153,6 +190,7 @@ function summarize(arms: Arm[], samples: Sample[]): string {
     const wall = medianBy(runs, (entry) => entry.wallMs);
     const tests = medianBy(runs, (entry) => entry.testPhaseMs);
     const speedup = (base: number | null, value: number | null) => (base === null || value === null ? 'n/a' : `${(base / value).toFixed(2)}x`);
+    const isTheirs = arm.name === 'theirs';
     rows.push([
       arm.name,
       range(runs.map((entry) => entry.workers)),
@@ -162,12 +200,175 @@ function summarize(arms: Arm[], samples: Sample[]): string {
       duration(medianBy(runs, overheadMs)),
       range(runs.map((entry) => entry.passed)),
       range(runs.map((entry) => entry.failed)),
-      arm.name === 'theirs' ? '1.00x' : speedup(theirWall, wall),
-      arm.name === 'theirs' ? '1.00x' : speedup(theirTests, tests),
+      isTheirs ? '-' : range(runs.map((entry) => newFailureCount(found, entry))),
+      isTheirs ? '1.00x' : speedup(theirWall, wall),
+      isTheirs ? '1.00x' : speedup(theirTests, tests),
     ]);
   }
   const widths = rows[0]!.map((_, column) => Math.max(...rows.map((row) => row[column]!.length)));
   return rows.map((row) => row.map((cell, column) => (column === 0 ? cell.padEnd(widths[column]!) : cell.padStart(widths[column]!))).join('  ')).join('\n');
+}
+
+/**
+ * One line per arm about its failures (medians over the arm's runs): how many, of which kind, how many of them are new
+ * (passed in theirs), and how much of the test time they took. Failed tests that wait for a timeout make a run slower,
+ * and a serial group that stops at a failure makes it faster, so arms that fail different tests do different work.
+ */
+function failureLines(arms: Arm[], samples: Sample[], found: NewFailures): string[] {
+  return arms.flatMap((arm) => {
+    const runs = samples.filter((entry) => entry.arm === arm.name && entry.failures !== null);
+    if (runs.length === 0) return [`${arm.name}: no reporter results`];
+    const med = (pick: (failures: FailureBreakdown) => number) => median(runs.map((entry) => pick(entry.failures!)));
+    const failed = med((failures) => failures.failed);
+    const didNotRun = med((failures) => failures.didNotRun);
+    if (failed === 0 && didNotRun === 0) return [`${arm.name}: no failures`];
+    const kinds = Object.fromEntries(FAILURE_KINDS.map((kind) => [kind, med((failures) => failures.byKind[kind])])) as Record<FailureKind, number>;
+    let fresh = '';
+    if (arm.name !== 'theirs') {
+      const counts = runs.map((entry) => found.get(entry.label) ?? null).filter((list): list is TestRecord[] => list !== null);
+      if (counts.length > 0) {
+        const freshKinds = Object.fromEntries(FAILURE_KINDS.map((kind) => [kind, median(counts.map((list) => list.filter((test) => failureKind(test) === kind).length))])) as Record<FailureKind, number>;
+        const total = median(counts.map((list) => list.length));
+        fresh = total === 0 ? '; none of them new' : `; ${total} new (passed in theirs: ${byKind(freshKinds)})`;
+      }
+    }
+    return [
+      `${arm.name}: ${failed} failed${failed > 0 ? ` (${byKind(kinds)})` : ''}${fresh}, ${didNotRun} did not run after a failure; failed tests took ${share(med((failures) => failures.failedMs), med((failures) => failures.ranMs))} of the summed test time`,
+    ];
+  });
+}
+
+/**
+ * What the reader needs to know to read the table: what the shared@N arms say about isolate, whether isolate broke
+ * tests, whether their setup was already parallel, and whether the suite is short enough for fixed costs to dominate.
+ */
+function notes(arms: Arm[], samples: Sample[], found: NewFailures, cores: number): string[] {
+  const theirs = samples.filter((entry) => entry.arm === 'theirs');
+  const theirWorkers = medianBy(theirs, (entry) => entry.workers);
+  const theirTests = medianBy(theirs, (entry) => entry.testPhaseMs);
+  const theirOverhead = medianBy(theirs, overheadMs);
+  const testsOf = (arm: string) =>
+    medianBy(
+      samples.filter((entry) => entry.arm === arm),
+      (entry) => entry.testPhaseMs,
+    );
+  const noted: string[] = [];
+
+  for (const arm of arms.filter((candidate) => candidate.name.startsWith('shared@'))) {
+    const workers = arm.name.slice('shared@'.length);
+    const isolated = `isolate@${workers}`;
+    const shared = medianNewFailures(found, samples, arm.name);
+    const isolateNew = medianNewFailures(found, samples, isolated);
+    const sharedTests = testsOf(arm.name);
+    const isolateTests = testsOf(isolated);
+    if (shared === null) continue;
+    if (shared === 0) {
+      noted.push(
+        `${arm.name} broke no test that passes in theirs: this suite already runs ${workers} workers on one app and one database, so it can get that parallelism without isolate. isolate@${workers} is only worth it where it is faster than ${arm.name} (test phase ${duration(isolateTests)} against ${duration(sharedTests)}).`,
+      );
+    } else {
+      const isolateSays =
+        isolateNew === null
+          ? `isolate@${workers} did not run or wrote no results.`
+          : isolateNew === 0
+            ? `isolate@${workers} ran the same parallelism with no new failures: that is the parallelism the repo cannot have without isolation.`
+            : `isolate@${workers} also failed a median ${isolateNew} test(s) that pass in theirs: either state isolate does not copy (the app's memory, files, outside services) or flaky tests.`;
+      noted.push(
+        `${arm.name} failed a median ${shared} test(s) that pass in theirs (listed in new-failures.txt): ${workers} workers on one app and one database break this suite. ${isolateSays} A shared run that fails tests is not a fair speed comparison: failures that wait for a timeout slow it down, and serial groups that stop at a failure speed it up.`,
+      );
+    }
+  }
+
+  for (const arm of arms.filter((candidate) => candidate.name.startsWith('isolate@'))) {
+    const isolateNew = medianNewFailures(found, samples, arm.name);
+    const shared = medianNewFailures(found, samples, `shared@${arm.name.slice('isolate@'.length)}`);
+    if (isolateNew !== null && isolateNew > 0 && shared === null) {
+      noted.push(`${arm.name} failed a median ${isolateNew} test(s) that pass in theirs (listed in new-failures.txt): either state isolate does not copy (the app's memory, files, outside services) or flaky tests. Read them before trusting its speed.`);
+    }
+  }
+
+  if (theirWorkers !== null && theirWorkers > 1) {
+    const same = arms.some((arm) => arm.name === `isolate@${theirWorkers}`);
+    noted.push(
+      `Their setup already runs ${theirWorkers} workers against one app and one database, so shared state is not what holds it back, and isolate has little to win: it speeds a suite up by letting it run more workers than shared state allows. ${
+        same ? `isolate@${theirWorkers} runs the same parallelism, so it shows what the isolation alone costs or saves.` : `This machine has ${cores} cores, so no isolate arm matches their ${theirWorkers} workers.`
+      }`,
+    );
+  }
+
+  const largest = arms.filter((arm) => arm.name.startsWith('isolate@')).at(-1)?.name;
+  const largestOverhead = largest === undefined ? null : medianBy(samples.filter((entry) => entry.arm === largest), overheadMs);
+  if (theirTests !== null && theirTests < 60_000 && largestOverhead !== null && theirOverhead !== null) {
+    noted.push(
+      `Their test phase is only ${duration(theirTests)}. Outside the test phase, ${largest} spends ${duration(largestOverhead)} (starting Postgres, copying the database, booting one app per worker, Playwright start-up, teardown) against ${duration(theirOverhead)} for theirs; on a run this short that difference decides the wall time, so the test-phase column is the fairer one, and a longer suite the better test.`,
+    );
+  }
+  return noted;
+}
+
+/** new-failures.txt: per arm, each test that failed in some run although it passed in every run of theirs. */
+function newFailuresText(arms: Arm[], samples: Sample[], found: NewFailures): string {
+  const sections = arms
+    .filter((arm) => arm.name !== 'theirs')
+    .map((arm) => {
+      const runs = samples.filter((entry) => entry.arm === arm.name);
+      const lists = runs.map((entry) => found.get(entry.label) ?? null).filter((list): list is TestRecord[] => list !== null);
+      if (lists.length === 0) return `${arm.name}: no results to compare`;
+      const byTest = new Map<string, { test: TestRecord; runs: number }>();
+      for (const test of lists.flat()) {
+        const seen = byTest.get(test.id);
+        byTest.set(test.id, { test: seen?.test ?? test, runs: (seen?.runs ?? 0) + 1 });
+      }
+      if (byTest.size === 0) return `${arm.name}: none in ${lists.length} run(s)`;
+      const lines = [...byTest.values()]
+        .sort((a, b) => b.runs - a.runs || a.test.file.localeCompare(b.test.file) || a.test.line - b.test.line)
+        .map(({ test, runs: count }) => {
+          const error = (test.error ?? '').split('\n')[0]!.trim().slice(0, 200);
+          return `  ${test.file}:${test.line} ${test.title} (failed in ${count}/${lists.length} runs; ${failureKind(test)})${error === '' ? '' : `\n      ${error}`}`;
+        });
+      return `${arm.name}: ${byTest.size} test(s)\n${lines.join('\n')}`;
+    });
+  return `Tests that failed although they passed in every run of theirs, per arm:\n\n${sections.join('\n\n')}\n`;
+}
+
+/** The printable report: the header, the table, the failure lines and the notes. */
+function render(header: string, arms: Arm[], samples: Sample[], found: NewFailures, cores: number): string {
+  const parts = [header, summarize(arms, samples, found), `Failures (medians per run; new = passed in every run of theirs):\n${failureLines(arms, samples, found).map((line) => `- ${line}`).join('\n')}`];
+  const noted = notes(arms, samples, found, cores);
+  if (noted.length > 0) parts.push(`Notes:\n${noted.map((line) => `- ${line}`).join('\n')}`);
+  return parts.join('\n\n');
+}
+
+/** The first lines of the report: what ran where, and what the arms and columns mean. */
+function headerLines(recipe: string, commit: string, rounds: number | null, machine: { cpuModel: string; cores: number; ramGb: number; os: string }, baselineApp: boolean): string {
+  return [
+    `${recipe} @ ${commit.slice(0, 12)}: ${rounds === null ? '' : `${rounds} round(s); `}${machine.cpuModel}, ${machine.cores} cores, ${machine.ramGb} GB, ${machine.os}`,
+    `theirs = the repo's own Playwright config (its worker count, one app, one database${baselineApp ? ', app started by isolate --baseline --app' : ''}); shared@N = the same with --workers=N; isolate@N = one app and database per worker`,
+    `wall = the whole isolate command; tests = Playwright's test phase (first test start to last test end); overhead = wall minus tests; new fails = tests that passed in every run of theirs and failed in this arm`,
+  ].join('\n');
+}
+
+/** `--report <dir>`: prints the report of an earlier run from its samples.json and reporter results. */
+function report(outDir: string): number {
+  const saved = JSON.parse(readFileSync(path.join(outDir, 'samples.json'), 'utf8')) as {
+    recipe: string;
+    commit: string;
+    rounds?: number;
+    baselineApp?: boolean;
+    machine: { cpuModel: string; cores: number; ramGb: number; os: string };
+    arms: Arm[];
+    samples: (Omit<Sample, 'label' | 'failures'> & Partial<Pick<Sample, 'label' | 'failures'>>)[];
+  };
+  const samples: Sample[] = saved.samples.map((entry) => {
+    const label = entry.label ?? path.basename(entry.log, '.log');
+    const results = readResults(path.join(outDir, `${label}.pw-results.json`));
+    return { ...entry, label, failures: results === null ? null : breakdown(results) };
+  });
+  const found = findNewFailures(outDir, samples);
+  const header = `${headerLines(saved.recipe, saved.commit, saved.rounds ?? null, saved.machine, saved.baselineApp ?? false)}\n(report of ${outDir})`;
+  writeFileSync(path.join(outDir, 'new-failures.txt'), newFailuresText(saved.arms, samples, found));
+  process.stdout.write(`${render(header, saved.arms, samples, found, saved.machine.cores)}\n\nnew failures by test: ${path.join(outDir, 'new-failures.txt')}\n`);
+  return 0;
 }
 
 /** Runs the comparison for one recipe; returns the exit code. */
@@ -177,8 +378,15 @@ async function main(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
     args: dashDash === -1 ? argv : argv.slice(0, dashDash),
     allowPositionals: true,
-    options: { rounds: { type: 'string' }, workers: { type: 'string' }, fresh: { type: 'boolean', default: false } },
+    options: {
+      rounds: { type: 'string' },
+      workers: { type: 'string' },
+      'no-shared': { type: 'boolean', default: false },
+      fresh: { type: 'boolean', default: false },
+      report: { type: 'string' },
+    },
   });
+  if (values.report !== undefined) return report(path.resolve(values.report));
   const name = positionals[0];
   if (name === undefined || positionals.length > 1) {
     process.stderr.write(USAGE);
@@ -202,7 +410,9 @@ async function main(argv: string[]): Promise<number> {
   const invocation: Invocation = { cwd: checkout.appDir, env: armEnv(recipe, browsers.path), capMs: (recipe.runCapMin ?? 45) * 60_000 };
 
   const playwright = [...recipe.playwrightCommand, '--retries=0', ...recipe.playwrightArgs, ...extra];
-  const theirArm: Arm = { name: 'theirs', args: ['run', '--baseline', ...(recipe.baselineApp ? ['--app'] : []), '--', ...playwright] };
+  const baseline = ['run', '--baseline', ...(recipe.baselineApp ? ['--app'] : []), '--', ...playwright];
+  const theirArm: Arm = { name: 'theirs', args: baseline };
+  const sharedArm = (workers: number): Arm => ({ name: `shared@${workers}`, args: [...baseline, `--workers=${workers}`] });
   const isolateArm = (workers: number): Arm => ({ name: `isolate@${workers}`, args: ['run', '--workers', String(workers), '--no-rerun', '--', ...playwright] });
 
   const services = await startServices(recipe);
@@ -210,10 +420,11 @@ async function main(argv: string[]): Promise<number> {
   let arms: Arm[] = [theirArm];
   try {
     const run = async (arm: Arm, round: number) => {
-      if (arm.name === 'theirs' && recipe.baselinePorts.length > 0) await waitForFreePorts(recipe.baselinePorts, 15 * 60_000);
+      // theirs and shared@N start the repo's own app, often on a fixed port the previous run may still hold.
+      if (!arm.name.startsWith('isolate@') && recipe.baselinePorts.length > 0) await waitForFreePorts(recipe.baselinePorts, 15 * 60_000);
       const label = round === 0 ? `${arm.name}-warmup` : `${arm.name}-r${round}`;
       const loaded = await runSuite(label, arm.args, invocation, outDir);
-      const entry = sample(arm, round, loaded);
+      const entry = sample(arm, round, label, loaded);
       const outcome = entry.passed === null ? `no report (${entry.error ?? `exit ${entry.exitCode}`})` : `${entry.passed} passed, ${entry.failed} failed`;
       say(`${label}: wall ${duration(entry.wallMs)}, tests ${duration(entry.testPhaseMs)}, ${entry.workers ?? '?'} worker(s), ${outcome}${entry.exceededCap ? ', STOPPED at the time cap' : ''}`);
       return entry;
@@ -221,8 +432,10 @@ async function main(argv: string[]): Promise<number> {
     say('warm-up (not counted): their setup first, to learn its worker count; it also fills the snapshot cache');
     const theirWorkers = (await run(theirArm, 0)).workers;
     const workerCounts = requested ?? defaultWorkers(cores, theirWorkers);
-    arms = [theirArm, ...workerCounts.map(isolateArm)];
-    say(`their setup runs ${theirWorkers ?? 'an unknown number of'} worker(s); isolate arms: ${workerCounts.join(', ')}`);
+    // shared@W with W their own worker count is theirs again.
+    const sharedCounts = values['no-shared'] ? [] : workerCounts.filter((workers) => workers !== theirWorkers);
+    arms = [theirArm, ...sharedCounts.map(sharedArm), ...workerCounts.map(isolateArm)];
+    say(`their setup runs ${theirWorkers ?? 'an unknown number of'} worker(s); arms: ${arms.map((arm) => arm.name).join(', ')}`);
     say('warm-up (not counted): the largest isolate arm, so its build cache and the disk cache are warm too');
     await run(arms.at(-1)!, 0);
     for (let round = 1; round <= rounds; round++) {
@@ -233,17 +446,12 @@ async function main(argv: string[]): Promise<number> {
     for (const service of services) await service.stop();
   }
 
-  const table = summarize(arms, samples);
-  const found = notes(arms, samples, cores);
-  const footer = found.length === 0 ? '' : `\n\nNotes:\n${found.map((note) => `- ${note}`).join('\n')}`;
-  const header = [
-    `${name} @ ${checkout.commit.slice(0, 12)}: ${rounds} round(s); ${machine.cpuModel}, ${machine.cores} cores, ${machine.ramGb} GB, ${machine.os}`,
-    `theirs = the repo's own Playwright config (its worker count, one app, one database${recipe.baselineApp ? ', app started by isolate --baseline --app' : ''}); isolate@N = one app and database per worker`,
-    `wall = the whole isolate command; tests = Playwright's test phase (first test start to last test end); overhead = wall minus tests`,
-  ].join('\n');
-  writeFileSync(path.join(outDir, 'summary.txt'), `${header}\n\n${table}${footer}\n`);
-  writeFileSync(path.join(outDir, 'samples.json'), `${JSON.stringify({ recipe: name, commit: checkout.commit, machine, browsers, arms, samples }, null, 2)}\n`);
-  process.stdout.write(`\n${header}\n\n${table}${footer}\n\nraw logs and reports: ${path.relative(harnessRoot, outDir)}\n`);
+  const found = findNewFailures(outDir, samples);
+  const text = render(headerLines(name, checkout.commit, rounds, machine, recipe.baselineApp), arms, samples, found, cores);
+  writeFileSync(path.join(outDir, 'summary.txt'), `${text}\n`);
+  writeFileSync(path.join(outDir, 'new-failures.txt'), newFailuresText(arms, samples, found));
+  writeFileSync(path.join(outDir, 'samples.json'), `${JSON.stringify({ recipe: name, commit: checkout.commit, rounds, baselineApp: recipe.baselineApp, machine, browsers, arms, samples }, null, 2)}\n`);
+  process.stdout.write(`\n${text}\n\nnew failures by test: ${path.relative(harnessRoot, path.join(outDir, 'new-failures.txt'))}\nraw logs and reports: ${path.relative(harnessRoot, outDir)}\n`);
   return 0;
 }
 

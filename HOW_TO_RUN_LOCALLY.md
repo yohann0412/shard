@@ -43,9 +43,11 @@ just e2e
 
 ```bash
 just compare-list                          # repos with a ready recipe
-just compare evershop                      # 3 rounds: their setup, then isolate at 2, 4 and <cores> (up to 8) workers
-just compare evershop --rounds 1 --workers 4,8
+just compare evershop                      # 3 rounds: their setup, then shared@N and isolate@N at 2, 4 and 8 workers
+just compare evershop --rounds 1 --workers 4   # quickest useful run: theirs, shared@4, isolate@4
+just compare evershop --no-shared          # skip shared@N, time only theirs against isolate
 just compare documenso --rounds 1 -- e2e/api/v1   # anything after -- goes to every `playwright test` command (a subset here)
+just compare-report work/compare/evershop/<timestamp>   # print an earlier run's report again (older runs too)
 ```
 
 What it does, all unattended:
@@ -55,23 +57,32 @@ What it does, all unattended:
 3. Starts any service the recipe needs (documenso: a local SMTP sink that accepts and discards mail).
 4. Runs two untimed warm-ups: their setup first, which tells it their worker count W, then the largest isolate arm. Then it runs R rounds in rotating order of:
    - **theirs**: the repo's own Playwright config as their CI runs it (`CI=true`, its worker count, one app, one database), through `isolate run --baseline` (and `--app` when their config expects an already-running server);
+   - **shared@N**: the same, with `--workers=N` added: N workers against their one app and one database. This is what the repo could do without isolate, just by raising its worker count. It is skipped for N = W (that is theirs) and with `--no-shared`;
    - **isolate@N**: `isolate run --workers N`, one app and database copy per worker. By default N is 2, 4 and 8 when W is 1, the case isolate is for. When their setup already runs W workers, N is W (same parallelism, so only the isolation differs) and 2W. N never exceeds your cores.
 5. Prints per arm:
    - median wall time;
    - Playwright's test phase;
    - the overhead outside it;
    - pass and fail counts;
+   - **new fails**: tests that passed in every run of theirs and failed in this arm;
    - the speedup over theirs.
 
-   Notes follow the table when their setup is already parallel or the suite is too short for a fair wall-clock comparison. Raw logs and reports go to `work/compare/<name>/<timestamp>/`.
+   Then one line per arm on its failures: how many are rate limits (HTTP 429), timeouts or other, how many are new, and how much of the test time the failed tests took. Notes follow: what shared@N says about isolate, isolate breaking tests, their setup being already parallel, or the suite being too short for a fair wall-clock comparison. `new-failures.txt` lists every new failure by test with its error. Raw logs and reports go to `work/compare/<name>/<timestamp>/`.
+
+**Reading shared@N against isolate@N:** this is the question that decides whether isolate is needed at all.
+
+- shared@N has no new fails: the suite can already run N workers on one database. isolate is only worth it where it is faster than shared@N, and usually it is not.
+- shared@N has new fails and isolate@N has none: N workers on shared state break the suite, and isolate gives that parallelism back. This is isolate's case.
+- Both have new fails: read `new-failures.txt`. The tests may be flaky, or they may share state isolate does not copy, such as the app's memory. evershop's rate limiter is an example: it counts requests per app process.
+- A shared@N run that fails tests is not a fair speed comparison, either way. Failures that wait out a timeout slow it down. Serial groups that stop at a failure speed it up.
 
 **Which repos are worth it:** suites whose own config holds them to one or a few workers because tests share a database (evershop: `workers: 1`, "Shared DB"). A suite that already runs many workers against one app (documenso's API tests: 10) has nothing for isolate to unlock. There, the best case is a tie on the test phase, plus isolate's start-up cost.
 
-Both arms run with `--retries=0` and the same database snapshot, so they do the same work. Compare the pass/fail columns too: a faster arm that fails more tests is not a win.
+Every arm runs with `--retries=0` and the same database snapshot, so they do the same work. Compare the pass/fail columns too: a faster arm that fails more tests is not a win.
 
 | Recipe | Suite | First prepare | One round (4 cores, sandbox) |
 |---|---|---|---|
-| `evershop` | 164 tests; their config: 1 worker, "Shared DB" | ~3 min | theirs 5m 42s, isolate@4 2m 44s (so ~20 min for `--rounds 1` with the default arms) |
+| `evershop` | 164 tests; their config: 1 worker, "Shared DB" | ~3 min | theirs 5m 42s, isolate@4 2m 44s (so ~30 min for `--rounds 1` with the default arms, which add shared@2 and shared@4; `--workers 4` is about half that) |
 | `documenso` | ~1,200 tests; their config: api project at 10 workers, ui at min(6, (cores-2)/2) | ~11 min (Node 24 and npm 11 are fetched) | `-- e2e/api/v1` (44 tests): theirs 1m 05s, isolate@4 58s; the full suite is much longer |
 | `umami-passing`, `rallly`, `fixture-app` | from the sprint | | |
 

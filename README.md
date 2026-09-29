@@ -25,8 +25,10 @@ On a real open-source repo, timed against that repo's own setup (its config, its
 
 ```bash
 just compare-list          # evershop, documenso, umami, rallly, ...
-just compare evershop      # clones, installs and builds it once, then 3 rounds of theirs vs isolate at 2, 4, ... workers
+just compare evershop      # clones, installs and builds it once, then 3 rounds of theirs, shared@N and isolate@N at 2, 4, 8 workers
 ```
+
+`shared@N` is their own setup with `--workers=N` against one app and one database, the way they could go parallel without isolate. Its "new fails" column counts tests that pass in their setup and break once N workers share the database.
 
 See [HOW_TO_RUN_LOCALLY.md](HOW_TO_RUN_LOCALLY.md) (b).
 

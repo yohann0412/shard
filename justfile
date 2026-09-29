@@ -30,9 +30,14 @@ fixture-collide:
 harvest: build
     node dist/scripts/harvest.js --target 100
 
-# Time a repo's own Playwright setup against `isolate run` at 2, 4, ... workers: `just compare evershop [--rounds R] [--workers 4,8]`.
+# Time a repo's own Playwright setup, the same at N workers on its one database (shared@N), and `isolate run` at N workers:
+# `just compare evershop [--rounds R] [--workers 4,8] [--no-shared]`.
 compare name *args: build
     node dist/scripts/experiments/compare.js {{name}} {{args}}
+
+# Print an earlier compare's report again, with new failures: `just compare-report work/compare/evershop/<timestamp>`.
+compare-report dir: build
+    node dist/scripts/experiments/compare.js --report {{dir}}
 
 # List the repos `just compare` can run.
 compare-list:
