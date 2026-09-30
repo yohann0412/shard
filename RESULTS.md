@@ -176,6 +176,13 @@ Source: `data/results/fixture-app/experiment-a.json` (37 runs, all valid; every 
   
   DECISIONS D-017 cuts isolate's fixed cost: database copies about 12x faster, teardown about 5x faster. compare now picks its arms from their worker count and says when a suite is already parallel. A 5-second suite that is already parallel is still not one isolate can win.
 
+- **evershop on the Apple M5 Pro, with shared@N and the rate limiter off, run by the user** (`data/results/evershop/compare-mac-2026-09-30-no-rate-limit.txt`, one round). This is the cleanest evershop result.
+  - theirs took 1m 41s: 143 passed, 6 failed. The same 6 tests failed in every arm, quickly.
+  - shared@4 and shared@8 are their own config with more workers on the one app and database. They broke 9 and 23 tests that pass in theirs, and a further 15 did not run in each. There were no 429s, so these are shared-state collisions. They were also no faster (1.06x), because the failures spend 77-85% of the test time waiting.
+  - isolate@4 and isolate@8 passed the same 143 tests as theirs and broke none. They took 47 s: **2.1x wall, 2.4-2.5x test phase.**
+  - 8 workers barely beat 4. The slowest worker sets the time (39 s against 16 s of test time per worker on average), so about 4 workers is the useful limit for this suite.
+  - The earlier run with the limiter on (`compare-mac-2026-09-29-shared.txt`) showed 4.5x. That was inflated: theirs spent 63% of its time on failing tests, most of them caused by the limiter.
+
 ## Experiment B: impact map
 
 Protocol: PLAN.md §5 (v3), reviewed in `reviews/experiment-b-protocol.md` before running. Deviations: Experiment B on the fixture ran before Experiment A, at N=4, not at "the best N from Experiment A" (LOG.md 10:35), and without the load gate. B measures which tests fail, not time, but load can still change which tests time out, and it changes the umami maps (below).

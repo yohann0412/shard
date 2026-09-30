@@ -1,0 +1,22 @@
+The user's run on their Mac, pasted into the session on 2026-09-30:
+`just compare evershop --no-rate-limit --rounds 1 --workers 4,8`. One round.
+Warm-ups (not counted): theirs 1m 44.1s, 143 passed, 6 failed; isolate@8 47.6s, 143 passed, 6 failed.
+
+evershop @ 18e02022631c: 1 round(s); Apple M5 Pro, 18 cores, 48 GB, Darwin
+theirs = the repo's own Playwright config (its worker count, one app, one database, app started by isolate --baseline --app); shared@N = the same with --workers=N; isolate@N = one app and database per worker
+wall = the whole isolate command; tests = Playwright's test phase (first test start to last test end); overhead = wall minus tests; new fails = tests that passed in every run of theirs and failed in this arm
+--no-rate-limit: EverShop's in-memory rate limiter (per IP, per app process: 120 /api requests a minute, 300 pages a minute, 8 logins or sign-ups per 15 minutes) is off in every arm. It turns itself off only under NODE_ENV=test, which also moves sessions into the app's memory, so the compiled middleware file is patched to skip it when ISOLATE_NO_RATE_LIMIT=1.
+
+arm        workers  runs  median wall  median tests  overhead  passed  failed  new fails  wall speedup  tests speedup
+theirs           1     1     1m 41.0s      1m 36.9s      4.1s     143       6          -         1.00x          1.00x
+shared@4         4     1     1m 34.9s      1m 31.8s      3.1s     119      15          9         1.06x          1.06x
+shared@8         8     1     1m 35.5s      1m 31.6s      3.9s     105      29         23         1.06x          1.06x
+isolate@4        4     1        47.2s         40.9s      6.3s     143       6          0         2.14x          2.37x
+isolate@8        8     1        46.8s         39.0s      7.8s     143       6          0         2.16x          2.49x
+
+Failures (medians per run; new = passed in every run of theirs):
+- theirs: 6 failed (6 other), 0 did not run after a failure; failed tests took 3.1s of 1m 33.5s (3%) of the summed test time
+- shared@4: 15 failed (1 timeout, 14 other); 9 new (passed in theirs: 1 timeout, 8 other), 15 did not run after a failure; failed tests took 2m 52.5s of 3m 44.4s (77%) of the summed test time
+- shared@8: 29 failed (2 timeout, 27 other); 23 new (passed in theirs: 2 timeout, 21 other), 15 did not run after a failure; failed tests took 3m 57.2s of 4m 38.3s (85%) of the summed test time
+- isolate@4: 6 failed (6 other); none of them new, 0 did not run after a failure; failed tests took 3.6s of 1m 42.4s (4%) of the summed test time
+- isolate@8: 6 failed (6 other); none of them new, 0 did not run after a failure; failed tests took 5.0s of 2m 09.7s (4%) of the summed test time
